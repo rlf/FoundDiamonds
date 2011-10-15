@@ -29,24 +29,24 @@ public class FoundDiamondsLoadSettings {
 		FoundDiamondsPluginProperties properties = new FoundDiamondsPluginProperties(propertiesFile);
 		properties.load();
                 
-		randomitems = properties.getBoolean("Random awards for finding ores?: ", true);
-		RandomItem1= properties.getInteger("RandomItem1: ", 265);
-		RandomItem2= properties.getInteger("RandomItem2: ", 263);
-                RandomItem3= properties.getInteger("RandomItem3: ", 341);
-		showmessage = properties.getBoolean("Broadcast when players find ores?: ", true);
-                broadcastmessage = properties.getString("Broadcast_Message: ", "@Player@ just found @BlockName@!");
-                thirtysecondwait = properties.getBoolean("20 seconds wait between broadcasts?: ", true);
-		diamond = properties.getBoolean("Broadcast for diamond: ", true);
-		redstone = properties.getBoolean("Broadcast for redstone: ", false);
-		gold = properties.getBoolean("Broadcast for gold: ", true);
-		iron = properties.getBoolean("Broadcast for iron: ", false);
-		lupuslazuli = properties.getBoolean("Broadcast for lapis: ", true);
-		diamondadmin = properties.getBoolean("Diamond admin alert: ", false);
-		redstoneadmin = properties.getBoolean("Redstone admin alert: ", false);
-		goldadmin = properties.getBoolean("Gold admin alert: ", false);
-		ironadmin = properties.getBoolean("Iron admin alert: ", false);
-		lupuslazuliadmin = properties.getBoolean("Lapis admin alert: ", false);
-		logging = properties.getBoolean("Log_Ore_Finding?: ", false);
+		randomitems = properties.getBoolean("RandomAwardsForFindingOres?:", true);
+		RandomItem1= properties.getInteger("RandomItem1:", 265);
+		RandomItem2= properties.getInteger("RandomItem2:", 263);
+                RandomItem3= properties.getInteger("RandomItem3:", 341);
+		showmessage = properties.getBoolean("BroadcastWhenPlayersFindOres?:", true);
+                broadcastmessage = properties.getString("BroadcastMessage:", "@Player@ just found @BlockName@!");
+                thirtysecondwait = properties.getBoolean("20SecondWaitBetweenBroadcasts?:", true);
+		diamond = properties.getBoolean("BroadcastForDiamond:", true);
+		redstone = properties.getBoolean("BroadcastForRedstone:", false);
+		gold = properties.getBoolean("BroadcastForGold:", true);
+		iron = properties.getBoolean("BroadcastForIron:", false);
+		lupuslazuli = properties.getBoolean("BroadcastForLapis:", true);
+		diamondadmin = properties.getBoolean("DiamondAdminAlerts:", false);
+		redstoneadmin = properties.getBoolean("RedstoneAdminAlerts:", false);
+		goldadmin = properties.getBoolean("GoldAdminAlerts:", false);
+		ironadmin = properties.getBoolean("IronAdminAlerts:", false);
+		lupuslazuliadmin = properties.getBoolean("LapisAdminAlert:", false);
+		logging = properties.getBoolean("LogOreFinding?:", false);
 		properties.save("===[FoundDiamonds] Configuration===");
 	}	
 }
