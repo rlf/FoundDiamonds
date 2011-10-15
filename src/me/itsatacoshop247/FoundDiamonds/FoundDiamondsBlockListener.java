@@ -14,11 +14,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockListener;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 
-import me.itsatacoshop247.FoundDiamonds.FoundDiamondsLoadSettings;
-import com.nijiko.permissions.PermissionHandler;
-import com.nijikokun.bukkit.Permissions.Permissions;
+//import com.nijiko.permissions.PermissionHandler;
+//import com.nijikokun.bukkit.Permissions.Permissions;
 
 public class FoundDiamondsBlockListener extends BlockListener  {
 	public static FoundDiamonds plugin;
@@ -29,11 +27,11 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 	private long lastTimelapis=0;
 	private String playername;
 	private String blockname;
-	public static PermissionHandler Permissions;
+	//public static PermissionHandler Permissions;
 	public FoundDiamondsBlockListener(FoundDiamonds instance) {
 		plugin = instance;
 	}
-	@SuppressWarnings("deprecation")
+	//@SuppressWarnings("deprecation")
 	public void onBlockBreak(BlockBreakEvent event){
 		
 		int randomnumber = (int)(Math.random()*100);
@@ -105,9 +103,9 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 			if (FoundDiamondsLoadSettings.randomitems){
 				if(randomnumber < 11 && randomnumber > 5){
 					if(FoundDiamondsLoadSettings.sixtoten == 263) {
-						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got somme coal!");
+						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some coal");
 					} else {
-						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got somme " +FoundDiamondsLoadSettings.sixtoten + "!");
+						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " +FoundDiamondsLoadSettings.sixtoten + "!");
 					}
 					for(Player p: plugin.getServer().getOnlinePlayers()){
 
@@ -116,10 +114,11 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 					}
 				}	
 				if(randomnumber < 6){
-					if(FoundDiamondsLoadSettings.onetofive == 263) {
-						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got somme Iron Ignots!");
+                                    //changed this to 265, iron ingots
+					if(FoundDiamondsLoadSettings.onetofive == 265) {
+						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some Iron Ignots");
 					} else {
-						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got somme " +FoundDiamondsLoadSettings.onetofive + "!");
+						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " +FoundDiamondsLoadSettings.onetofive + "!");
 					}
 					for(Player p: plugin.getServer().getOnlinePlayers()){
 
@@ -171,14 +170,22 @@ public class FoundDiamondsBlockListener extends BlockListener  {
         if (!(sender instanceof Player)) return true;
         
         Player player = (Player) sender;
-        if (Permissions != null) return Permissions.has(player, node);
-        else {
-                Plugin test = plugin.getServer().getPluginManager().getPlugin("Permissions");
-                if (test != null) {
-                        Permissions = ((Permissions) test).getHandler();
-                        return Permissions.has(player, node);
-                }
+        if(player.isOp()){
+            return true;
+        }      
+        else if(player.hasPermission(node)){
+            return true;
+        //if (Permissions != null) return Permissions.has(player, node);
+        //else {
+               // Plugin test = plugin.getServer().getPluginManager().getPlugin("Permissions");
+                //if (test != null) {
+                       // Permissions = ((Permissions) test).getHandler();
+                       // return Permissions.has(player, node);
+               // }
+        }else{
+            player.sendMessage("You don't have sufficient permissions.");
+            return false;
         }
-        return player.isOp();
+     //   return player.isOp();
 }
 }

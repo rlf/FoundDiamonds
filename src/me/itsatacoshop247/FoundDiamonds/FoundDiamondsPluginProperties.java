@@ -26,7 +26,7 @@ public void load() {
 	try {
 		load(new FileInputStream(this.fileName));
 	} catch (IOException ex) {
-		ex.printStackTrace();
+            log.log(Level.SEVERE, "[" + plugin.pName + "]: Unable to load configuration file!" + this.fileName, ex);
 	}
 	}
 }
@@ -34,7 +34,7 @@ public void save(String start) {
 	try {
 		store(new FileOutputStream(this.fileName), start);
 	} catch (IOException ex) {
-		ex.printStackTrace();
+            log.log(Level.SEVERE, "[" + plugin.pName + "]: Unable to save "+this.fileName, ex);
 	}
 }
 public void save() {

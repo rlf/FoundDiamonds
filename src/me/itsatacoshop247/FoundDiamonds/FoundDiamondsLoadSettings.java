@@ -2,7 +2,7 @@ package me.itsatacoshop247.FoundDiamonds;
 
 //import org.bukkit.ChatColor;
 
-import me.itsatacoshop247.FoundDiamonds.FoundDiamondsPluginProperties;
+//import me.itsatacoshop247.FoundDiamonds.FoundDiamondsPluginProperties;
 
 public class FoundDiamondsLoadSettings {
 	static int onetofive;
@@ -33,17 +33,17 @@ public class FoundDiamondsLoadSettings {
 		showmessage = properties.getBoolean("showmmessage", true);
 		randomitems = properties.getBoolean("randomitems", true);
 		diamond = properties.getBoolean("diamond", true);
-		redstone = properties.getBoolean("redstone", true);
+		redstone = properties.getBoolean("redstone", false);
 		gold = properties.getBoolean("gold", true);
-		iron = properties.getBoolean("iron", true);
+		iron = properties.getBoolean("iron", false);
 		lupuslazuli = properties.getBoolean("lupuslazuli", true);
-		diamondadmin = properties.getBoolean("diamond admin", true);
-		redstoneadmin = properties.getBoolean("redstone admin", true);
-		goldadmin = properties.getBoolean("gold admin", true);
-		ironadmin = properties.getBoolean("iron admin", true);
-		lupuslazuliadmin = properties.getBoolean("lupuslazuli admin", true);
+		diamondadmin = properties.getBoolean("diamond admin", false);
+		redstoneadmin = properties.getBoolean("redstone admin", false);
+		goldadmin = properties.getBoolean("gold admin", false);
+		ironadmin = properties.getBoolean("iron admin", false);
+		lupuslazuliadmin = properties.getBoolean("lupuslazuli admin", false);
 		thirtysecondwait = properties.getBoolean("thirtysecondwait", true);
-		logging = properties.getBoolean("Log_Ore_Finding?", true);
+		logging = properties.getBoolean("Log_Ore_Finding?", false);
 		broadcastmessage = properties.getString("Broadcast_Message", "@Player@ just found @BlockName@!");
 		properties.save("===FoundDiamonds Main Configuration===");
 	}	
