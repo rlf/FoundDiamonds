@@ -109,9 +109,9 @@ public class FoundDiamondsBlockListener extends BlockListener  {
                             
 				if(randomnumber < 50){
 					if(FoundDiamondsLoadSettings.RandomItem1 == 263) {
-						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " + ChatColor.GRAY + "coal");
+						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " + ChatColor.GRAY + "Coal");
 					} else {
-						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " +Material.getMaterial(FoundDiamondsLoadSettings.RandomItem1).name() + "!");
+						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " +Material.getMaterial(FoundDiamondsLoadSettings.RandomItem1).name());
 					}
 					for(Player p: plugin.getServer().getOnlinePlayers()){
 
@@ -123,7 +123,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 					if(FoundDiamondsLoadSettings.RandomItem2 == 265) {
 						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got " + ChatColor.GRAY + "Iron Ignots");
 					} else {
-						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " +Material.getMaterial(FoundDiamondsLoadSettings.RandomItem2).name() + "!");
+						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " +Material.getMaterial(FoundDiamondsLoadSettings.RandomItem2).name());
 					}
 					for(Player p: plugin.getServer().getOnlinePlayers()){
 
@@ -133,9 +133,9 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 				}
                                else if(randomnumber > 100 && randomnumber < 150){
 					if(FoundDiamondsLoadSettings.RandomItem3 == 341) {
-						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some Iron Ignots");
+						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " + ChatColor.GREEN + "Slime Balls");
 					} else {
-						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " + Material.getMaterial(FoundDiamondsLoadSettings.RandomItem3).name() + "!");
+						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " + Material.getMaterial(FoundDiamondsLoadSettings.RandomItem3).name());
 					}
 					for(Player p: plugin.getServer().getOnlinePlayers()){
 						p.getInventory().addItem(new ItemStack(FoundDiamondsLoadSettings.RandomItem3, getRandomAmount()));
