@@ -97,7 +97,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 				lastTimediamonds = System.currentTimeMillis();
 			}
 			if(FoundDiamondsLoadSettings.showmessage){
-				plugin.getServer().broadcastMessage(ChatColor.BLUE + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
+				plugin.getServer().broadcastMessage(ChatColor.AQUA + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
 			}
 			//plugin.getServer().broadcastMessage(ChatColor.RED + "DEBUGINNG: " + randomnumber + ");
 			if (FoundDiamondsLoadSettings.randomitems){
@@ -160,7 +160,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 				lastTimelapis = System.currentTimeMillis();
 			}
 			if(FoundDiamondsLoadSettings.showmessage){
-				plugin.getServer().broadcastMessage(ChatColor.AQUA + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
+				plugin.getServer().broadcastMessage(ChatColor.DARK_BLUE + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
 			}
 			//plugin.getServer().broadcastMessage(ChatColor.RED + "DEBUGINNG: " + randomnumber + ");
 		}
