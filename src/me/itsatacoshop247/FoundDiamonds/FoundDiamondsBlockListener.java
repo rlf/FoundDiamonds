@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 
+import java.util.Random;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -34,7 +35,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 	//@SuppressWarnings("deprecation")
 	public void onBlockBreak(BlockBreakEvent event){
 		
-		int randomnumber = (int)(Math.random()*100);
+		int randomnumber = (int)(Math.random()*1000);
 		
 		Block block = event.getBlock();
 		Player player = event.getPlayer();
@@ -46,7 +47,8 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 		Date todaysDate = new java.util.Date();
 		SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss");
 		String formattedDate = formatter.format(todaysDate);
-		
+                
+//logging		
 		if(block.getType() == Material.DIAMOND_ORE && FoundDiamondsLoadSettings.logging){
 			try {
 			    BufferedWriter out = new BufferedWriter(new FileWriter("plugins/FoundDiamonds/logs.txt", true));
@@ -56,6 +58,8 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 			} catch (IOException e) {
 			}
 		}
+             
+//admin messages
 		if(block.getType() == Material.DIAMOND_ORE && FoundDiamondsLoadSettings.diamondadmin){
 			for(Player p: plugin.getServer().getOnlinePlayers()){
 				if(hasPermission(p, "FD.admin")){
@@ -91,78 +95,86 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 				}
 			}
 		}
-		
+//timer		
 		if(block.getType() == Material.DIAMOND_ORE && FoundDiamondsLoadSettings.diamond && System.currentTimeMillis()-lastTimediamonds > 25000){ //this if statement is entered when the block broken is Diamond
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
 				lastTimediamonds = System.currentTimeMillis();
 			}
+//broadcast message
 			if(FoundDiamondsLoadSettings.showmessage){
 				plugin.getServer().broadcastMessage(ChatColor.AQUA + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
 			}
-			//plugin.getServer().broadcastMessage(ChatColor.RED + "DEBUGINNG: " + randomnumber + ");
+//random items
 			if (FoundDiamondsLoadSettings.randomitems){
-				if(randomnumber < 11 && randomnumber > 5){
-					if(FoundDiamondsLoadSettings.sixtoten == 263) {
-						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some coal");
+                            
+				if(randomnumber < 50){
+					if(FoundDiamondsLoadSettings.RandomItem1 == 263) {
+						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " + ChatColor.GRAY + "coal");
 					} else {
-						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " +FoundDiamondsLoadSettings.sixtoten + "!");
+						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " +Material.getMaterial(FoundDiamondsLoadSettings.RandomItem1).name() + "!");
 					}
 					for(Player p: plugin.getServer().getOnlinePlayers()){
 
-						p.getInventory().addItem(new ItemStack(FoundDiamondsLoadSettings.sixtoten, randomnumber));
+						p.getInventory().addItem(new ItemStack(FoundDiamondsLoadSettings.RandomItem1, getRandomAmount()));
 						p.updateInventory();
 					}
 				}	
-				if(randomnumber < 6){
-                                    //changed this to 265, iron ingots
-					if(FoundDiamondsLoadSettings.onetofive == 265) {
-						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some Iron Ignots");
+                                else if(randomnumber > 50 && randomnumber < 100){
+					if(FoundDiamondsLoadSettings.RandomItem2 == 265) {
+						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got " + ChatColor.GRAY + "Iron Ignots");
 					} else {
-						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " +FoundDiamondsLoadSettings.onetofive + "!");
+						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " +Material.getMaterial(FoundDiamondsLoadSettings.RandomItem2).name() + "!");
 					}
 					for(Player p: plugin.getServer().getOnlinePlayers()){
 
-						p.getInventory().addItem(new ItemStack(FoundDiamondsLoadSettings.onetofive, randomnumber));
+						p.getInventory().addItem(new ItemStack(FoundDiamondsLoadSettings.RandomItem2, getRandomAmount()));
+						p.updateInventory();
+					}
+				}
+                               else if(randomnumber > 100 && randomnumber < 150){
+					if(FoundDiamondsLoadSettings.RandomItem3 == 341) {
+						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some Iron Ignots");
+					} else {
+						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " + Material.getMaterial(FoundDiamondsLoadSettings.RandomItem3).name() + "!");
+					}
+					for(Player p: plugin.getServer().getOnlinePlayers()){
+						p.getInventory().addItem(new ItemStack(FoundDiamondsLoadSettings.RandomItem3, getRandomAmount()));
 						p.updateInventory();
 					}
 				}
 			}
 		}
-		if(block.getType() == Material.REDSTONE_ORE && FoundDiamondsLoadSettings.redstone && System.currentTimeMillis()-lastTimeredstone > 30000){ //this if statement is entered when the block broken is Diamond
+		if(block.getType() == Material.REDSTONE_ORE && FoundDiamondsLoadSettings.redstone && System.currentTimeMillis()-lastTimeredstone > 20000){ //this if statement is entered when the block broken is Diamond
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
 				lastTimeredstone = System.currentTimeMillis();
 			}
 			if(FoundDiamondsLoadSettings.showmessage){
 				plugin.getServer().broadcastMessage(ChatColor.RED + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
 			}
-			//plugin.getServer().broadcastMessage(ChatColor.RED + "DEBUGINNG: " + randomnumber + ");
 		}
-		if(block.getType() == Material.GOLD_ORE && FoundDiamondsLoadSettings.gold && System.currentTimeMillis()-lastTimegold > 30000){ //this if statement is entered when the block broken is Diamond
+		if(block.getType() == Material.GOLD_ORE && FoundDiamondsLoadSettings.gold && System.currentTimeMillis()-lastTimegold > 20000){ //this if statement is entered when the block broken is Diamond
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
 				lastTimegold = System.currentTimeMillis();
 			}
 			if(FoundDiamondsLoadSettings.showmessage){
 				plugin.getServer().broadcastMessage(ChatColor.GOLD + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
 			}
-			//plugin.getServer().broadcastMessage(ChatColor.RED + "DEBUGINNG: " + randomnumber + ");
 		}
-		if(block.getType() == Material.IRON_ORE && FoundDiamondsLoadSettings.iron && System.currentTimeMillis()-lastTimeiron > 30000){ //this if statement is entered when the block broken is Diamond
+		if(block.getType() == Material.IRON_ORE && FoundDiamondsLoadSettings.iron && System.currentTimeMillis()-lastTimeiron > 20000){ //this if statement is entered when the block broken is Diamond
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
 				lastTimeiron = System.currentTimeMillis();
 			}
 			if(FoundDiamondsLoadSettings.showmessage){
 				plugin.getServer().broadcastMessage(ChatColor.DARK_GRAY + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
 			}
-			//plugin.getServer().broadcastMessage(ChatColor.RED + "DEBUGINNG: " + randomnumber + ");
 		}
-		if(block.getType() == Material.LAPIS_ORE && FoundDiamondsLoadSettings.lupuslazuli && System.currentTimeMillis()-lastTimelapis > 30000){ //this if statement is entered when the block broken is Diamond
+		if(block.getType() == Material.LAPIS_ORE && FoundDiamondsLoadSettings.lupuslazuli && System.currentTimeMillis()-lastTimelapis > 20000){ //this if statement is entered when the block broken is Diamond
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
 				lastTimelapis = System.currentTimeMillis();
 			}
 			if(FoundDiamondsLoadSettings.showmessage){
 				plugin.getServer().broadcastMessage(ChatColor.DARK_BLUE + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
 			}
-			//plugin.getServer().broadcastMessage(ChatColor.RED + "DEBUGINNG: " + randomnumber + ");
 		}
 		
 	}
@@ -188,4 +200,9 @@ public class FoundDiamondsBlockListener extends BlockListener  {
         }
      //   return player.isOp();
 }
+    public int getRandomAmount(){
+        Random rand = new Random();
+        int amount = rand.nextInt(5);
+        return amount;
+    }
 }

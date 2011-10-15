@@ -5,8 +5,9 @@ package me.itsatacoshop247.FoundDiamonds;
 //import me.itsatacoshop247.FoundDiamonds.FoundDiamondsPluginProperties;
 
 public class FoundDiamondsLoadSettings {
-	static int onetofive;
-	static int sixtoten;
+	static int RandomItem1;
+	static int RandomItem2;
+        static int RandomItem3;
 	static boolean showmessage;
 	static boolean randomitems;
 	static boolean diamond;
@@ -27,24 +28,25 @@ public class FoundDiamondsLoadSettings {
 		String propertiesFile = FoundDiamonds.maindirectory + "MainConfig.properties";
 		FoundDiamondsPluginProperties properties = new FoundDiamondsPluginProperties(propertiesFile);
 		properties.load();
-		
-		onetofive= properties.getInteger("onetofive", 265);
-		sixtoten= properties.getInteger("sixtoten", 263);
-		showmessage = properties.getBoolean("showmmessage", true);
-		randomitems = properties.getBoolean("randomitems", true);
-		diamond = properties.getBoolean("diamond", true);
-		redstone = properties.getBoolean("redstone", false);
-		gold = properties.getBoolean("gold", true);
-		iron = properties.getBoolean("iron", false);
-		lupuslazuli = properties.getBoolean("lupuslazuli", true);
-		diamondadmin = properties.getBoolean("diamond admin", false);
-		redstoneadmin = properties.getBoolean("redstone admin", false);
-		goldadmin = properties.getBoolean("gold admin", false);
-		ironadmin = properties.getBoolean("iron admin", false);
-		lupuslazuliadmin = properties.getBoolean("lupuslazuli admin", false);
-		thirtysecondwait = properties.getBoolean("thirtysecondwait", true);
-		logging = properties.getBoolean("Log_Ore_Finding?", false);
-		broadcastmessage = properties.getString("Broadcast_Message", "@Player@ just found @BlockName@!");
-		properties.save("===FoundDiamonds Main Configuration===");
+                
+		randomitems = properties.getBoolean("Random awards for finding ores?: ", true);
+		RandomItem1= properties.getInteger("RandomItem1: ", 265);
+		RandomItem2= properties.getInteger("RandomItem2: ", 263);
+                RandomItem3= properties.getInteger("RandomItem3: ", 341);
+		showmessage = properties.getBoolean("Broadcast when players find ores?: ", true);
+                broadcastmessage = properties.getString("Broadcast_Message: ", "@Player@ just found @BlockName@!");
+                thirtysecondwait = properties.getBoolean("20 seconds wait between broadcasts?: ", true);
+		diamond = properties.getBoolean("Broadcast for diamond: ", true);
+		redstone = properties.getBoolean("Broadcast for redstone: ", false);
+		gold = properties.getBoolean("Broadcast for gold: ", true);
+		iron = properties.getBoolean("Broadcast for iron: ", false);
+		lupuslazuli = properties.getBoolean("Broadcast for lapis: ", true);
+		diamondadmin = properties.getBoolean("Diamond admin alert: ", false);
+		redstoneadmin = properties.getBoolean("Redstone admin alert: ", false);
+		goldadmin = properties.getBoolean("Gold admin alert: ", false);
+		ironadmin = properties.getBoolean("Iron admin alert: ", false);
+		lupuslazuliadmin = properties.getBoolean("Lapis admin alert: ", false);
+		logging = properties.getBoolean("Log_Ore_Finding?: ", false);
+		properties.save("===[FoundDiamonds] Configuration===");
 	}	
 }
