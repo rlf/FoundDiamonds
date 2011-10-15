@@ -108,8 +108,8 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 			if (FoundDiamondsLoadSettings.randomitems){
                             
 				if(randomnumber < 50){
-					if(FoundDiamondsLoadSettings.RandomItem1 == 263) {
-						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " + ChatColor.GRAY + "Coal");
+					if(FoundDiamondsLoadSettings.RandomItem1 == 265) {
+						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " + ChatColor.GRAY + "Iron");
 					} else {
 						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " +Material.getMaterial(FoundDiamondsLoadSettings.RandomItem1).name());
 					}
@@ -120,8 +120,8 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 					}
 				}	
                                 else if(randomnumber > 50 && randomnumber < 100){
-					if(FoundDiamondsLoadSettings.RandomItem2 == 265) {
-						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got " + ChatColor.GRAY + "Iron Ignots");
+					if(FoundDiamondsLoadSettings.RandomItem2 == 263) {
+						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got " + ChatColor.GRAY + "Coal");
 					} else {
 						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " +Material.getMaterial(FoundDiamondsLoadSettings.RandomItem2).name());
 					}
