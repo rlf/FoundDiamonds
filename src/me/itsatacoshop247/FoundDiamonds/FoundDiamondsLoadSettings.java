@@ -25,7 +25,7 @@ public class FoundDiamondsLoadSettings {
 	static String broadcastmessage;
 	
 	public static void loadMain(){
-		String propertiesFile = FoundDiamonds.maindirectory + "MainConfig.properties";
+		String propertiesFile = FoundDiamonds.maindirectory + "FoundDiamonds.properties";
 		FoundDiamondsPluginProperties properties = new FoundDiamondsPluginProperties(propertiesFile);
 		properties.load();
                 
