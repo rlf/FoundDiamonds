@@ -10,7 +10,6 @@ import java.util.Random;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockListener;
@@ -57,41 +56,41 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 		}
              
 //admin messages
-		if(block.getType() == Material.DIAMOND_ORE && FoundDiamondsLoadSettings.diamondadmin){
-			for(Player p: plugin.getServer().getOnlinePlayers()){
-				if(p.hasPermission("FD.admin")){
-				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Diamonds(AdminMsg)");
-				}
-			}
-		}
-		if(block.getType() == Material.IRON_ORE  && FoundDiamondsLoadSettings.ironadmin){
-			for(Player p: plugin.getServer().getOnlinePlayers()){
-				if(p.hasPermission("FD.admin")){
-				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Iron(AdminMsg)");
-				}
-			}
-		}
-		if(block.getType() == Material.REDSTONE_ORE  && FoundDiamondsLoadSettings.redstoneadmin){
-			for(Player p: plugin.getServer().getOnlinePlayers()){
-				if(p.hasPermission("FD.admin")){
-				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Redstone(AdminMsg)");
-				}
-			}
-		}
-		if(block.getType() == Material.GOLD_ORE  && FoundDiamondsLoadSettings.goldadmin){
-			for(Player p: plugin.getServer().getOnlinePlayers()){
-				if(p.hasPermission("FD.admin")){
-				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Gold(AdminMsg)");
-				}
-			}
-		}
-		if(block.getType() == Material.LAPIS_ORE  && FoundDiamondsLoadSettings.lupuslazuliadmin){
-			for(Player p: plugin.getServer().getOnlinePlayers()){
-				if(p.hasPermission("FD.admin")){
-				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Lapis Lazul(AdminMsg)");
-				}
-			}
-		}
+//		if(block.getType() == Material.DIAMOND_ORE && FoundDiamondsLoadSettings.diamondadmin){
+//			for(Player p: plugin.getServer().getOnlinePlayers()){
+//				if(p.hasPermission("FD.admin")){
+//				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Diamonds(AdminMsg)");
+//				}
+//			}
+//		}
+//		if(block.getType() == Material.IRON_ORE  && FoundDiamondsLoadSettings.ironadmin){
+//			for(Player p: plugin.getServer().getOnlinePlayers()){
+//				if(p.hasPermission("FD.admin")){
+//				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Iron(AdminMsg)");
+//				}
+//			}
+//		}
+//		if(block.getType() == Material.REDSTONE_ORE  && FoundDiamondsLoadSettings.redstoneadmin){
+//			for(Player p: plugin.getServer().getOnlinePlayers()){
+//				if(p.hasPermission("FD.admin")){
+//				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Redstone(AdminMsg)");
+//				}
+//			}
+//		}
+//		if(block.getType() == Material.GOLD_ORE  && FoundDiamondsLoadSettings.goldadmin){
+//			for(Player p: plugin.getServer().getOnlinePlayers()){
+//				if(p.hasPermission("FD.admin")){
+//				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Gold(AdminMsg)");
+//				}
+//			}
+//		}
+//		if(block.getType() == Material.LAPIS_ORE  && FoundDiamondsLoadSettings.lupuslazuliadmin){
+//			for(Player p: plugin.getServer().getOnlinePlayers()){
+//				if(p.hasPermission("FD.admin")){
+//				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Lapis Lazul(AdminMsg)");
+//				}
+//			}
+//		}
 //timer		
 		if(block.getType() == Material.DIAMOND_ORE && FoundDiamondsLoadSettings.diamond && System.currentTimeMillis()-lastTimediamonds > 25000){ //this if statement is entered when the block broken is Diamond
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
