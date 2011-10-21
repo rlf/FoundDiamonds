@@ -179,27 +179,18 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 		
 	}
     public Boolean hasPermission(CommandSender sender, String node) {
-        if (!(sender instanceof Player)) return true;
-        
-        Player player = (Player) sender;
-        if(player.isOp()){
-            return true;
-        }      
-        else if(player.hasPermission(node)){
-            return true;
-        //if (Permissions != null) return Permissions.has(player, node);
-        //else {
-               // Plugin test = plugin.getServer().getPluginManager().getPlugin("Permissions");
-                //if (test != null) {
-                       // Permissions = ((Permissions) test).getHandler();
-                       // return Permissions.has(player, node);
-               // }
-        }else{
-            player.sendMessage("You don't have sufficient permissions.");
-            return false;
+        boolean hasPerm = false;
+        if (sender instanceof Player){
+              Player player = (Player) sender;
+              if(player.hasPermission(node)){
+                  return true;
+              }else{
+                  return false;
+              }
         }
-     //   return player.isOp();
-}
+        return false;
+    }
+        
     public int getRandomAmount(){
         Random rand = new Random();
         int amount = rand.nextInt(5);
