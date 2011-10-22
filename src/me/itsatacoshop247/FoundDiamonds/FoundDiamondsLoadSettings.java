@@ -23,6 +23,8 @@ public class FoundDiamondsLoadSettings {
 	static boolean thirtysecondwait;
 	static boolean logging;
 	static String broadcastmessage;
+        static boolean kickontrapbreak;
+        static boolean banontrapbreak;
 	
 	public static void loadMain(){
 		String propertiesFile = FoundDiamonds.maindirectory + "FoundDiamonds.properties";
@@ -47,6 +49,9 @@ public class FoundDiamondsLoadSettings {
 		ironadmin = properties.getBoolean("IronAdminAlerts:", false);
 		lupuslazuliadmin = properties.getBoolean("LapisAdminAlert:", false);
 		logging = properties.getBoolean("LogOreFinding?:", false);
+                kickontrapbreak = properties.getBoolean("KickOnTrapBreak?", true);
+                banontrapbreak = properties.getBoolean("BanOnTrapBreak?", false);
+                
 		properties.save("===[FoundDiamonds] Configuration===");
 	}	
 }

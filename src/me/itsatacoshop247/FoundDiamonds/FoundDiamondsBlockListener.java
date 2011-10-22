@@ -1,12 +1,20 @@
 package me.itsatacoshop247.FoundDiamonds;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
 import java.util.Date;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
-
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -24,11 +32,13 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 	private long lastTimelapis=0;
 	private String playername;
 	private String blockname;
+        public static final Logger log = Logger.getLogger("Minecraft");
         
 	public FoundDiamondsBlockListener(FoundDiamonds instance) {
 		plugin = instance;
 	}
-	//@SuppressWarnings("deprecation")
+    //@SuppressWarnings("deprecation")
+    @Override
 	public void onBlockBreak(BlockBreakEvent event){
 		
 		int randomnumber = (int)(Math.random()*1000);
@@ -36,14 +46,39 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 		Block block = event.getBlock();
 		Player player = event.getPlayer();
 		
-		playername = event.getPlayer().getName();
-		blockname = event.getBlock().getType().toString();
-		blockname = blockname.toLowerCase().replace("_"," ");
+		this.playername = event.getPlayer().getName();
+		this.blockname = event.getBlock().getType().toString();
+		this.blockname = blockname.toLowerCase().replace("_"," ");
 		
-		Date todaysDate = new java.util.Date();
+		Date todaysDate = new Date();
 		SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss");
 		String formattedDate = formatter.format(todaysDate);
                 
+      if ((block.getType() == Material.DIAMOND_ORE) && (isTrapBlock(player, block))) {
+        plugin.getServer().broadcastMessage(ChatColor.DARK_RED + player.getName() + " just broke a FoundDiamonds trap block");
+        removeTrapBlockLine(block);
+      try {
+        BufferedWriter out = new BufferedWriter(new FileWriter("plugins/FoundDiamonds/logs.txt", true));
+        out.write("");
+        out.newLine();
+        out.write("TRAP BLOCK ACTIVATED");
+        out.newLine();
+        out.write("[" + formattedDate + "] " + "Trap block broken by " + player.getName() + " at (x-" + block.getX() + ", y-" + block.getY() + ", z-" + block.getZ() + ")");
+        out.newLine();
+        out.write("");
+        out.newLine();
+        out.close();
+      } catch (IOException localIOException) {
+          log.log(Level.SEVERE, "Trap broken!  Unable to log to file!", localIOException);
+      }
+      if (FoundDiamondsLoadSettings.kickontrapbreak) {
+        player.kickPlayer(this.playername);
+      }
+      if (FoundDiamondsLoadSettings.banontrapbreak){
+        player.setBanned(true);
+      }
+      return;
+    }
 //logging		
 		if(block.getType() == Material.DIAMOND_ORE && FoundDiamondsLoadSettings.logging){
 			try {
@@ -52,45 +87,46 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 			    out.newLine();
 			    out.close();
 			} catch (IOException e) {
+                            log.log(Level.SEVERE, "Unable to log Diamond block to file!", e);
 			}
 		}
              
 //admin messages
-//		if(block.getType() == Material.DIAMOND_ORE && FoundDiamondsLoadSettings.diamondadmin){
-//			for(Player p: plugin.getServer().getOnlinePlayers()){
-//				if(p.hasPermission("FD.admin")){
-//				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Diamonds(AdminMsg)");
-//				}
-//			}
-//		}
-//		if(block.getType() == Material.IRON_ORE  && FoundDiamondsLoadSettings.ironadmin){
-//			for(Player p: plugin.getServer().getOnlinePlayers()){
-//				if(p.hasPermission("FD.admin")){
-//				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Iron(AdminMsg)");
-//				}
-//			}
-//		}
-//		if(block.getType() == Material.REDSTONE_ORE  && FoundDiamondsLoadSettings.redstoneadmin){
-//			for(Player p: plugin.getServer().getOnlinePlayers()){
-//				if(p.hasPermission("FD.admin")){
-//				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Redstone(AdminMsg)");
-//				}
-//			}
-//		}
-//		if(block.getType() == Material.GOLD_ORE  && FoundDiamondsLoadSettings.goldadmin){
-//			for(Player p: plugin.getServer().getOnlinePlayers()){
-//				if(p.hasPermission("FD.admin")){
-//				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Gold(AdminMsg)");
-//				}
-//			}
-//		}
-//		if(block.getType() == Material.LAPIS_ORE  && FoundDiamondsLoadSettings.lupuslazuliadmin){
-//			for(Player p: plugin.getServer().getOnlinePlayers()){
-//				if(p.hasPermission("FD.admin")){
-//				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Lapis Lazul(AdminMsg)");
-//				}
-//			}
-//		}
+		if(block.getType() == Material.DIAMOND_ORE && FoundDiamondsLoadSettings.diamondadmin){
+			for(Player p: plugin.getServer().getOnlinePlayers()){
+				if(p.hasPermission("FD.admin")){
+				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Diamonds(AdminMsg)");
+				}
+			}
+		}
+		if(block.getType() == Material.IRON_ORE  && FoundDiamondsLoadSettings.ironadmin){
+			for(Player p: plugin.getServer().getOnlinePlayers()){
+				if(p.hasPermission("FD.admin")){
+				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Iron(AdminMsg)");
+				}
+			}
+		}
+		if(block.getType() == Material.REDSTONE_ORE  && FoundDiamondsLoadSettings.redstoneadmin){
+			for(Player p: plugin.getServer().getOnlinePlayers()){
+				if(p.hasPermission("FD.admin")){
+				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Redstone(AdminMsg)");
+				}
+			}
+		}
+		if(block.getType() == Material.GOLD_ORE  && FoundDiamondsLoadSettings.goldadmin){
+			for(Player p: plugin.getServer().getOnlinePlayers()){
+				if(p.hasPermission("FD.admin")){
+				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Gold(AdminMsg)");
+				}
+			}
+		}
+		if(block.getType() == Material.LAPIS_ORE  && FoundDiamondsLoadSettings.lupuslazuliadmin){
+			for(Player p: plugin.getServer().getOnlinePlayers()){
+				if(p.hasPermission("FD.admin")){
+				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Lapis Lazul(AdminMsg)");
+				}
+			}
+		}
 //timer		
 		if(block.getType() == Material.DIAMOND_ORE && FoundDiamondsLoadSettings.diamond && System.currentTimeMillis()-lastTimediamonds > 25000){ //this if statement is entered when the block broken is Diamond
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
@@ -180,4 +216,66 @@ public class FoundDiamondsBlockListener extends BlockListener  {
         int amount = rand.nextInt(5);
         return amount;
     }
+    
+    private boolean isTrapBlock(Player p, Block blocky) {
+    int count = 0;
+    int x = blocky.getX();
+    int y = blocky.getY();
+    int z = blocky.getZ();
+    String check = x + ";" + y + ";" + z;
+    try {
+      FileInputStream fstream = new FileInputStream("plugins/FoundDiamonds/traplocations.txt");
+      DataInputStream in = new DataInputStream(fstream);
+      BufferedReader br = new BufferedReader(new InputStreamReader(in));
+      String strLine;
+      while ((strLine = br.readLine()) != null)
+      {
+        //String strLine;
+        if (strLine.equals(check)) {
+          count = 1;
+        }
+      }
+
+      in.close();
+    }
+    catch (Exception localException) {
+         log.log(Level.SEVERE, "Unable to read Trap blocks from file!", localException);
+    }
+    return count > 0;
+  }
+
+  private void removeTrapBlockLine(Block blockz)
+  {
+    int x = blockz.getX();
+    int y = blockz.getY();
+    int z = blockz.getZ();
+    String lineToRemove = x + ";" + y + ";" + z;
+    try {
+      File inputFile = new File("plugins/FoundDiamonds/traplocations.txt");
+      //File tempFile = new File("plugins/DisposalChest/traploactionstemp.txt");
+      File tempFile = new File("plugins/FoundDiamonds/Disposal/traplocationstemp.txt");
+
+      BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+      PrintWriter pw = new PrintWriter(new FileWriter(tempFile));
+      String currentLine;
+      
+      while ((currentLine = reader.readLine()) != null)
+      {
+        //String currentLine;
+        String trimmedLine = currentLine.trim();
+        if (!trimmedLine.equals(lineToRemove)) {
+          pw.println(trimmedLine);
+          pw.flush();    
+        }
+      }
+      reader.close();
+      pw.close();
+      inputFile.delete();
+      tempFile.renameTo(inputFile);
+    }
+    catch (Exception localException)
+    {
+        log.log(Level.SEVERE, "Unable to write trap blocks to file!", localException);
+    }
+  }
 }
