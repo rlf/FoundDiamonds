@@ -72,7 +72,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
           log.log(Level.SEVERE, "Trap broken!  Unable to log to file!", localIOException);
       }
       if (FoundDiamondsLoadSettings.kickontrapbreak) {
-        player.kickPlayer(this.playername);
+        player.kickPlayer("You broke a FoundDiamonds trap block");
       }
       if (FoundDiamondsLoadSettings.banontrapbreak){
         player.setBanned(true);
@@ -230,7 +230,6 @@ public class FoundDiamondsBlockListener extends BlockListener  {
       String strLine;
       while ((strLine = br.readLine()) != null)
       {
-        //String strLine;
         if (strLine.equals(check)) {
           count = 1;
         }
@@ -253,7 +252,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
     try {
       File inputFile = new File("plugins/FoundDiamonds/traplocations.txt");
       //File tempFile = new File("plugins/DisposalChest/traploactionstemp.txt");
-      File tempFile = new File("plugins/FoundDiamonds/Disposal/traplocationstemp.txt");
+      File tempFile = new File("plugins/FoundDiamonds/temp/traplocationstemp.txt");
 
       BufferedReader reader = new BufferedReader(new FileReader(inputFile));
       PrintWriter pw = new PrintWriter(new FileWriter(tempFile));
@@ -261,7 +260,6 @@ public class FoundDiamondsBlockListener extends BlockListener  {
       
       while ((currentLine = reader.readLine()) != null)
       {
-        //String currentLine;
         String trimmedLine = currentLine.trim();
         if (!trimmedLine.equals(lineToRemove)) {
           pw.println(trimmedLine);

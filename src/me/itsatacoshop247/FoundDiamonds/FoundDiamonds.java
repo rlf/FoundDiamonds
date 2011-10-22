@@ -20,7 +20,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class FoundDiamonds extends JavaPlugin {
 	static final String maindirectory = "plugins/FoundDiamonds/";
-        static final String disposaldirectory = "plugins/FoundDiamonds/Disposal";
+        static final String disposaldirectory = "plugins/FoundDiamonds/temp";
 	static File Blocks = new File(maindirectory + "Blocks.txt");
 	static File logs = new File(maindirectory + "logs.txt");
 	public static final Logger log = Logger.getLogger("Minecraft");
@@ -84,6 +84,10 @@ public class FoundDiamonds extends JavaPlugin {
             BufferedWriter out = new BufferedWriter(new FileWriter("plugins/FoundDiamonds/traplocations.txt", true));
             out.write(block1.getX() + ";" + block1.getY() + ";" + block1.getZ());
             out.newLine();
+            out.write(block2.getX() + ";" + block2.getY() + ";" + block2.getZ());
+            out.newLine();
+            out.write(block3.getX() + ";" + block3.getY() + ";" + block3.getZ());
+            out.newLine();
             out.close();
           } catch (IOException e) {
               log.log(Level.SEVERE, pName + " Unable to write trap locations to file!", e);
@@ -101,6 +105,10 @@ public class FoundDiamonds extends JavaPlugin {
           try {
             BufferedWriter out = new BufferedWriter(new FileWriter("plugins/FoundDiamonds/traplocations.txt", true));
             out.write(block1.getX() + ";" + block1.getY() + ";" + block1.getZ());
+            out.newLine();
+            out.write(block2.getX() + ";" + block2.getY() + ";" + block2.getZ());
+            out.newLine();
+            out.write(block3.getX() + ";" + block3.getY() + ";" + block3.getZ());
             out.newLine();
             out.close();
           } catch (IOException e) {
@@ -120,6 +128,10 @@ public class FoundDiamonds extends JavaPlugin {
           try {
             BufferedWriter out = new BufferedWriter(new FileWriter("plugins/FoundDiamonds/traplocations.txt", true));
             out.write(block1.getX() + ";" + block1.getY() + ";" + block1.getZ());
+            out.newLine();
+            out.write(block2.getX() + ";" + block2.getY() + ";" + block2.getZ());
+            out.newLine();
+            out.write(block3.getX() + ";" + block3.getY() + ";" + block3.getZ());
             out.newLine();
             out.close();
           } catch (IOException e) {
