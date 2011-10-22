@@ -55,7 +55,12 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 		String formattedDate = formatter.format(todaysDate);
                 
       if ((block.getType() == Material.DIAMOND_ORE) && (isTrapBlock(player, block))) {
+        if(!player.hasPermission("FD.admin")){
         plugin.getServer().broadcastMessage(ChatColor.DARK_RED + player.getName() + " just broke a FoundDiamonds trap block");
+        }
+        if(player.hasPermission("FD.admin")){
+            player.sendMessage(ChatColor.AQUA + "FoundDiamonds trap block removed");
+        }
         removeTrapBlockLine(block);
       try {
         BufferedWriter out = new BufferedWriter(new FileWriter("plugins/FoundDiamonds/logs.txt", true));
@@ -71,10 +76,10 @@ public class FoundDiamondsBlockListener extends BlockListener  {
       } catch (IOException localIOException) {
           log.log(Level.SEVERE, "Trap broken!  Unable to log to file!", localIOException);
       }
-      if (FoundDiamondsLoadSettings.kickontrapbreak) {
+      if (FoundDiamondsLoadSettings.kickontrapbreak  && (!player.hasPermission("FD.admin"))) {
         player.kickPlayer("You broke a FoundDiamonds trap block");
       }
-      if (FoundDiamondsLoadSettings.banontrapbreak){
+      if (FoundDiamondsLoadSettings.banontrapbreak && (!player.hasPermission("FD.admin"))){
         player.setBanned(true);
       }
       return;
