@@ -73,6 +73,8 @@ public class FoundDiamonds extends JavaPlugin {
         player.sendMessage(ChatColor.DARK_RED + "FoundDiamonds trap set.");
         int randomnumber = (int)(Math.random() * 100.0D);
         if (randomnumber <= 49) {
+            //debug generation 1
+            //player.sendMessage("generation 1");
           Block block1 = world.getBlockAt(x, y - 1, z);
           Block block2 = world.getBlockAt(x, y - 2, z);
           Block block3 = world.getBlockAt(x + 1, y - 2, z);
@@ -95,13 +97,17 @@ public class FoundDiamonds extends JavaPlugin {
           return true;
         }
         if ((randomnumber >= 50) && (randomnumber <= 75)) {
+            //debug
+            //player.sendMessage("generation 2");
           Block block1 = world.getBlockAt(x, y - 1, z);
           Block block2 = world.getBlockAt(x, y - 2, z + 1);
           Block block3 = world.getBlockAt(x - 1, y - 2, z);
+          Block block4 = world.getBlockAt(x, y - 2, z);
 
           block1.setTypeId(56);
           block2.setTypeId(56);
           block3.setTypeId(56);
+          block4.setTypeId(56);
           try {
             BufferedWriter out = new BufferedWriter(new FileWriter("plugins/FoundDiamonds/traplocations.txt", true));
             out.write(block1.getX() + ";" + block1.getY() + ";" + block1.getZ());
@@ -109,6 +115,8 @@ public class FoundDiamonds extends JavaPlugin {
             out.write(block2.getX() + ";" + block2.getY() + ";" + block2.getZ());
             out.newLine();
             out.write(block3.getX() + ";" + block3.getY() + ";" + block3.getZ());
+            out.newLine();
+            out.write(block4.getX() + ";" + block4.getY() + ";" + block4.getZ());
             out.newLine();
             out.close();
           } catch (IOException e) {
@@ -118,13 +126,16 @@ public class FoundDiamonds extends JavaPlugin {
           return true;
         }
         if (randomnumber >= 76) {
+          //debug
+            //player.sendMessage("generation 3");
           Block block1 = world.getBlockAt(x, y - 1, z);
           Block block2 = world.getBlockAt(x - 1, y - 2, z);
-          Block block3 = world.getBlockAt(x + 2, y - 3, z);
-
+          Block block3 = world.getBlockAt(x , y - 2, z);
+          Block block4 = world.getBlockAt(x -1, y - 1, z);
           block1.setTypeId(56);
           block2.setTypeId(56);
           block3.setTypeId(56);
+          block4.setTypeId(56);
           try {
             BufferedWriter out = new BufferedWriter(new FileWriter("plugins/FoundDiamonds/traplocations.txt", true));
             out.write(block1.getX() + ";" + block1.getY() + ";" + block1.getZ());
@@ -132,6 +143,8 @@ public class FoundDiamonds extends JavaPlugin {
             out.write(block2.getX() + ";" + block2.getY() + ";" + block2.getZ());
             out.newLine();
             out.write(block3.getX() + ";" + block3.getY() + ";" + block3.getZ());
+            out.newLine();
+            out.write(block4.getX() + ";" + block4.getY() + ";" + block4.getZ());
             out.newLine();
             out.close();
           } catch (IOException e) {

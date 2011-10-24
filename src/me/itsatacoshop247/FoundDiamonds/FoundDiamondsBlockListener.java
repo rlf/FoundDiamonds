@@ -261,7 +261,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 
       BufferedReader reader = new BufferedReader(new FileReader(inputFile));
       PrintWriter pw = new PrintWriter(new FileWriter(tempFile));
-      String currentLine;
+      String currentLine;      
       
       while ((currentLine = reader.readLine()) != null)
       {
