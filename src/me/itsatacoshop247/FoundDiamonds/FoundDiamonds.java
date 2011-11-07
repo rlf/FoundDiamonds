@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.ChatColor;
@@ -19,52 +20,59 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class FoundDiamonds extends JavaPlugin {
-	static final String maindirectory = "plugins/FoundDiamonds/";
-        static final String disposaldirectory = "plugins/FoundDiamonds/temp";
-	static File Blocks = new File(maindirectory + "Blocks.txt");
-	static File logs = new File(maindirectory + "logs.txt");
-	public static final Logger log = Logger.getLogger("Minecraft");
+	static final String mainDir = "plugins/FoundDiamonds/";
+	static File logs = new File(mainDir + "logs.txt");
+        static File traps = new File(mainDir + "traplocations.txt");
+        static File traptemp = new File(mainDir + "traplocationstemp.txt");
+        public static final Logger log = Logger.getLogger("FoundDiamonds");
 	private final FoundDiamondsBlockListener blocklistener = new FoundDiamondsBlockListener(this);
 	public String pName;
+        public String pFullName;
+        PluginDescriptionFile pdf;
+        private String admin = "*.*";
 
     @Override
 	public void onEnable() {
 		PluginManager pm = getServer().getPluginManager();
 		pm.registerEvent(Event.Type.BLOCK_BREAK, blocklistener,Event.Priority.Normal, this);
-		log.info("[FoundDiamonds] STARTED");
-		PluginDescriptionFile pdf = this.getDescription();
+		pdf = this.getDescription();
 		pName = pdf.getName();
-                new File(disposaldirectory).mkdir();
-		new File(maindirectory).mkdir();
-		if(Blocks.exists())
-			try {
-				Blocks.createNewFile();
-			} catch (IOException e) {
-                            log.log(Level.SEVERE, "[FoundDiamonds] Unable to create configuration file!", e);
-			}
+                pFullName = pdf.getFullName();
+		new File(mainDir).mkdir();
 		if(!logs.exists())
 			try{
 				logs.createNewFile();
 			}catch (IOException e) {
-                            log.log(Level.SEVERE, "[FoundDiamonds] Unable to create log file!", e);
+                            log.log(Level.SEVERE, pName + " Unable to create log file!", e);
 			}
+                if(!traps.exists())
+                   	try{
+				traps.createNewFile();
+			}catch (IOException e) {
+                            log.log(Level.SEVERE, pName + " Unable to create traps file!", e);
+			} 
+                if(!traptemp.exists())
+                   	try{
+				traptemp.createNewFile();
+			}catch (IOException e) {
+                            log.log(Level.SEVERE, pName + " Unable to create traptemp file!", e);
+			} 
 		FoundDiamondsLoadSettings.loadMain();
+                log.info(MessageFormat.format("{0} STARTED", pFullName));
 	}
 
     @Override
 	public void onDisable() {
-		log.info("[FoundDiamonds] Disabled");
-               
+		log.info(MessageFormat.format("{0} Disabled", pFullName));             
                     }
     
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args)
-  {
+    public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args){
 
     if ((sender instanceof Player)) {
       Player player = (Player)sender;
 
-      if ((commandLabel.equalsIgnoreCase("settrap")) && player.hasPermission("FD.admin")){
+      if ((commandLabel.equalsIgnoreCase("settrap")) && (player.hasPermission("FD.admin")) || player.hasPermission(admin)) {
         Location first = player.getLocation();
         int x = first.getBlockX();
         int y = first.getBlockY();
@@ -73,8 +81,6 @@ public class FoundDiamonds extends JavaPlugin {
         player.sendMessage(ChatColor.DARK_RED + "FoundDiamonds trap set.");
         int randomnumber = (int)(Math.random() * 100.0D);
         if (randomnumber <= 49) {
-            //debug generation 1
-            //player.sendMessage("generation 1");
           Block block1 = world.getBlockAt(x, y - 1, z);
           Block block2 = world.getBlockAt(x, y - 2, z);
           Block block3 = world.getBlockAt(x + 1, y - 2, z);
@@ -97,8 +103,6 @@ public class FoundDiamonds extends JavaPlugin {
           return true;
         }
         if ((randomnumber >= 50) && (randomnumber <= 75)) {
-            //debug
-            //player.sendMessage("generation 2");
           Block block1 = world.getBlockAt(x, y - 1, z);
           Block block2 = world.getBlockAt(x, y - 2, z + 1);
           Block block3 = world.getBlockAt(x - 1, y - 2, z);
@@ -126,8 +130,6 @@ public class FoundDiamonds extends JavaPlugin {
           return true;
         }
         if (randomnumber >= 76) {
-          //debug
-            //player.sendMessage("generation 3");
           Block block1 = world.getBlockAt(x, y - 1, z);
           Block block2 = world.getBlockAt(x - 1, y - 2, z);
           Block block3 = world.getBlockAt(x , y - 2, z);

@@ -27,7 +27,7 @@ public class FoundDiamondsLoadSettings {
         static boolean banontrapbreak;
 	
 	public static void loadMain(){
-		String propertiesFile = FoundDiamonds.maindirectory + "FoundDiamonds.properties";
+		String propertiesFile = FoundDiamonds.mainDir + "FoundDiamonds.properties";
 		FoundDiamondsPluginProperties properties = new FoundDiamondsPluginProperties(propertiesFile);
 		properties.load();
                 

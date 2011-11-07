@@ -33,11 +33,12 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 	private String playername;
 	private String blockname;
         public static final Logger log = Logger.getLogger("Minecraft");
+        private String admin = "*.*";
         
 	public FoundDiamondsBlockListener(FoundDiamonds instance) {
 		plugin = instance;
 	}
-    //@SuppressWarnings("deprecation")
+        
     @Override
 	public void onBlockBreak(BlockBreakEvent event){
 		
@@ -54,11 +55,11 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 		SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss");
 		String formattedDate = formatter.format(todaysDate);
                 
-      if ((block.getType() == Material.DIAMOND_ORE) && (isTrapBlock(player, block))) {
-        if(!player.hasPermission("FD.admin")){
+      if ((block.getType() == Material.DIAMOND_ORE) && (isTrapBlock(block))) {
+        if(!player.hasPermission("FD.admin") && !player.hasPermission(admin)){
         plugin.getServer().broadcastMessage(ChatColor.DARK_RED + player.getName() + " just broke a FoundDiamonds trap block");
         }
-        if(player.hasPermission("FD.admin")){
+        if(player.hasPermission("FD.admin") || player.hasPermission(admin)){
             player.sendMessage(ChatColor.AQUA + "FoundDiamonds trap block removed");
         }
         removeTrapBlockLine(block);
@@ -76,10 +77,10 @@ public class FoundDiamondsBlockListener extends BlockListener  {
       } catch (IOException localIOException) {
           log.log(Level.SEVERE, "Trap broken!  Unable to log to file!", localIOException);
       }
-      if (FoundDiamondsLoadSettings.kickontrapbreak  && (!player.hasPermission("FD.admin"))) {
+      if (FoundDiamondsLoadSettings.kickontrapbreak  && (!player.hasPermission("FD.admin")) && (!player.hasPermission(admin))) {
         player.kickPlayer("You broke a FoundDiamonds trap block");
       }
-      if (FoundDiamondsLoadSettings.banontrapbreak && (!player.hasPermission("FD.admin"))){
+      if (FoundDiamondsLoadSettings.banontrapbreak && (!player.hasPermission("FD.admin")) && (!player.hasPermission(admin))){
         player.setBanned(true);
       }
       return;
@@ -99,41 +100,48 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 //admin messages
 		if(block.getType() == Material.DIAMOND_ORE && FoundDiamondsLoadSettings.diamondadmin){
 			for(Player p: plugin.getServer().getOnlinePlayers()){
-				if(p.hasPermission("FD.admin")){
+				if(p.hasPermission("FD.admin") || p.hasPermission(admin)){
 				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Diamonds(AdminMsg)");
 				}
 			}
 		}
 		if(block.getType() == Material.IRON_ORE  && FoundDiamondsLoadSettings.ironadmin){
 			for(Player p: plugin.getServer().getOnlinePlayers()){
-				if(p.hasPermission("FD.admin")){
+				if(p.hasPermission("FD.admin") || p.hasPermission(admin)){
 				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Iron(AdminMsg)");
+				}
+			}
+		}
+		if(block.getType() == Material.GLOWING_REDSTONE_ORE  && FoundDiamondsLoadSettings.redstoneadmin){
+			for(Player p: plugin.getServer().getOnlinePlayers()){
+				if(p.hasPermission("FD.admin") || p.hasPermission(admin)){
+				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Redstone(AdminMsg)");
 				}
 			}
 		}
 		if(block.getType() == Material.REDSTONE_ORE  && FoundDiamondsLoadSettings.redstoneadmin){
 			for(Player p: plugin.getServer().getOnlinePlayers()){
-				if(p.hasPermission("FD.admin")){
+				if(p.hasPermission("FD.admin") || p.hasPermission(admin)){
 				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Redstone(AdminMsg)");
 				}
 			}
 		}
 		if(block.getType() == Material.GOLD_ORE  && FoundDiamondsLoadSettings.goldadmin){
 			for(Player p: plugin.getServer().getOnlinePlayers()){
-				if(p.hasPermission("FD.admin")){
+				if(p.hasPermission("FD.admin") || p.hasPermission(admin)){
 				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Gold(AdminMsg)");
 				}
 			}
 		}
 		if(block.getType() == Material.LAPIS_ORE  && FoundDiamondsLoadSettings.lupuslazuliadmin){
 			for(Player p: plugin.getServer().getOnlinePlayers()){
-				if(p.hasPermission("FD.admin")){
-				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Lapis Lazul(AdminMsg)");
+				if(p.hasPermission("FD.admin") || p.hasPermission(admin)){
+				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Lapis(AdminMsg)");
 				}
 			}
 		}
 //timer		
-		if(block.getType() == Material.DIAMOND_ORE && FoundDiamondsLoadSettings.diamond && System.currentTimeMillis()-lastTimediamonds > 25000){ //this if statement is entered when the block broken is Diamond
+		if(block.getType() == Material.DIAMOND_ORE && FoundDiamondsLoadSettings.diamond && System.currentTimeMillis()-lastTimediamonds > 25000){
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
 				lastTimediamonds = System.currentTimeMillis();
 			}
@@ -156,7 +164,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 						p.updateInventory();
 					}
 				}	
-                                else if(randomnumber > 50 && randomnumber < 100){
+                                else if(randomnumber >= 50 && randomnumber < 100){
 					if(FoundDiamondsLoadSettings.RandomItem2 == 263) {
 						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got " + ChatColor.GRAY + "Coal");
 					} else {
@@ -168,7 +176,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 						p.updateInventory();
 					}
 				}
-                               else if(randomnumber > 100 && randomnumber < 150){
+                               else if(randomnumber >= 100 && randomnumber < 150){
 					if(FoundDiamondsLoadSettings.RandomItem3 == 341) {
 						plugin.getServer().broadcastMessage(ChatColor.RED + "Everyone else got some " + ChatColor.GREEN + "Slime Balls");
 					} else {
@@ -181,7 +189,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 				}
 			}
 		}
-		if(block.getType() == Material.REDSTONE_ORE && FoundDiamondsLoadSettings.redstone && System.currentTimeMillis()-lastTimeredstone > 20000){ //this if statement is entered when the block broken is Diamond
+		if(block.getType() == Material.GLOWING_REDSTONE_ORE && FoundDiamondsLoadSettings.redstone && System.currentTimeMillis()-lastTimeredstone > 20000){ 
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
 				lastTimeredstone = System.currentTimeMillis();
 			}
@@ -189,7 +197,15 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 				plugin.getServer().broadcastMessage(ChatColor.RED + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
 			}
 		}
-		if(block.getType() == Material.GOLD_ORE && FoundDiamondsLoadSettings.gold && System.currentTimeMillis()-lastTimegold > 20000){ //this if statement is entered when the block broken is Diamond
+		if(block.getType() == Material.REDSTONE_ORE && FoundDiamondsLoadSettings.redstone && System.currentTimeMillis()-lastTimeredstone > 20000){ 
+			if(FoundDiamondsLoadSettings.thirtysecondwait){
+				lastTimeredstone = System.currentTimeMillis();
+			}
+			if(FoundDiamondsLoadSettings.showmessage){
+				plugin.getServer().broadcastMessage(ChatColor.RED + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
+			}
+		}
+		if(block.getType() == Material.GOLD_ORE && FoundDiamondsLoadSettings.gold && System.currentTimeMillis()-lastTimegold > 20000){ 
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
 				lastTimegold = System.currentTimeMillis();
 			}
@@ -197,7 +213,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 				plugin.getServer().broadcastMessage(ChatColor.GOLD + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
 			}
 		}
-		if(block.getType() == Material.IRON_ORE && FoundDiamondsLoadSettings.iron && System.currentTimeMillis()-lastTimeiron > 20000){ //this if statement is entered when the block broken is Diamond
+		if(block.getType() == Material.IRON_ORE && FoundDiamondsLoadSettings.iron && System.currentTimeMillis()-lastTimeiron > 20000){
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
 				lastTimeiron = System.currentTimeMillis();
 			}
@@ -205,7 +221,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 				plugin.getServer().broadcastMessage(ChatColor.DARK_GRAY + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
 			}
 		}
-		if(block.getType() == Material.LAPIS_ORE && FoundDiamondsLoadSettings.lupuslazuli && System.currentTimeMillis()-lastTimelapis > 20000){ //this if statement is entered when the block broken is Diamond
+		if(block.getType() == Material.LAPIS_ORE && FoundDiamondsLoadSettings.lupuslazuli && System.currentTimeMillis()-lastTimelapis > 20000){ 
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
 				lastTimelapis = System.currentTimeMillis();
 			}
@@ -222,14 +238,14 @@ public class FoundDiamondsBlockListener extends BlockListener  {
         return amount;
     }
     
-    private boolean isTrapBlock(Player p, Block blocky) {
+    private boolean isTrapBlock(Block blocky) {
     int count = 0;
     int x = blocky.getX();
     int y = blocky.getY();
     int z = blocky.getZ();
     String check = x + ";" + y + ";" + z;
     try {
-      FileInputStream fstream = new FileInputStream("plugins/FoundDiamonds/traplocations.txt");
+      FileInputStream fstream = new FileInputStream(FoundDiamonds.traps);
       DataInputStream in = new DataInputStream(fstream);
       BufferedReader br = new BufferedReader(new InputStreamReader(in));
       String strLine;
@@ -256,8 +272,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
     String lineToRemove = x + ";" + y + ";" + z;
     try {
       File inputFile = new File("plugins/FoundDiamonds/traplocations.txt");
-      //File tempFile = new File("plugins/DisposalChest/traploactionstemp.txt");
-      File tempFile = new File("plugins/FoundDiamonds/temp/traplocationstemp.txt");
+      File tempFile = new File("plugins/FoundDiamonds/traplocationstemp.txt");
 
       BufferedReader reader = new BufferedReader(new FileReader(inputFile));
       PrintWriter pw = new PrintWriter(new FileWriter(tempFile));
