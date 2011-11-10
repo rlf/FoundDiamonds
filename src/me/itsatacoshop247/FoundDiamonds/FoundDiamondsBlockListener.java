@@ -56,10 +56,10 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 		String formattedDate = formatter.format(todaysDate);
                 
       if ((block.getType() == Material.DIAMOND_ORE) && (isTrapBlock(block))) {
-        if(!player.hasPermission("FD.admin") && !player.hasPermission(admin)){
-        plugin.getServer().broadcastMessage(ChatColor.DARK_RED + player.getName() + " just broke a FoundDiamonds trap block");
+        if(!player.hasPermission("FD.admin") && !player.hasPermission(admin)  && ((FoundDiamondsLoadSettings.opstxt && !player.isOp()) || !FoundDiamondsLoadSettings.opstxt)){
+                plugin.getServer().broadcastMessage(ChatColor.DARK_RED + player.getName() + " just broke a FoundDiamonds trap block");
         }
-        if(player.hasPermission("FD.admin") || player.hasPermission(admin)){
+        if((player.hasPermission("FD.admin") || player.hasPermission(admin)) || (FoundDiamondsLoadSettings.opstxt && player.isOp())){
             player.sendMessage(ChatColor.AQUA + "FoundDiamonds trap block removed");
         }
         removeTrapBlockLine(block);
@@ -77,11 +77,11 @@ public class FoundDiamondsBlockListener extends BlockListener  {
       } catch (IOException localIOException) {
           log.log(Level.SEVERE, "Trap broken!  Unable to log to file!", localIOException);
       }
-      if (FoundDiamondsLoadSettings.kickontrapbreak  && (!player.hasPermission("FD.admin")) && (!player.hasPermission(admin))) {
-        player.kickPlayer("You broke a FoundDiamonds trap block");
+      if (FoundDiamondsLoadSettings.kickontrapbreak  && (!player.hasPermission("FD.admin")) && (!player.hasPermission(admin) && ((FoundDiamondsLoadSettings.opstxt && !player.isOp()) || !FoundDiamondsLoadSettings.opstxt))) {
+                player.kickPlayer("You broke a FoundDiamonds trap block");
       }
-      if (FoundDiamondsLoadSettings.banontrapbreak && (!player.hasPermission("FD.admin")) && (!player.hasPermission(admin))){
-        player.setBanned(true);
+      if (FoundDiamondsLoadSettings.banontrapbreak && (!player.hasPermission("FD.admin")) && (!player.hasPermission(admin) && ((FoundDiamondsLoadSettings.opstxt && !player.isOp()) || !FoundDiamondsLoadSettings.opstxt))){
+                player.setBanned(true);
       }
       return;
     }
@@ -100,42 +100,42 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 //admin messages
 		if(block.getType() == Material.DIAMOND_ORE && FoundDiamondsLoadSettings.diamondadmin){
 			for(Player p: plugin.getServer().getOnlinePlayers()){
-				if(p.hasPermission("FD.admin") || p.hasPermission(admin)){
+				if((player.hasPermission("FD.admin") || player.hasPermission(admin)) || (FoundDiamondsLoadSettings.opstxt && player.isOp())){
 				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Diamonds(AdminMsg)");
 				}
 			}
 		}
 		if(block.getType() == Material.IRON_ORE  && FoundDiamondsLoadSettings.ironadmin){
 			for(Player p: plugin.getServer().getOnlinePlayers()){
-				if(p.hasPermission("FD.admin") || p.hasPermission(admin)){
+				if((player.hasPermission("FD.admin") || player.hasPermission(admin)) || (FoundDiamondsLoadSettings.opstxt && player.isOp())){
 				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Iron(AdminMsg)");
 				}
 			}
 		}
 		if(block.getType() == Material.GLOWING_REDSTONE_ORE  && FoundDiamondsLoadSettings.redstoneadmin){
 			for(Player p: plugin.getServer().getOnlinePlayers()){
-				if(p.hasPermission("FD.admin") || p.hasPermission(admin)){
+				if((player.hasPermission("FD.admin") || player.hasPermission(admin)) || (FoundDiamondsLoadSettings.opstxt && player.isOp())){
 				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Redstone(AdminMsg)");
 				}
 			}
 		}
 		if(block.getType() == Material.REDSTONE_ORE  && FoundDiamondsLoadSettings.redstoneadmin){
 			for(Player p: plugin.getServer().getOnlinePlayers()){
-				if(p.hasPermission("FD.admin") || p.hasPermission(admin)){
+				if((player.hasPermission("FD.admin") || player.hasPermission(admin)) || (FoundDiamondsLoadSettings.opstxt && player.isOp())){
 				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Redstone(AdminMsg)");
 				}
 			}
 		}
 		if(block.getType() == Material.GOLD_ORE  && FoundDiamondsLoadSettings.goldadmin){
 			for(Player p: plugin.getServer().getOnlinePlayers()){
-				if(p.hasPermission("FD.admin") || p.hasPermission(admin)){
+				if((player.hasPermission("FD.admin") || player.hasPermission(admin)) || (FoundDiamondsLoadSettings.opstxt && player.isOp())){
 				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Gold(AdminMsg)");
 				}
 			}
 		}
 		if(block.getType() == Material.LAPIS_ORE  && FoundDiamondsLoadSettings.lupuslazuliadmin){
 			for(Player p: plugin.getServer().getOnlinePlayers()){
-				if(p.hasPermission("FD.admin") || p.hasPermission(admin)){
+				if((player.hasPermission("FD.admin") || player.hasPermission(admin)) || (FoundDiamondsLoadSettings.opstxt && player.isOp())){
 				p.sendMessage(ChatColor.DARK_RED + player.getName() + " just found Lapis(AdminMsg)");
 				}
 			}

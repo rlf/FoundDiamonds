@@ -72,7 +72,7 @@ public class FoundDiamonds extends JavaPlugin {
     if ((sender instanceof Player)) {
       Player player = (Player)sender;
 
-      if ((commandLabel.equalsIgnoreCase("settrap")) && (player.hasPermission("FD.admin")) || player.hasPermission(admin)) {
+      if ((commandLabel.equalsIgnoreCase("settrap")) && (player.hasPermission("FD.admin")) || (player.hasPermission(admin)) || (FoundDiamondsLoadSettings.opstxt && player.isOp())){
         Location first = player.getLocation();
         int x = first.getBlockX();
         int y = first.getBlockY();

@@ -25,12 +25,14 @@ public class FoundDiamondsLoadSettings {
 	static String broadcastmessage;
         static boolean kickontrapbreak;
         static boolean banontrapbreak;
+        static boolean opstxt;
 	
 	public static void loadMain(){
 		String propertiesFile = FoundDiamonds.mainDir + "FoundDiamonds.properties";
 		FoundDiamondsPluginProperties properties = new FoundDiamondsPluginProperties(propertiesFile);
 		properties.load();
                 
+                opstxt = properties.getBoolean("TreatOPSAsFD.Admin", true);
 		randomitems = properties.getBoolean("RandomAwardsForFindingOres", true);
 		RandomItem1= properties.getInteger("RandomItem1", 265);
 		RandomItem2= properties.getInteger("RandomItem2", 263);
