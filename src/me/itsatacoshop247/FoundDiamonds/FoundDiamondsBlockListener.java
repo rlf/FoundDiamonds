@@ -41,7 +41,9 @@ public class FoundDiamondsBlockListener extends BlockListener  {
         
     @Override
 	public void onBlockBreak(BlockBreakEvent event){
-		
+        
+                
+		int secondsWait = (FoundDiamondsLoadSettings.waittime * 1000);
 		int randomnumber = (int)(Math.random()*1000);
 		
 		Block block = event.getBlock();
@@ -141,7 +143,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 			}
 		}
 //timer		
-		if(block.getType() == Material.DIAMOND_ORE && FoundDiamondsLoadSettings.diamond && System.currentTimeMillis()-lastTimediamonds > 25000){
+		if(block.getType() == Material.DIAMOND_ORE && FoundDiamondsLoadSettings.diamond && (System.currentTimeMillis()-lastTimediamonds > secondsWait)){
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
 				lastTimediamonds = System.currentTimeMillis();
 			}
@@ -189,7 +191,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 				}
 			}
 		}
-		if(block.getType() == Material.GLOWING_REDSTONE_ORE && FoundDiamondsLoadSettings.redstone && System.currentTimeMillis()-lastTimeredstone > 20000){ 
+		if(block.getType() == Material.GLOWING_REDSTONE_ORE && FoundDiamondsLoadSettings.redstone && (System.currentTimeMillis()-lastTimeredstone > secondsWait)){ 
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
 				lastTimeredstone = System.currentTimeMillis();
 			}
@@ -197,7 +199,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 				plugin.getServer().broadcastMessage(ChatColor.RED + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
 			}
 		}
-		if(block.getType() == Material.REDSTONE_ORE && FoundDiamondsLoadSettings.redstone && System.currentTimeMillis()-lastTimeredstone > 20000){ 
+		if(block.getType() == Material.REDSTONE_ORE && FoundDiamondsLoadSettings.redstone && (System.currentTimeMillis()-lastTimeredstone > secondsWait)){ 
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
 				lastTimeredstone = System.currentTimeMillis();
 			}
@@ -205,7 +207,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 				plugin.getServer().broadcastMessage(ChatColor.RED + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
 			}
 		}
-		if(block.getType() == Material.GOLD_ORE && FoundDiamondsLoadSettings.gold && System.currentTimeMillis()-lastTimegold > 20000){ 
+		if(block.getType() == Material.GOLD_ORE && FoundDiamondsLoadSettings.gold && (System.currentTimeMillis()-lastTimegold > secondsWait)){ 
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
 				lastTimegold = System.currentTimeMillis();
 			}
@@ -213,7 +215,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 				plugin.getServer().broadcastMessage(ChatColor.GOLD + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
 			}
 		}
-		if(block.getType() == Material.IRON_ORE && FoundDiamondsLoadSettings.iron && System.currentTimeMillis()-lastTimeiron > 20000){
+		if(block.getType() == Material.IRON_ORE && FoundDiamondsLoadSettings.iron && (System.currentTimeMillis()-lastTimeiron > secondsWait)){
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
 				lastTimeiron = System.currentTimeMillis();
 			}
@@ -221,7 +223,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 				plugin.getServer().broadcastMessage(ChatColor.DARK_GRAY + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
 			}
 		}
-		if(block.getType() == Material.LAPIS_ORE && FoundDiamondsLoadSettings.lupuslazuli && System.currentTimeMillis()-lastTimelapis > 20000){ 
+		if(block.getType() == Material.LAPIS_ORE && FoundDiamondsLoadSettings.lupuslazuli && (System.currentTimeMillis()-lastTimelapis > secondsWait)){ 
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
 				lastTimelapis = System.currentTimeMillis();
 			}

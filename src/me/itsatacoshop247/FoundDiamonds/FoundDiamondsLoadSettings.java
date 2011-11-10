@@ -26,12 +26,14 @@ public class FoundDiamondsLoadSettings {
         static boolean kickontrapbreak;
         static boolean banontrapbreak;
         static boolean opstxt;
+        static int waittime;
 	
 	public static void loadMain(){
 		String propertiesFile = FoundDiamonds.mainDir + "FoundDiamonds.properties";
 		FoundDiamondsPluginProperties properties = new FoundDiamondsPluginProperties(propertiesFile);
 		properties.load();
                 
+                waittime = properties.getInteger("WaitTimeBetweenBroadcasts", 20);
                 opstxt = properties.getBoolean("TreatOPSAsFD.Admin", true);
 		randomitems = properties.getBoolean("RandomAwardsForFindingOres", true);
 		RandomItem1= properties.getInteger("RandomItem1", 265);
@@ -39,7 +41,7 @@ public class FoundDiamondsLoadSettings {
                 RandomItem3= properties.getInteger("RandomItem3", 341);
 		showmessage = properties.getBoolean("BroadcastWhenPlayersFindOres", true);
                 broadcastmessage = properties.getString("BroadcastMessage", "@Player@ just found @BlockName@!");
-                thirtysecondwait = properties.getBoolean("20SecondWaitBetweenBroadcasts", true);
+                thirtysecondwait = properties.getBoolean("WaitBetweenBroadcasts", true);
 		diamond = properties.getBoolean("BroadcastForDiamond", true);
 		redstone = properties.getBoolean("BroadcastForRedstone", false);
 		gold = properties.getBoolean("BroadcastForGold", true);
