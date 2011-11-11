@@ -74,6 +74,10 @@ public class FoundDiamonds extends JavaPlugin {
 
       if ((commandLabel.equalsIgnoreCase("settrap")) && (player.hasPermission("FD.admin")) || (player.hasPermission(admin)) || (FoundDiamondsLoadSettings.opstxt && player.isOp())){
         Location first = player.getLocation();
+        int id = 56;
+        if(args.length > 0){
+            id = Integer.parseInt(args[0]);
+        }
         int x = first.getBlockX();
         int y = first.getBlockY();
         int z = first.getBlockZ();
@@ -83,13 +87,14 @@ public class FoundDiamonds extends JavaPlugin {
         if (randomnumber <= 49) {
           Block block1 = world.getBlockAt(x, y - 1, z);
           Block block2 = world.getBlockAt(x, y - 2, z);
-          Block block3 = world.getBlockAt(x + 1, y - 2, z);
-
-          block1.setTypeId(56);
-          block2.setTypeId(56);
-          block3.setTypeId(56);
+          Block block3 = world.getBlockAt(x + 1, y - 2, z); 
+          
+          block1.setTypeId(id);
+          block2.setTypeId(id);
+          block3.setTypeId(id);
+          
           try {
-            BufferedWriter out = new BufferedWriter(new FileWriter("plugins/FoundDiamonds/traplocations.txt", true));
+            BufferedWriter out = new BufferedWriter(new FileWriter(traps, true));
             out.write(block1.getX() + ";" + block1.getY() + ";" + block1.getZ());
             out.newLine();
             out.write(block2.getX() + ";" + block2.getY() + ";" + block2.getZ());
@@ -97,8 +102,8 @@ public class FoundDiamonds extends JavaPlugin {
             out.write(block3.getX() + ";" + block3.getY() + ";" + block3.getZ());
             out.newLine();
             out.close();
-          } catch (IOException e) {
-              log.log(Level.SEVERE, pName + " Unable to write trap locations to file!", e);
+          } catch (IOException ex) {
+              log.log(Level.SEVERE, pName + " Unable to write trap locations to file!", ex);
           }
           return true;
         }
@@ -107,13 +112,14 @@ public class FoundDiamonds extends JavaPlugin {
           Block block2 = world.getBlockAt(x, y - 2, z + 1);
           Block block3 = world.getBlockAt(x - 1, y - 2, z);
           Block block4 = world.getBlockAt(x, y - 2, z);
-
-          block1.setTypeId(56);
-          block2.setTypeId(56);
-          block3.setTypeId(56);
-          block4.setTypeId(56);
+          
+          block1.setTypeId(id);
+          block2.setTypeId(id);
+          block3.setTypeId(id);
+          block4.setTypeId(id);
+            //"plugins/FoundDiamonds/traplocations.txt"
           try {
-            BufferedWriter out = new BufferedWriter(new FileWriter("plugins/FoundDiamonds/traplocations.txt", true));
+            BufferedWriter out = new BufferedWriter(new FileWriter(traps, true));
             out.write(block1.getX() + ";" + block1.getY() + ";" + block1.getZ());
             out.newLine();
             out.write(block2.getX() + ";" + block2.getY() + ";" + block2.getZ());
@@ -123,8 +129,8 @@ public class FoundDiamonds extends JavaPlugin {
             out.write(block4.getX() + ";" + block4.getY() + ";" + block4.getZ());
             out.newLine();
             out.close();
-          } catch (IOException e) {
-              log.log(Level.SEVERE, pName + " Unable to write trap locations to file!", e);
+          } catch (IOException ex) {
+              log.log(Level.SEVERE, pName + " Unable to write trap locations to file!", ex);
           }
 
           return true;
@@ -134,12 +140,14 @@ public class FoundDiamonds extends JavaPlugin {
           Block block2 = world.getBlockAt(x - 1, y - 2, z);
           Block block3 = world.getBlockAt(x , y - 2, z);
           Block block4 = world.getBlockAt(x -1, y - 1, z);
-          block1.setTypeId(56);
-          block2.setTypeId(56);
-          block3.setTypeId(56);
-          block4.setTypeId(56);
+
+          block1.setTypeId(id);
+          block2.setTypeId(id);
+          block3.setTypeId(id);
+          block4.setTypeId(id);
+
           try {
-            BufferedWriter out = new BufferedWriter(new FileWriter("plugins/FoundDiamonds/traplocations.txt", true));
+            BufferedWriter out = new BufferedWriter(new FileWriter(traps, true));
             out.write(block1.getX() + ";" + block1.getY() + ";" + block1.getZ());
             out.newLine();
             out.write(block2.getX() + ";" + block2.getY() + ";" + block2.getZ());
@@ -149,14 +157,14 @@ public class FoundDiamonds extends JavaPlugin {
             out.write(block4.getX() + ";" + block4.getY() + ";" + block4.getZ());
             out.newLine();
             out.close();
-          } catch (IOException e) {
-              log.log(Level.SEVERE, pName + " Unable to write trap locations to file!", e);
+          } catch (IOException ex) {
+              log.log(Level.SEVERE, pName + " Unable to write trap locations to file!", ex);
           }
           return true;
         }
         return false;
-      }
     }
-    return false;
   }
+  return false;
+ }
 }

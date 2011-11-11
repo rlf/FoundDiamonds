@@ -41,8 +41,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
         
     @Override
 	public void onBlockBreak(BlockBreakEvent event){
-        
-                
+      
 		int secondsWait = (FoundDiamondsLoadSettings.waittime * 1000);
 		int randomnumber = (int)(Math.random()*1000);
 		
@@ -57,12 +56,29 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 		SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss");
 		String formattedDate = formatter.format(todaysDate);
                 
-      if ((block.getType() == Material.DIAMOND_ORE) && (isTrapBlock(block))) {
+      if(isTrapBlock(block)){
         if(!player.hasPermission("FD.admin") && !player.hasPermission(admin)  && ((FoundDiamondsLoadSettings.opstxt && !player.isOp()) || !FoundDiamondsLoadSettings.opstxt)){
+            if(FoundDiamondsLoadSettings.trapblockadmin){
+              for(Player p: plugin.getServer().getOnlinePlayers()){
+		if((player.hasPermission("FD.admin") || player.hasPermission(admin)) || (FoundDiamondsLoadSettings.opstxt && player.isOp())){
+		    p.sendMessage(ChatColor.DARK_RED + player.getName() + " just broke a FoundDiamonds trap block");
+                }
+	     }
+	  }else{
                 plugin.getServer().broadcastMessage(ChatColor.DARK_RED + player.getName() + " just broke a FoundDiamonds trap block");
+            }
         }
+                     
         if((player.hasPermission("FD.admin") || player.hasPermission(admin)) || (FoundDiamondsLoadSettings.opstxt && player.isOp())){
-            player.sendMessage(ChatColor.AQUA + "FoundDiamonds trap block removed");
+            if(FoundDiamondsLoadSettings.trapblockadmin){
+              for(Player p: plugin.getServer().getOnlinePlayers()){
+		if((player.hasPermission("FD.admin") || player.hasPermission(admin)) || (FoundDiamondsLoadSettings.opstxt && player.isOp())){
+		    p.sendMessage(ChatColor.DARK_RED + player.getName() + " just broke a FoundDiamonds trap block");
+                }
+	     }
+	  }else{
+                player.sendMessage(ChatColor.AQUA + "FoundDiamonds trap block removed");   
+            }
         }
         removeTrapBlockLine(block);
       try {
@@ -207,6 +223,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 				plugin.getServer().broadcastMessage(ChatColor.RED + FoundDiamondsLoadSettings.broadcastmessage.replace("@Player@", playername).replace("@BlockName@", blockname));
 			}
 		}
+                //TODO add mossy cobble ?
 		if(block.getType() == Material.GOLD_ORE && FoundDiamondsLoadSettings.gold && (System.currentTimeMillis()-lastTimegold > secondsWait)){ 
 			if(FoundDiamondsLoadSettings.thirtysecondwait){
 				lastTimegold = System.currentTimeMillis();
@@ -298,4 +315,22 @@ public class FoundDiamondsBlockListener extends BlockListener  {
         log.log(Level.SEVERE, "Unable to write trap blocks to file!", localException);
     }
   }
+  
+//  private int getAllRelative(Block block){  
+//      int number = 0;
+//      for (BlockFace face : BlockFace.values()) {
+//          if (block.getRelative(face).getType() == block.getType()){
+//              Block rel = block.getRelative(face);
+//              if (!plugin.relsblocks.contains(rel.getLocation())){
+//                  plugin.relsblocks.add(rel.getLocation());
+//                  total = total + 1;
+//                  total = total + getAllRelative(rel);
+//		}
+//	  }
+//     }
+//     return total;
+//  }
+  
 }
+  
+

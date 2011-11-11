@@ -25,6 +25,7 @@ public class FoundDiamondsLoadSettings {
 	static String broadcastmessage;
         static boolean kickontrapbreak;
         static boolean banontrapbreak;
+        static boolean trapblockadmin;
         static boolean opstxt;
         static int waittime;
 	
@@ -33,6 +34,7 @@ public class FoundDiamondsLoadSettings {
 		FoundDiamondsPluginProperties properties = new FoundDiamondsPluginProperties(propertiesFile);
 		properties.load();
                 
+                trapblockadmin = properties.getBoolean("TrapBlockAdminAlerts", false);
                 waittime = properties.getInteger("WaitTimeBetweenBroadcasts", 20);
                 opstxt = properties.getBoolean("TreatOPSAsFD.Admin", true);
 		randomitems = properties.getBoolean("RandomAwardsForFindingOres", true);
