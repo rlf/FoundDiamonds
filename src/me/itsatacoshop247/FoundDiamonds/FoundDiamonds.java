@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
@@ -27,6 +28,7 @@ public class FoundDiamonds extends JavaPlugin {
         public static final Logger log = Logger.getLogger("FoundDiamonds");
 	private final FoundDiamondsBlockListener blocklistener = new FoundDiamondsBlockListener(this);
 	public String pName;
+        public Material trap;
         public String pFullName;
         PluginDescriptionFile pdf;
         private String admin = "*.*";
@@ -74,10 +76,19 @@ public class FoundDiamonds extends JavaPlugin {
 
       if ((commandLabel.equalsIgnoreCase("settrap")) && (player.hasPermission("FD.admin")) || (player.hasPermission(admin)) || (FoundDiamondsLoadSettings.opstxt && player.isOp())){
         Location first = player.getLocation();
-        int id = 56;
+        
+        trap = Material.DIAMOND_ORE;    
         if(args.length > 0){
-            id = Integer.parseInt(args[0]);
-        }
+                String item = args[0];
+                Material temp = Material.matchMaterial(item);
+            if(temp != null && temp.isBlock()){
+                trap = temp;
+            }else{
+                player.sendMessage(ChatColor.RED + "Unrecognized item");
+                return false;
+            }
+       }
+
         int x = first.getBlockX();
         int y = first.getBlockY();
         int z = first.getBlockZ();
@@ -88,10 +99,11 @@ public class FoundDiamonds extends JavaPlugin {
           Block block1 = world.getBlockAt(x, y - 1, z);
           Block block2 = world.getBlockAt(x, y - 2, z);
           Block block3 = world.getBlockAt(x + 1, y - 2, z); 
-          
-          block1.setTypeId(id);
-          block2.setTypeId(id);
-          block3.setTypeId(id);
+
+          block1.setType(trap);
+          block1.setType(trap);
+          block2.setType(trap);
+          block3.setType(trap);
           
           try {
             BufferedWriter out = new BufferedWriter(new FileWriter(traps, true));
@@ -113,11 +125,11 @@ public class FoundDiamonds extends JavaPlugin {
           Block block3 = world.getBlockAt(x - 1, y - 2, z);
           Block block4 = world.getBlockAt(x, y - 2, z);
           
-          block1.setTypeId(id);
-          block2.setTypeId(id);
-          block3.setTypeId(id);
-          block4.setTypeId(id);
-            //"plugins/FoundDiamonds/traplocations.txt"
+          block1.setType(trap);
+          block2.setType(trap);
+          block3.setType(trap);
+          block4.setType(trap);
+          
           try {
             BufferedWriter out = new BufferedWriter(new FileWriter(traps, true));
             out.write(block1.getX() + ";" + block1.getY() + ";" + block1.getZ());
@@ -141,10 +153,10 @@ public class FoundDiamonds extends JavaPlugin {
           Block block3 = world.getBlockAt(x , y - 2, z);
           Block block4 = world.getBlockAt(x -1, y - 1, z);
 
-          block1.setTypeId(id);
-          block2.setTypeId(id);
-          block3.setTypeId(id);
-          block4.setTypeId(id);
+          block1.setType(trap);
+          block2.setType(trap);
+          block3.setType(trap);
+          block4.setType(trap);
 
           try {
             BufferedWriter out = new BufferedWriter(new FileWriter(traps, true));
