@@ -86,6 +86,7 @@ public class FoundDiamonds extends JavaPlugin {
             }else{
                 player.sendMessage(ChatColor.RED + "Unrecognized item");
                 return false;
+                
             }
        }
 

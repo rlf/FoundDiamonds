@@ -28,6 +28,7 @@ public class FoundDiamondsLoadSettings {
         static boolean trapblockadmin;
         static boolean opstxt;
         static int waittime;
+        static boolean mossy;
 	
 	public static void loadMain(){
 		String propertiesFile = FoundDiamonds.mainDir + "FoundDiamonds.properties";
@@ -46,6 +47,7 @@ public class FoundDiamondsLoadSettings {
                 thirtysecondwait = properties.getBoolean("WaitBetweenBroadcasts", true);
 		diamond = properties.getBoolean("BroadcastForDiamond", true);
 		redstone = properties.getBoolean("BroadcastForRedstone", false);
+                mossy = properties.getBoolean("BroadcastForMossy", true);
 		gold = properties.getBoolean("BroadcastForGold", true);
 		iron = properties.getBoolean("BroadcastForIron", false);
 		lupuslazuli = properties.getBoolean("BroadcastForLapis", true);
