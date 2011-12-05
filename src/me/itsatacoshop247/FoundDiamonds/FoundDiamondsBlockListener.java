@@ -117,8 +117,6 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 		}
              
 //admin messages
-                //player = event player
-                //p = for loop player
 		if(block.getType() == Material.DIAMOND_ORE && FoundDiamondsLoadSettings.diamondadmin){
 			for(Player x: plugin.getServer().getOnlinePlayers()){
 				if((x.hasPermission("FD.admin") || x.hasPermission(admin)) || (FoundDiamondsLoadSettings.opstxt && x.isOp())){
@@ -325,22 +323,6 @@ public class FoundDiamondsBlockListener extends BlockListener  {
         log.log(Level.SEVERE, "Unable to write trap blocks to file!", localException);
     }
   }
-  
-//  private int getAllRelative(Block block){  
-//      int number = 0;
-//      for (BlockFace face : BlockFace.values()) {
-//          if (block.getRelative(face).getType() == block.getType()){
-//              Block rel = block.getRelative(face);
-//              if (!plugin.relsblocks.contains(rel.getLocation())){
-//                  plugin.relsblocks.add(rel.getLocation());
-//                  total = total + 1;
-//                  total = total + getAllRelative(rel);
-//		}
-//	  }
-//     }
-//     return total;
-//  }
-  
 }
   
 
