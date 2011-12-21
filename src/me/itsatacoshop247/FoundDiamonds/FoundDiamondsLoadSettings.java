@@ -1,9 +1,5 @@
 package me.itsatacoshop247.FoundDiamonds;
 
-//import org.bukkit.ChatColor;
-
-//import me.itsatacoshop247.FoundDiamonds.FoundDiamondsPluginProperties;
-
 public class FoundDiamondsLoadSettings {
 	static int RandomItem1;
 	static int RandomItem2;
@@ -22,12 +18,12 @@ public class FoundDiamondsLoadSettings {
 	static boolean lupuslazuliadmin;
 	static boolean thirtysecondwait;
 	static boolean logging;
-	static String broadcastmessage;
+	static String  broadcastmessage;
         static boolean kickontrapbreak;
         static boolean banontrapbreak;
         static boolean trapblockadmin;
         static boolean opstxt;
-        static int waittime;
+        static int     waittime;
         static boolean mossy;
 	
 	public static void loadMain(){

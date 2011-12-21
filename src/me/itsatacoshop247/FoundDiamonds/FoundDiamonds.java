@@ -1,10 +1,17 @@
 package me.itsatacoshop247.FoundDiamonds;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.ChatColor;
@@ -21,10 +28,13 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class FoundDiamonds extends JavaPlugin {
-	static final String mainDir = "plugins/FoundDiamonds/";
+	static String mainDir = "plugins/FoundDiamonds/";
 	static File logs = new File(mainDir + "logs.txt");
         static File traps = new File(mainDir + "traplocations.txt");
         static File traptemp = new File(mainDir + "traplocationstemp.txt");
+        static File worlds = new File(mainDir + "worlds.txt");
+        static List<World> worldList;
+        static LinkedList<String> enabledWorlds = new LinkedList<String>();
         public static final Logger log = Logger.getLogger("FoundDiamonds");
 	private final FoundDiamondsBlockListener blocklistener = new FoundDiamondsBlockListener(this);
 	public String pName;
@@ -58,7 +68,49 @@ public class FoundDiamonds extends JavaPlugin {
 				traptemp.createNewFile();
 			}catch (IOException e) {
                             log.log(Level.SEVERE, pName + " Unable to create traptemp file!", e);
-			} 
+			}
+                if(worlds.exists()){
+                    try {
+                        BufferedReader br = new BufferedReader(new FileReader(worlds));
+                        try {
+                            String worldLine;
+                            StringBuilder sb = new StringBuilder();
+                        
+                            while((worldLine = br.readLine()) != null){
+                                if(!worldLine.startsWith("#")){
+                                    sb.append(worldLine);
+                                }
+                            }
+                            String worldString = sb.toString();
+                            String[] listOfWorlds = worldString.split(",");
+                            for(String y: listOfWorlds){
+                                enabledWorlds.add(y);
+                            }
+                        
+                        }catch (IOException ex) {
+                            Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Unable to parse worlds.txt", ex);
+                        }
+                    } catch (FileNotFoundException ex) {
+                        Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Unable to find worlds.txt", ex);
+                    }
+                }
+                if(!worlds.exists()){
+                    try{
+                        worlds.createNewFile();
+                        worldList = getServer().getWorlds();
+//this works
+                        PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(worlds)));
+                        out.println("#List of enabled worlds:");
+                        out.println("#Separate them with a comma like so:  world,world_nether,mainworld,poopworld");
+                        
+                        for(World y : worldList){
+                            out.write(y.getName() + ",");
+                        }
+                        out.flush();
+                    }catch(IOException e){
+                        log.log(Level.SEVERE, pName + " Unable to create worlds file!", e);
+                    }
+                }
 		FoundDiamondsLoadSettings.loadMain();
                 log.info(MessageFormat.format("{0} STARTED", pFullName));
 	}
@@ -180,4 +232,8 @@ public class FoundDiamonds extends JavaPlugin {
   }
   return false;
  }
+//    
+//    public List<World> getEnabledWorlds(){
+//        
+//    }
 }

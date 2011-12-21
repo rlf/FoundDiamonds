@@ -42,6 +42,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
         
     @Override
 	public void onBlockBreak(BlockBreakEvent event){
+        if(FoundDiamonds.enabledWorlds.contains(event.getPlayer().getWorld().getName())){
       
 		int secondsWait = (FoundDiamondsLoadSettings.waittime * 1000);
 		int randomnumber = (int)(Math.random()*1000);
@@ -258,6 +259,7 @@ public class FoundDiamondsBlockListener extends BlockListener  {
 		}
 		
 	}
+    }
         
     public int getRandomAmount(){
         Random rand = new Random();
