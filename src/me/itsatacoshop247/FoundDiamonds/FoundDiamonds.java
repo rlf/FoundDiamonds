@@ -98,13 +98,16 @@ public class FoundDiamonds extends JavaPlugin {
                     try{
                         worlds.createNewFile();
                         worldList = getServer().getWorlds();
-//this works
+
                         PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(worlds)));
                         out.println("#List of enabled worlds:");
                         out.println("#Separate them with a comma like so:  world,world_nether,mainworld,poopworld");
                         
                         for(World y : worldList){
                             out.write(y.getName() + ",");
+                        }
+                        for(World x : worldList){
+                            enabledWorlds.add(x.getName());
                         }
                         out.flush();
                     }catch(IOException e){
@@ -232,8 +235,4 @@ public class FoundDiamonds extends JavaPlugin {
   }
   return false;
  }
-//    
-//    public List<World> getEnabledWorlds(){
-//        
-//    }
 }
