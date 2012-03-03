@@ -1,17 +1,8 @@
 package me.itsatacoshop247.FoundDiamonds;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.util.Date;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,12 +10,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockListener;
 import org.bukkit.inventory.ItemStack;
 
-public class FoundDiamondsBlockListener extends BlockListener  {
-	public static FoundDiamonds plugin;
+public class FoundDiamondsBlockListener implements Listener  {
+	private static FoundDiamonds plugin;
 	private long lastTimeDiamonds=0;
 	private long lastTimeRedstone=0;
 	private long lastTimeIron=0;
@@ -33,14 +25,14 @@ public class FoundDiamondsBlockListener extends BlockListener  {
         private long lastTimeMossy=0;
 	private String playername;
 	private String blockname;
-        public static final Logger log = Logger.getLogger("Minecraft");
+        private static final Logger log = Logger.getLogger("Minecraft");
         private String admin = "*.*";
         
 	public FoundDiamondsBlockListener(FoundDiamonds instance) {
 		plugin = instance;
 	}
         
-    @Override
+    @EventHandler
 	public void onBlockBreak(BlockBreakEvent event){
         if(FoundDiamonds.enabledWorlds.contains(event.getPlayer().getWorld().getName())){
       
