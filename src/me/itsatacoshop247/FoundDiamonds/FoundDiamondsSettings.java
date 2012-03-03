@@ -31,29 +31,29 @@ public class FoundDiamondsSettings {
     
     
     public void loadMain() {
-	String propertiesFile = fd.getMainDir() + "FoundDiamonds.properties";
-	FoundDiamondsPluginProperties properties = new FoundDiamondsPluginProperties(fd, propertiesFile);
-	properties.load();
+        String propertiesFile = fd.getMainDir() + "FoundDiamonds.properties";
+        FoundDiamondsPluginProperties properties = new FoundDiamondsPluginProperties(fd, propertiesFile);
+        properties.load();
         disableInCreative = properties.getBoolean("DisableInCreativeMode", true);
         disableDarkMining = properties.getBoolean("DisableTotalDarknessMining", true);
         trapBlockAdminMsg = properties.getBoolean("TrapBlockAdminAlerts", false);
         waitTime = properties.getInteger("SecondsBetweenFoundOreBroadcasts", 20);
         opsHavePerms = properties.getBoolean("TreatOPSAsFD.Admin", true);
-	randomItems = properties.getBoolean("RandomAwardsForFindingDiamonds", true);
-	RandomItem1= properties.getInteger("RandomItem1", 265);
-	RandomItem2= properties.getInteger("RandomItem2", 263);
+        randomItems = properties.getBoolean("RandomAwardsForFindingDiamonds", true);
+        RandomItem1= properties.getInteger("RandomItem1", 265);
+        RandomItem2= properties.getInteger("RandomItem2", 263);
         RandomItem3= properties.getInteger("RandomItem3", 341);
         broadcastMessage = properties.getString("BroadcastMessage", "@Player@ just found @Number@ @BlockName@!");
-	diamondBC = properties.getBoolean("BroadcastForDiamond", true);
-	redstoneBC = properties.getBoolean("BroadcastForRedstone", false);
+        diamondBC = properties.getBoolean("BroadcastForDiamond", true);
+        redstoneBC = properties.getBoolean("BroadcastForRedstone", false);
         mossyBC = properties.getBoolean("BroadcastForMossy", true);
-	goldBC = properties.getBoolean("BroadcastForGold", true);
-	ironBC = properties.getBoolean("BroadcastForIron", false);
-	lapisBC = properties.getBoolean("BroadcastForLapis", true);
-	logging = properties.getBoolean("LogOreFinding", false);
+        goldBC = properties.getBoolean("BroadcastForGold", true);
+        ironBC = properties.getBoolean("BroadcastForIron", false);
+        lapisBC = properties.getBoolean("BroadcastForLapis", true);
+        logging = properties.getBoolean("LogOreFinding", false);
         kickOnTrapBreak = properties.getBoolean("KickOnTrapBreak", true);
         banOnTrapBreak = properties.getBoolean("BanOnTrapBreak", false);
-	properties.save("===[FoundDiamonds] Configuration===");
+        properties.save("===[FoundDiamonds] Configuration===");
     }
     
     public boolean disableInCreativeMode() {
