@@ -2,10 +2,7 @@ package me.itsatacoshop247.FoundDiamonds;
 
 import java.io.*;
 import java.text.MessageFormat;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.logging.Level;
+import java.util.*;
 import java.util.logging.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -23,207 +20,364 @@ public class FoundDiamonds extends JavaPlugin {
     
     
     private final String mainDir = "plugins/FoundDiamonds/";
-    private File logs = new File(mainDir + "logs.txt");
-    private File traps = new File(mainDir + "traplocations.txt");
-    private File traptemp = new File(mainDir + "traplocationstemp.txt");
-    private File worlds = new File(mainDir + "worlds.txt");
-    private List<World> worldList;
+    private File logs = new File(mainDir + "log.txt");
+    private File traps = new File(mainDir + ".traplocations");
+    private File announced = new File(mainDir + ".announced");
     private List<Material> enabledBlocks = new LinkedList<Material>();
-    private LinkedList<String> enabledWorlds = new LinkedList<String>();
+    private List<String> enabledWorlds = new LinkedList<String>();
+    private List<Location> trapBlocks = new LinkedList<Location>();
+    private List<Location> announcedBlocks = new LinkedList<Location>();
+    private HashMap<Player, Boolean> adminMessagePlayers;
     private static final Logger log = Logger.getLogger("FoundDiamonds");
-    private FoundDiamondsBlockListener blockListener;
-    private FoundDiamondsSettings settings;
+    private BlockListener blockListener;
+    private YAMLHandler config;
+    private JoinListener join;
+    private QuitListener quit;
     private String pluginName;
-    private Material trap;
-    private String pluginFullName;
     private PluginDescriptionFile pdf;
         
 
     @Override
     public void onEnable() {
-        settings = new FoundDiamondsSettings(this);
-        blockListener = new FoundDiamondsBlockListener(this, settings);
+        adminMessagePlayers = new HashMap<Player, Boolean>();
+        config = new YAMLHandler(this);
+        config.loadConfiguration();
+        join = new JoinListener(this, config);
+        quit = new QuitListener(this);
+        blockListener = new BlockListener(this, config);
 	PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(this.blockListener, this);
+        pm.registerEvents(this.join, this);
+        pm.registerEvents(this.quit, this);
 	pdf = this.getDescription();
 	pluginName = pdf.getName();
-        pluginFullName = pdf.getFullName();
 	new File(mainDir).mkdir();
         checkFiles();
-        handleWorldFile();
-	settings.loadMain();
+        loadWorlds();
         loadEnabledBlocks();
-        log.info(MessageFormat.format("{0} Enabled", pluginFullName));
+        log.info(MessageFormat.format("[{0}] Enabled", pluginName));
     }
 
     @Override
     public void onDisable() {
-        log.info(MessageFormat.format("{0} Disabled", pluginFullName));             
+        log.info(MessageFormat.format("[{0}] Saving blocks to files...", pluginName));
+        String info = "This file stores your trap block locations.";
+        String info2 = "If you have any issues with traps - feel free to delete this file.";
+        boolean temp = writeBlocksToFile(traps, trapBlocks, info, info2);
+        String info3 = "This file stores the blocks that have already been announced.";
+        String info4 = "If you'd like to reannounce all the blocks - feel free to delete this file.";
+        boolean temp2 = writeBlocksToFile(announced, announcedBlocks, info3, info4);
+        if (temp && temp2) {
+            log.info(MessageFormat.format("[{0}] Successfully saved all blocks to files.", pluginName));
+        } else {
+            log.warning(MessageFormat.format("[{0}] Couldn't save blocks to files!", pluginName));
+            log.warning(MessageFormat.format("[{0}] You could try deleting .announced and .traplocations", pluginName));
+        }
+        log.info(MessageFormat.format("[{0}] Disabled", pluginName));             
     }
     
     @Override
     public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
         if ((sender instanceof Player)) {
             Player player = (Player)sender;
-            if ((commandLabel.equalsIgnoreCase("settrap")) && blockListener.hasPerms(player)) {
-                Location first = player.getLocation();
-                trap = Material.DIAMOND_ORE;    
-                if (args.length > 0) {
-                    String item = args[0];
-                    Material temp = Material.matchMaterial(item);
-                    if (temp != null && temp.isBlock()) {
-                        trap = temp;
+            if (((commandLabel.equalsIgnoreCase("fd")) || commandLabel.equalsIgnoreCase("founddiamonds")) && hasPerms(player)) {
+                if (args.length == 0) {
+                    player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "[FoundDiamonds Main Menu]");
+                    player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "admin");
+                    player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "config");
+                    player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "reload");
+                    player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "toggle");
+                    player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "trap");
+                    player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "trap <itemname>");
+                    return true;
+                } else {
+                    String arg = args[0];
+                    if (arg.equalsIgnoreCase("trap") && hasPerms(player)) {
+                        Location playerLoc = player.getLocation();
+                        Material trap;
+                        if (args.length == 1) {
+                            trap = Material.DIAMOND_ORE;
+                        } else if (args.length == 2) {
+                            String item = args[1];
+                            Material temp = Material.matchMaterial(item);
+                            if (temp != null && temp.isBlock()) {
+                                trap = temp;
+                            } else {
+                                player.sendMessage(blockListener.getPrefix() + ChatColor.RED + "Unable to set a trap with '" + item + "'");
+                                player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold_ore");
+                                return false;
+                            }
+                        } else {
+                            player.sendMessage(blockListener.getPrefix() + ChatColor.RED + "Invalid number of arguments");
+                            player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold_ore");
+                            return false;
+                        }    
+                        int x = playerLoc.getBlockX();
+                        int y = playerLoc.getBlockY();
+                        int z = playerLoc.getBlockZ();
+                        World world = player.getWorld();
+                        player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "Trap set using " + trap.name().toLowerCase().replace("_", " "));
+                        int randomnumber = (int)(Math.random() * 100.0D);
+                        if ((randomnumber >= 0) && randomnumber < 50) {
+                            Block block1 = world.getBlockAt(x, y - 1, z);
+                            Block block2 = world.getBlockAt(x, y - 2, z + 1);
+                            Block block3 = world.getBlockAt(x - 1, y - 2, z);
+                            Block block4 = world.getBlockAt(x, y - 2, z);
+                            handleTrapBlocks(trap, block1, block2, block3, block4);
+                            return true;
+                        } else if (randomnumber >= 50) {
+                            Block block1 = world.getBlockAt(x, y - 1, z);
+                            Block block2 = world.getBlockAt(x - 1, y - 2, z);
+                            Block block3 = world.getBlockAt(x , y - 2, z);
+                            Block block4 = world.getBlockAt(x -1, y - 1, z);
+                            handleTrapBlocks(trap, block1, block2, block3, block4);
+                            return true;
+                        }   
+                    } else if (arg.equalsIgnoreCase("reload")) {
+                        reloadConfig();
+                        player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "Configuration reloaded.");
+                        return true;
+                    } else if (arg.equalsIgnoreCase("toggle")) {
+                        if (args.length == 1) {
+                            player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "[Toggle Configurations]");
+                            player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "diamond");
+                            player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "gold");
+                            player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "lapis");
+                            player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "redstone");
+                            player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "iron");
+                            player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "mossy");
+                            player.sendMessage(ChatColor.AQUA + "    /fd toggle " + ChatColor.WHITE + "creative");
+                            player.sendMessage(ChatColor.AQUA + "    /fd toggle " + ChatColor.WHITE + "darkness");
+                            player.sendMessage(ChatColor.AQUA + "    /fd toggle " + ChatColor.WHITE + "ops");
+                            player.sendMessage(ChatColor.AQUA + "    /fd toggle " + ChatColor.WHITE + "kick");
+                            player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "ban");
+                            player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "trapalerts");
+                            player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "randomitems");
+                            player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "logging");
+//                            player.sendMessage("    /fd set randomitem1 <id number>");
+//                            player.sendMessage("    /fd set randomitem2 <id number>");
+//                            player.sendMessage("    /fd set randomitem3 <id number>");
+                            return true;
+                        } else  if (args.length == 2) {
+                            arg = args[1];
+                            if (arg.equalsIgnoreCase("creative")) {
+                                getConfig().set(config.getDisableInCreative(), !getConfig().getBoolean(config.getDisableInCreative()));
+                            } else if (arg.equalsIgnoreCase("darkness")) {
+                                getConfig().set(config.getDisableMiningInTotalDarkness(), !getConfig().getBoolean(config.getDisableMiningInTotalDarkness()));
+                            } else if (arg.equalsIgnoreCase("ops")) {
+                                getConfig().set(config.getOpsAsFDAdmin(), !getConfig().getBoolean(config.getOpsAsFDAdmin()));
+                            } else if (arg.equalsIgnoreCase("kick")) {
+                                getConfig().set(config.getKickOnTrapBreak(), !getConfig().getBoolean(config.getKickOnTrapBreak()));
+                            } else if (arg.equalsIgnoreCase("ban")) {
+                                getConfig().set(config.getBanOnTrapBreak(), !getConfig().getBoolean(config.getBanOnTrapBreak()));
+                            } else if (arg.equalsIgnoreCase("trapalerts")) {
+                                getConfig().set(config.getAdminAlertsOnAllTrapBreaks(), !getConfig().getBoolean(config.getAdminAlertsOnAllTrapBreaks()));
+                            } else if (arg.equalsIgnoreCase("randomitems")) {
+                                getConfig().set(config.getAwardsForFindingDiamonds(), !getConfig().getBoolean(config.getAwardsForFindingDiamonds()));
+                            } else if (arg.equalsIgnoreCase("diamond")) {
+                                getConfig().set(config.getBcDiamond(), !getConfig().getBoolean(config.getBcDiamond()));
+                                reloadEnabledBlocks(getConfig().getBoolean(config.getBcDiamond()), Material.DIAMOND_ORE);
+                            } else if (arg.equalsIgnoreCase("gold")) {
+                                getConfig().set(config.getBcGold(), !getConfig().getBoolean(config.getBcGold()));
+                                reloadEnabledBlocks(getConfig().getBoolean(config.getBcGold()), Material.GOLD_ORE);
+                            } else if (arg.equalsIgnoreCase("lapis")) {
+                                getConfig().set(config.getBcLapis(), !getConfig().getBoolean(config.getBcLapis()));
+                                reloadEnabledBlocks(getConfig().getBoolean(config.getBcLapis()), Material.LAPIS_ORE);
+                            } else if (arg.equalsIgnoreCase("redstone")) {
+                                getConfig().set(config.getBcRedstone(), !getConfig().getBoolean(config.getBcRedstone()));
+                                reloadEnabledBlocks(getConfig().getBoolean(config.getBcRedstone()), Material.REDSTONE_ORE, Material.GLOWING_REDSTONE_ORE);
+                            } else if (arg.equalsIgnoreCase("iron")) {
+                                getConfig().set(config.getBcIron(), !getConfig().getBoolean(config.getBcIron()));
+                                reloadEnabledBlocks(getConfig().getBoolean(config.getBcIron()), Material.IRON_ORE);
+                            } else if (arg.equalsIgnoreCase("mossy")) {
+                                getConfig().set(config.getBcMossy(), !getConfig().getBoolean(config.getBcMossy()));
+                                reloadEnabledBlocks(getConfig().getBoolean(config.getBcMossy()), Material.MOSSY_COBBLESTONE);
+                            } else if (arg.equalsIgnoreCase("logging")) {
+                                getConfig().set(config.getLogDiamondBreaks(), !getConfig().getBoolean(config.getLogDiamondBreaks()));
+                            } else {
+                                player.sendMessage(blockListener.getPrefix() + ChatColor.RED + "Argument '" + arg + "' unrecognized.");
+                                player.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
+                                return false;
+                            }
+                            saveConfig();
+                            player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "Configuration updated.");
+                            return true;
+                        } else {
+                            player.sendMessage(blockListener.getPrefix() + ChatColor.RED + "Invalid number of arguments.");
+                            player.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
+                            return false; 
+                        }
+                    } else if (arg.equalsIgnoreCase("config")) {
+                        showConfig(player);
+                    } else if (arg.equalsIgnoreCase("admin")) {
+                        reloadAdminMessageMap(player);
+                        if (adminMessagePlayers.get(player)) {
+                            player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "Admin messages are " + ChatColor.DARK_GREEN + "ON");
+                        } else {
+                            player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "Admin messages are " + ChatColor.RED + "OFF");
+                        }
+                        return true;
                     } else {
-                        player.sendMessage(ChatColor.DARK_RED + "Unrecognized item");
                         return false;
                     }
                 }
-                int x = first.getBlockX();
-                int y = first.getBlockY();
-                int z = first.getBlockZ();
-                World world = player.getWorld();
-                player.sendMessage(ChatColor.AQUA + "FoundDiamonds trap set.");
-                int randomnumber = (int)(Math.random() * 100.0D);
-                if ((randomnumber >= 0) && randomnumber < 50) {
-                    Block block1 = world.getBlockAt(x, y - 1, z);
-                    Block block2 = world.getBlockAt(x, y - 2, z + 1);
-                    Block block3 = world.getBlockAt(x - 1, y - 2, z);
-                    Block block4 = world.getBlockAt(x, y - 2, z);
-                    return handleTrapBlocks(block1, block2, block3, block4);
-                } else if (randomnumber >= 50) {
-                    Block block1 = world.getBlockAt(x, y - 1, z);
-                    Block block2 = world.getBlockAt(x - 1, y - 2, z);
-                    Block block3 = world.getBlockAt(x , y - 2, z);
-                    Block block4 = world.getBlockAt(x -1, y - 1, z);
-                    return handleTrapBlocks(block1, block2, block3, block4);
-                }
-                return false;
-            } else if ((commandLabel.equalsIgnoreCase("fd")) && blockListener.hasPerms(player)) {
-                player.sendMessage(ChatColor.AQUA + "FoundDiamonds Configuration");
-                player.sendMessage("    This is in development.");
             }
+            return false;
         }
         return false;
     }
+
+    private void reloadAdminMessageMap(Player player) {
+        if ((adminMessagePlayers.containsKey(player)) && adminMessagePlayers.get(player)) {
+            adminMessagePlayers.put(player, false);
+        } else if ((adminMessagePlayers.containsKey(player)) && (!adminMessagePlayers.get(player))) {
+            adminMessagePlayers.put(player, true);
+        }   
+    }    
     
-    public boolean handleTrapBlocks(Block block1, Block block2, Block block3, Block block4) {
+    public void reloadEnabledBlocks(Boolean b, Material m) {
+        if (b) {
+            enabledBlocks.add(m);
+        } else {
+            enabledBlocks.remove(m);
+        }
+    }
+    
+        public void reloadEnabledBlocks(Boolean b, Material m, Material o) {
+        if (b) {
+            enabledBlocks.add(m);
+            enabledBlocks.add(o);
+        } else {
+            enabledBlocks.remove(m);
+            enabledBlocks.remove(o);
+        }
+    }
+    
+    public void handleTrapBlocks(Material trap, Block block1, Block block2, Block block3, Block block4) {
+        trapBlocks.add(block1.getLocation());
+        trapBlocks.add(block2.getLocation());
+        trapBlocks.add(block3.getLocation());
+        trapBlocks.add(block4.getLocation());
         block1.setType(trap);
         block2.setType(trap);
         block3.setType(trap);
         block4.setType(trap);
-        try {
-            BufferedWriter out = new BufferedWriter(new FileWriter(traps, true));
-            out.write(block1.getX() + ";" + block1.getY() + ";" + block1.getZ());
-            out.newLine();
-            out.write(block2.getX() + ";" + block2.getY() + ";" + block2.getZ());
-            out.newLine();
-            out.write(block3.getX() + ";" + block3.getY() + ";" + block3.getZ());
-            out.newLine();
-            out.write(block4.getX() + ";" + block4.getY() + ";" + block4.getZ());
-            out.newLine();
-            out.close();
-            return true;
-        } catch (IOException ex) {
-            log.log(Level.SEVERE, pluginName + " Unable to write trap locations to file!", ex);
-        }
-        return false;
     }
     
-    public void checkFiles() {
+    private boolean writeBlocksToFile(File file, List<Location> blockList, String info, String info2) {
+        if (blockList.size() > 0) {
+            if (this.getDataFolder().exists()) {
+                try {
+                    file.createNewFile();
+                    BufferedWriter out = new BufferedWriter(new FileWriter(file, false));
+                    out.write("# " + info);
+                    out.newLine();
+                    out.write("# " + info2);
+                    out.newLine();
+                    for (Iterator<Location> it = blockList.iterator(); it.hasNext();) {
+                        Location m = it.next();
+                        out.write(m.getWorld().getName() + ";" + m.getX() + ";" + m.getY() + ";" + m.getZ());
+                        out.newLine();
+                    }
+                    out.close();
+                    return true;
+                } catch (IOException ex) {
+                    log.severe(MessageFormat.format("[{0}] Couldn't write blocks to {1} file!", pluginName, file.getName()));
+                    return false;
+                }
+            } else {
+                log.warning(MessageFormat.format("[{0}] Plugin folder not found.  Did you delete it?", pluginName));
+                return false;
+            }
+        } else {
+            if (file.exists()) {
+                file.delete();
+            }
+            return true;
+        }
+    }   
+    
+    private void readBlocksFromFile(File file, List<Location> list) {
+        try {
+            BufferedReader b = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+            String strLine = b.readLine();
+            while (strLine != null) {
+                if (!strLine.startsWith("#")) {
+                    try {
+                        String[] fs = strLine.split(";");
+                        Location lo = new Location(getServer().getWorld(fs[0]), Double.parseDouble(fs[1]),
+                            Double.parseDouble(fs[2]), Double.parseDouble(fs[3]));
+                        list.add(lo);
+                    } catch (Exception ex) {
+                        log.severe(MessageFormat.format("[{0}] Invalid block in trapblocks.txt!  It''s recommened that you delete it!", pluginName));
+                    }
+                }
+                strLine = b.readLine();
+            }
+            b.close();
+        } catch (Exception ex) {
+            log.severe(MessageFormat.format("[{0}] Unable to read trap blocks from file! {1}", pluginName, ex));
+        }
+    }
+    
+    private void checkFiles() {
         if (!logs.exists()) {
             try {
 		logs.createNewFile();
-            } catch (IOException e) {
-                log.log(Level.SEVERE, pluginName + " Unable to create log file!", e);
+            } catch (IOException ex) {
+                log.severe(MessageFormat.format("[{0}] Unable to create log file! {1}", pluginName, ex));
        	    }
          }        
-         if (!traps.exists()) {
-             try {
-                traps.createNewFile();
-             } catch (IOException e) {
-                log.log(Level.SEVERE, pluginName + " Unable to create traps file!", e);
-	   } 
-         }        
-         if (!traptemp.exists()) {
-             try {
-		traptemp.createNewFile();
-	     } catch (IOException e) {
-                log.log(Level.SEVERE, pluginName + " Unable to create traptemp file!", e);
-             }
-         } 
+         if (traps.exists()) {
+             readBlocksFromFile(traps, trapBlocks);
+         }
+         if (announced.exists()) {
+             readBlocksFromFile(announced, announcedBlocks);
+         }
     }
     
-    public void handleWorldFile() {
-        if(worlds.exists()) {
-            try {
-                BufferedReader br = new BufferedReader(new FileReader(worlds));
-                try {
-                    String worldLine;
-                    StringBuilder sb = new StringBuilder();
-                    while ((worldLine = br.readLine()) != null) {
-                        if (!worldLine.startsWith("#")) {
-                            sb.append(worldLine);
-                        }
-                    }
-                    br.close();
-                    String worldString = sb.toString();
-                    String[] listOfWorlds = worldString.split(",");
-                    enabledWorlds.addAll(Arrays.asList(listOfWorlds));
-                } catch (IOException ex) {
-                        Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Unable to parse worlds.txt", ex);
-                }
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Unable to find worlds.txt", ex);
-            }
-        } else {
-            try {
-                worlds.createNewFile();
-                worldList = getServer().getWorlds();
-                PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(worlds)));
-                out.println("#List of enabled worlds:");
-                out.println("#Separate them with a comma like so:  world,world_nether,mainworld,poopworld");
-                for (World y : worldList) {
-                    out.write(y.getName() + ",");
-                }
-                for (World x : worldList) {
-                    enabledWorlds.add(x.getName());
-                }
-                out.flush();
-                out.close();
-            } catch(IOException e) {
-                log.log(Level.SEVERE, pluginName + " Unable to create worlds file!", e);
-            }
+    public void loadWorlds() {
+        @SuppressWarnings("unchecked")
+        List<String> temp = (List<String>) getConfig().getList(config.getEnabledWorlds());
+        for (String x : temp) {
+            enabledWorlds.add(x);
         }
     }
     
-    public LinkedList<String> getEnabledWorlds() {
+    @SuppressWarnings("ReturnOfCollectionOrArrayField")
+    public List<String> getEnabledWorlds() {
         return enabledWorlds;
     }
 
     private void loadEnabledBlocks() {
-        if (settings.broadcastDiamond()) {
+        if (getConfig().getBoolean(config.getBcDiamond())) {
             enabledBlocks.add(Material.DIAMOND_ORE);
         }
-        if (settings.broadcastGold()) {
+        if (getConfig().getBoolean(config.getBcGold())) {
             enabledBlocks.add(Material.GOLD_ORE);
         }
-        if (settings.broadcastIron()) {
+        if (getConfig().getBoolean(config.getBcIron())) {
             enabledBlocks.add(Material.IRON_ORE);
         }
-        if (settings.broadcastLapis()) {
+        if (getConfig().getBoolean(config.getBcLapis())) {
             enabledBlocks.add(Material.LAPIS_ORE);
         }
-        if (settings.broadcastMossy()) {
+        if (getConfig().getBoolean(config.getBcMossy())) {
             enabledBlocks.add(Material.MOSSY_COBBLESTONE);
         }
-        if (settings.broadcastRedstone()) {
+        if (getConfig().getBoolean(config.getBcRedstone())) {
             enabledBlocks.add(Material.REDSTONE_ORE);
             enabledBlocks.add(Material.GLOWING_REDSTONE_ORE);
         }
     }
     
+    @SuppressWarnings("ReturnOfCollectionOrArrayField")
+    public List<Location> getTrapBlocks() {
+        return trapBlocks;
+    }
+    
     public List<Material> getEnabledBlocks() {
-        return enabledBlocks;
+        return Collections.unmodifiableList(enabledBlocks);
     }
     
     public File getTrapsFile() {
@@ -237,4 +391,45 @@ public class FoundDiamonds extends JavaPlugin {
     public String getPluginName() {
         return pluginName;
     }
+    
+    @SuppressWarnings("ReturnOfCollectionOrArrayField")
+    public List<Location> getAnnouncedBlocks() {
+        return announcedBlocks;
+    }
+    
+    public File getLogFile() {
+        return logs;
+    }
+    
+    public boolean hasPerms(Player player) {
+        return (player.hasPermission("FD.admin") || player.hasPermission("*") || (getConfig().getBoolean(config.getOpsAsFDAdmin()) && player.isOp()));
+    }    
+    
+    @SuppressWarnings("ReturnOfCollectionOrArrayField")
+    public HashMap<Player,Boolean> getAdminMessageMap() {
+        return adminMessagePlayers;
+    }
+    
+    private void showConfig(Player player) {
+        player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "[Configuration]");
+        player.sendMessage(ChatColor.AQUA + "    Disable in creative mode: " + ChatColor.WHITE + getConfig().getBoolean(config.getDisableInCreative()));
+        player.sendMessage(ChatColor.AQUA + "    Disable ore mining in total darkness: " + ChatColor.WHITE + getConfig().getBoolean(config.getDisableMiningInTotalDarkness()));
+        player.sendMessage(ChatColor.AQUA + "    Treat OPS as FD Admin: " + ChatColor.WHITE + getConfig().getBoolean(config.getOpsAsFDAdmin()));
+        player.sendMessage(ChatColor.AQUA + "    Kick players on trap break: " + ChatColor.WHITE + getConfig().getBoolean(config.getKickOnTrapBreak()));
+        player.sendMessage(ChatColor.AQUA + "    Ban players on trap break: " + ChatColor.WHITE + getConfig().getBoolean(config.getBanOnTrapBreak()));
+        player.sendMessage(ChatColor.AQUA + "    Admin alerts on all trap breaks: " + ChatColor.WHITE + getConfig().getBoolean(config.getAdminAlertsOnAllTrapBreaks()));
+        player.sendMessage(ChatColor.AQUA + "    Random awards for finding diamonds: " + ChatColor.WHITE + getConfig().getBoolean(config.getAwardsForFindingDiamonds()));
+        player.sendMessage(ChatColor.AQUA + "    Random Item 1: " + ChatColor.WHITE + getConfig().getInt(config.getRandomItem1()));
+        player.sendMessage(ChatColor.AQUA + "    Random Item 2: " + ChatColor.WHITE + getConfig().getInt(config.getRandomItem2()));
+        player.sendMessage(ChatColor.AQUA + "    Random Item 3: " + ChatColor.WHITE + getConfig().getInt(config.getRandomItem3()));
+        player.sendMessage(ChatColor.AQUA + "    Diamond Ore: " + ChatColor.WHITE + getConfig().getBoolean(config.getBcDiamond()));
+        player.sendMessage(ChatColor.AQUA + "    Gold Ore: " + ChatColor.WHITE + getConfig().getBoolean(config.getBcGold()));
+        player.sendMessage(ChatColor.AQUA + "    Lapis Ore: " + ChatColor.WHITE + getConfig().getBoolean(config.getBcLapis()));
+        player.sendMessage(ChatColor.AQUA + "    Redstone Ore: " + ChatColor.WHITE + getConfig().getBoolean(config.getBcRedstone()));
+        player.sendMessage(ChatColor.AQUA + "    Iron Ore: " + ChatColor.WHITE + getConfig().getBoolean(config.getBcIron()));
+        player.sendMessage(ChatColor.AQUA + "    Mossy Cobblestone: " + ChatColor.WHITE + getConfig().getBoolean(config.getBcMossy()));
+        player.sendMessage(ChatColor.AQUA + "    Message: " + ChatColor.WHITE + getConfig().getString(config.getBcMessage()));
+        player.sendMessage(ChatColor.AQUA + "    Log all diamond ore breaks: " + ChatColor.WHITE + getConfig().getBoolean(config.getLogDiamondBreaks()));
+    }
+
 }

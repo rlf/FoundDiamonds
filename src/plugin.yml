@@ -1,7 +1,9 @@
 name: FoundDiamonds
-version: 3.0
+version: 3.1
 main: me.itsatacoshop247.FoundDiamonds.FoundDiamonds
 author: itsatacoshop247, SeeD419
 commands:
-   settrap:
-     description: Sets a trap for X-Ray modders
+   fd:
+     description: Shows the main menu
+   founddiamonds:
+     description: Shows the main menu

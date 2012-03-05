@@ -1,0 +1,30 @@
+Found Diamonds Configuration:
+  Main:
+    Disable in creative mode: true
+    Disable ore mining in total darkness: true
+    Treat OPS as FD Admin: true
+  Traps:
+    Kick players on trap break: true
+    Ban players on trap break: false
+    Admin alerts on all trap breaks: false
+    Kick message: You broke a FoundDiamonds trap block.
+  Awards:
+    Random awards for finding diamonds: true
+    Random Item 1: 265
+    Random Item 2: 263
+    Random Item 3: 341
+  Broadcasts:
+    Diamond Ore: true
+    Gold Ore: true
+    Lapis Ore: true
+    Redstone Ore: true
+    Iron Ore: true
+    Mossy Cobblestone: true
+    Message: '@Player@ just found @Number@ @BlockName@!'
+    Use player nicknames: true
+  Logging:
+    Log all diamond ore breaks: false
+  Enabled Worlds:
+  - world
+  Admin Messages:
+    Diamond Ore: true
