@@ -11,18 +11,19 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class FoundDiamonds extends JavaPlugin {
-    
-    
-    private final String mainDir = "plugins/FoundDiamonds/";
-    private File logs = new File(mainDir + "log.txt");
-    private File traps = new File(mainDir + ".traplocations");
-    private File announced = new File(mainDir + ".announced");
+
+    private final File mainDir = new File("plugins/FoundDiamonds/");
+    private File logs;
+    private File traps;
+    private File announced;
+    private File configFile;
     private List<Material> enabledBlocks = new LinkedList<Material>();
     private List<String> enabledWorlds = new LinkedList<String>();
     private List<Location> trapBlocks = new LinkedList<Location>();
@@ -35,26 +36,31 @@ public class FoundDiamonds extends JavaPlugin {
     private QuitListener quit;
     private String pluginName;
     private PluginDescriptionFile pdf;
-        
+
 
     @Override
     public void onEnable() {
-        adminMessagePlayers = new HashMap<Player, Boolean>();
+        //Manage files - get data
         config = new YAMLHandler(this);
-        config.loadConfiguration();
+        checkFiles();
+        loadWorlds();
+        loadEnabledBlocks();
+
+        //Init variables
+        adminMessagePlayers = new HashMap<Player, Boolean>();
         join = new JoinListener(this, config);
         quit = new QuitListener(this);
         blockListener = new BlockListener(this, config);
+
+        //Register listeners
 	PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(this.blockListener, this);
         pm.registerEvents(this.join, this);
         pm.registerEvents(this.quit, this);
+
 	pdf = this.getDescription();
 	pluginName = pdf.getName();
-	new File(mainDir).mkdir();
-        checkFiles();
-        loadWorlds();
-        loadEnabledBlocks();
+
         log.info(MessageFormat.format("[{0}] Enabled", pluginName));
     }
 
@@ -73,9 +79,9 @@ public class FoundDiamonds extends JavaPlugin {
             log.warning(MessageFormat.format("[{0}] Couldn't save blocks to files!", pluginName));
             log.warning(MessageFormat.format("[{0}] You could try deleting .announced and .traplocations", pluginName));
         }
-        log.info(MessageFormat.format("[{0}] Disabled", pluginName));             
+        log.info(MessageFormat.format("[{0}] Disabled", pluginName));
     }
-    
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
         if ((sender instanceof Player)) {
@@ -111,7 +117,7 @@ public class FoundDiamonds extends JavaPlugin {
                             player.sendMessage(blockListener.getPrefix() + ChatColor.RED + "Invalid number of arguments");
                             player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold_ore");
                             return false;
-                        }    
+                        }
                         int x = playerLoc.getBlockX();
                         int y = playerLoc.getBlockY();
                         int z = playerLoc.getBlockZ();
@@ -132,7 +138,7 @@ public class FoundDiamonds extends JavaPlugin {
                             Block block4 = world.getBlockAt(x -1, y - 1, z);
                             handleTrapBlocks(trap, block1, block2, block3, block4);
                             return true;
-                        }   
+                        }
                     } else if (arg.equalsIgnoreCase("reload")) {
                         reloadConfig();
                         player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "Configuration reloaded.");
@@ -145,6 +151,7 @@ public class FoundDiamonds extends JavaPlugin {
                             player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "lapis");
                             player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "redstone");
                             player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "iron");
+                            player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "coal");
                             player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "mossy");
                             player.sendMessage(ChatColor.AQUA + "    /fd toggle " + ChatColor.WHITE + "creative");
                             player.sendMessage(ChatColor.AQUA + "    /fd toggle " + ChatColor.WHITE + "darkness");
@@ -194,20 +201,24 @@ public class FoundDiamonds extends JavaPlugin {
                                 reloadEnabledBlocks(getConfig().getBoolean(config.getBcMossy()), Material.MOSSY_COBBLESTONE);
                             } else if (arg.equalsIgnoreCase("logging")) {
                                 getConfig().set(config.getLogDiamondBreaks(), !getConfig().getBoolean(config.getLogDiamondBreaks()));
+                            } else if (arg.equalsIgnoreCase("coal")) {
+                                getConfig().set(config.getBcCoal(), !getConfig().getBoolean(config.getBcCoal()));
                             } else {
                                 player.sendMessage(blockListener.getPrefix() + ChatColor.RED + "Argument '" + arg + "' unrecognized.");
                                 player.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
                                 return false;
                             }
-                            saveConfig();
+                            saveYaml();
                             player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "Configuration updated.");
+                            showConfig(player);
                             return true;
                         } else {
                             player.sendMessage(blockListener.getPrefix() + ChatColor.RED + "Invalid number of arguments.");
                             player.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
-                            return false; 
+                            return false;
                         }
                     } else if (arg.equalsIgnoreCase("config")) {
+                        player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "[Configuration]");
                         showConfig(player);
                     } else if (arg.equalsIgnoreCase("admin")) {
                         reloadAdminMessageMap(player);
@@ -232,9 +243,9 @@ public class FoundDiamonds extends JavaPlugin {
             adminMessagePlayers.put(player, false);
         } else if ((adminMessagePlayers.containsKey(player)) && (!adminMessagePlayers.get(player))) {
             adminMessagePlayers.put(player, true);
-        }   
-    }    
-    
+        }
+    }
+
     public void reloadEnabledBlocks(Boolean b, Material m) {
         if (b) {
             enabledBlocks.add(m);
@@ -242,7 +253,7 @@ public class FoundDiamonds extends JavaPlugin {
             enabledBlocks.remove(m);
         }
     }
-    
+
         public void reloadEnabledBlocks(Boolean b, Material m, Material o) {
         if (b) {
             enabledBlocks.add(m);
@@ -252,7 +263,7 @@ public class FoundDiamonds extends JavaPlugin {
             enabledBlocks.remove(o);
         }
     }
-    
+
     public void handleTrapBlocks(Material trap, Block block1, Block block2, Block block3, Block block4) {
         trapBlocks.add(block1.getLocation());
         trapBlocks.add(block2.getLocation());
@@ -263,7 +274,7 @@ public class FoundDiamonds extends JavaPlugin {
         block3.setType(trap);
         block4.setType(trap);
     }
-    
+
     private boolean writeBlocksToFile(File file, List<Location> blockList, String info, String info2) {
         if (blockList.size() > 0) {
             if (this.getDataFolder().exists()) {
@@ -282,7 +293,7 @@ public class FoundDiamonds extends JavaPlugin {
                     out.close();
                     return true;
                 } catch (IOException ex) {
-                    log.severe(MessageFormat.format("[{0}] Couldn't write blocks to {1} file!", pluginName, file.getName()));
+                    log.severe(MessageFormat.format("[{0}] Error writing blocks to file!", pluginName, file.getName()));
                     return false;
                 }
             } else {
@@ -295,8 +306,8 @@ public class FoundDiamonds extends JavaPlugin {
             }
             return true;
         }
-    }   
-    
+    }
+
     private void readBlocksFromFile(File file, List<Location> list) {
         try {
             BufferedReader b = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
@@ -319,23 +330,36 @@ public class FoundDiamonds extends JavaPlugin {
             log.severe(MessageFormat.format("[{0}] Unable to read trap blocks from file! {1}", pluginName, ex));
         }
     }
-    
+
     private void checkFiles() {
+        if (!mainDir.exists()) {
+            mainDir.mkdir();
+        }
+        logs = new File(getDataFolder(), "logs.txt");
+        traps = new File(getDataFolder(), ".traplocations");
+        announced = new File(getDataFolder(), ".announced");
+        configFile = new File(getDataFolder(), "config.yml");
+
         if (!logs.exists()) {
             try {
-		logs.createNewFile();
+                logs.createNewFile();
             } catch (IOException ex) {
                 log.severe(MessageFormat.format("[{0}] Unable to create log file! {1}", pluginName, ex));
        	    }
-         }        
+         }
          if (traps.exists()) {
              readBlocksFromFile(traps, trapBlocks);
          }
          if (announced.exists()) {
              readBlocksFromFile(announced, announcedBlocks);
          }
+         if(!configFile.exists()) {
+             config.firstLoad();
+         } else {
+             loadYaml();
+         }
     }
-    
+
     public void loadWorlds() {
         @SuppressWarnings("unchecked")
         List<String> temp = (List<String>) getConfig().getList(config.getEnabledWorlds());
@@ -343,7 +367,7 @@ public class FoundDiamonds extends JavaPlugin {
             enabledWorlds.add(x);
         }
     }
-    
+
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
     public List<String> getEnabledWorlds() {
         return enabledWorlds;
@@ -369,67 +393,92 @@ public class FoundDiamonds extends JavaPlugin {
             enabledBlocks.add(Material.REDSTONE_ORE);
             enabledBlocks.add(Material.GLOWING_REDSTONE_ORE);
         }
+        if (getConfig().getBoolean(config.getBcCoal())) {
+            enabledBlocks.add(Material.COAL_ORE);
+        }
     }
-    
+
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
     public List<Location> getTrapBlocks() {
         return trapBlocks;
     }
-    
+
     public List<Material> getEnabledBlocks() {
         return Collections.unmodifiableList(enabledBlocks);
     }
-    
+
     public File getTrapsFile() {
         return traps;
     }
-    
-    public String getMainDir() {
-        return mainDir;
+
+    public void saveYaml() {
+        try {
+            getConfig().save(configFile);
+        } catch (IOException ex) {
+            log.severe(MessageFormat.format("[{0}] Unable to create save configuration file! {1}", pluginName, ex));
+        }
     }
-    
+
+    public void loadYaml() {
+        try {
+            getConfig().load(configFile);
+        } catch (FileNotFoundException ex) {
+            log.severe(MessageFormat.format("[{0}] Unable to load configuration file! {1}", pluginName, ex));
+        } catch (IOException ex) {
+            log.severe(MessageFormat.format("[{0}] Unable to load configuration file! {1}", pluginName, ex));
+        } catch (InvalidConfigurationException ex) {
+            log.severe(MessageFormat.format("[{0}] Unable to load configuration file! {1}", pluginName, ex));
+        }
+    }
+
     public String getPluginName() {
         return pluginName;
     }
-    
+
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
     public List<Location> getAnnouncedBlocks() {
         return announcedBlocks;
     }
-    
+
     public File getLogFile() {
         return logs;
     }
-    
+
     public boolean hasPerms(Player player) {
         return (player.hasPermission("FD.admin") || player.hasPermission("*") || (getConfig().getBoolean(config.getOpsAsFDAdmin()) && player.isOp()));
-    }    
-    
+    }
+
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
     public HashMap<Player,Boolean> getAdminMessageMap() {
         return adminMessagePlayers;
     }
-    
+
     private void showConfig(Player player) {
-        player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "[Configuration]");
-        player.sendMessage(ChatColor.AQUA + "    Disable in creative mode: " + ChatColor.WHITE + getConfig().getBoolean(config.getDisableInCreative()));
-        player.sendMessage(ChatColor.AQUA + "    Disable ore mining in total darkness: " + ChatColor.WHITE + getConfig().getBoolean(config.getDisableMiningInTotalDarkness()));
-        player.sendMessage(ChatColor.AQUA + "    Treat OPS as FD Admin: " + ChatColor.WHITE + getConfig().getBoolean(config.getOpsAsFDAdmin()));
-        player.sendMessage(ChatColor.AQUA + "    Kick players on trap break: " + ChatColor.WHITE + getConfig().getBoolean(config.getKickOnTrapBreak()));
-        player.sendMessage(ChatColor.AQUA + "    Ban players on trap break: " + ChatColor.WHITE + getConfig().getBoolean(config.getBanOnTrapBreak()));
-        player.sendMessage(ChatColor.AQUA + "    Admin alerts on all trap breaks: " + ChatColor.WHITE + getConfig().getBoolean(config.getAdminAlertsOnAllTrapBreaks()));
-        player.sendMessage(ChatColor.AQUA + "    Random awards for finding diamonds: " + ChatColor.WHITE + getConfig().getBoolean(config.getAwardsForFindingDiamonds()));
-        player.sendMessage(ChatColor.AQUA + "    Random Item 1: " + ChatColor.WHITE + getConfig().getInt(config.getRandomItem1()));
-        player.sendMessage(ChatColor.AQUA + "    Random Item 2: " + ChatColor.WHITE + getConfig().getInt(config.getRandomItem2()));
-        player.sendMessage(ChatColor.AQUA + "    Random Item 3: " + ChatColor.WHITE + getConfig().getInt(config.getRandomItem3()));
-        player.sendMessage(ChatColor.AQUA + "    Diamond Ore: " + ChatColor.WHITE + getConfig().getBoolean(config.getBcDiamond()));
-        player.sendMessage(ChatColor.AQUA + "    Gold Ore: " + ChatColor.WHITE + getConfig().getBoolean(config.getBcGold()));
-        player.sendMessage(ChatColor.AQUA + "    Lapis Ore: " + ChatColor.WHITE + getConfig().getBoolean(config.getBcLapis()));
-        player.sendMessage(ChatColor.AQUA + "    Redstone Ore: " + ChatColor.WHITE + getConfig().getBoolean(config.getBcRedstone()));
-        player.sendMessage(ChatColor.AQUA + "    Iron Ore: " + ChatColor.WHITE + getConfig().getBoolean(config.getBcIron()));
-        player.sendMessage(ChatColor.AQUA + "    Mossy Cobblestone: " + ChatColor.WHITE + getConfig().getBoolean(config.getBcMossy()));
-        player.sendMessage(ChatColor.AQUA + "    Message: " + ChatColor.WHITE + getConfig().getString(config.getBcMessage()));
-        player.sendMessage(ChatColor.AQUA + "    Log all diamond ore breaks: " + ChatColor.WHITE + getConfig().getBoolean(config.getLogDiamondBreaks()));
+        player.sendMessage(ChatColor.AQUA + "    Diamond Ore: " + getConfigBoolean(getConfig().getBoolean(config.getBcDiamond())));
+        player.sendMessage(ChatColor.AQUA + "    Gold Ore: " + getConfigBoolean(getConfig().getBoolean(config.getBcGold())));
+        player.sendMessage(ChatColor.AQUA + "    Lapis Ore: " + getConfigBoolean(getConfig().getBoolean(config.getBcLapis())));
+        player.sendMessage(ChatColor.AQUA + "    Redstone Ore: " + getConfigBoolean(getConfig().getBoolean(config.getBcRedstone())));
+        player.sendMessage(ChatColor.AQUA + "    Iron Ore: " + getConfigBoolean(getConfig().getBoolean(config.getBcIron())));
+        player.sendMessage(ChatColor.AQUA + "    Coal Ore: " + getConfigBoolean(getConfig().getBoolean(config.getBcCoal())));
+        player.sendMessage(ChatColor.AQUA + "    Mossy Cobblestone: " + getConfigBoolean( getConfig().getBoolean(config.getBcMossy())));
+        player.sendMessage(ChatColor.AQUA + "    Disable in creative mode: " + getConfigBoolean(getConfig().getBoolean(config.getDisableInCreative())));
+        player.sendMessage(ChatColor.AQUA + "    Disable ore mining in total darkness: " + getConfigBoolean(getConfig().getBoolean(config.getDisableMiningInTotalDarkness())));
+        player.sendMessage(ChatColor.AQUA + "    Treat OPS as FD Admin: " +  getConfigBoolean(getConfig().getBoolean(config.getOpsAsFDAdmin())));
+        player.sendMessage(ChatColor.AQUA + "    Kick players on trap break: " + getConfigBoolean(getConfig().getBoolean(config.getKickOnTrapBreak())));
+        player.sendMessage(ChatColor.AQUA + "    Ban players on trap break: " + getConfigBoolean(getConfig().getBoolean(config.getBanOnTrapBreak())));
+        player.sendMessage(ChatColor.AQUA + "    Admin alerts on all trap breaks: " + getConfigBoolean(getConfig().getBoolean(config.getAdminAlertsOnAllTrapBreaks())));
+        player.sendMessage(ChatColor.AQUA + "    Random awards for finding diamonds: " + getConfigBoolean(getConfig().getBoolean(config.getAwardsForFindingDiamonds())));
+        player.sendMessage(ChatColor.AQUA + "    Logging all diamond ore breaks: " + getConfigBoolean(getConfig().getBoolean(config.getLogDiamondBreaks())));
+        player.sendMessage(ChatColor.AQUA + "    Random Item 1: " + ChatColor.WHITE + Material.getMaterial(getConfig().getInt(config.getRandomItem1())).toString().toLowerCase().replace("_", " "));
+        player.sendMessage(ChatColor.AQUA + "    Random Item 2: " + ChatColor.WHITE + Material.getMaterial(getConfig().getInt(config.getRandomItem2())).toString().toLowerCase().replace("_", " "));
+        player.sendMessage(ChatColor.AQUA + "    Random Item 3: " + ChatColor.WHITE + Material.getMaterial(getConfig().getInt(config.getRandomItem3())).toString().toLowerCase().replace("_", " "));
+    }
+
+    private String getConfigBoolean(Boolean b) {
+        if(b) {
+            return ChatColor.DARK_GREEN + "[On]";
+        }
+        return ChatColor.DARK_RED + "[Off]";
     }
 
 }

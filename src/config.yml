@@ -10,6 +10,7 @@ Found Diamonds Configuration:
     Kick message: You broke a FoundDiamonds trap block.
   Awards:
     Random awards for finding diamonds: true
+    Percent of time awards are given: 10
     Random Item 1: 265
     Random Item 2: 263
     Random Item 3: 341
@@ -19,6 +20,7 @@ Found Diamonds Configuration:
     Lapis Ore: true
     Redstone Ore: true
     Iron Ore: true
+    Coal Ore: true
     Mossy Cobblestone: true
     Message: '@Player@ just found @Number@ @BlockName@!'
     Use player nicknames: true
@@ -27,4 +29,4 @@ Found Diamonds Configuration:
   Enabled Worlds:
   - world
   Admin Messages:
-    Diamond Ore: true
+    Diamond Ore: false

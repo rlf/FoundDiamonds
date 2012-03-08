@@ -95,7 +95,7 @@ public class BlockListener implements Listener  {
 
     public int getRandomAmount(){
         Random rand = new Random();
-        int amount = rand.nextInt(5);
+        int amount = rand.nextInt(3);
         return amount;
     }
 
@@ -195,14 +195,17 @@ public class BlockListener implements Listener  {
         if (blockMaterial == Material.DIAMOND_ORE && fd.getConfig().getBoolean(config.getBcDiamond())) {
             broadcastFoundBlock(blockMaterial, ChatColor.AQUA, total, playername, blockname);
             if (fd.getConfig().getBoolean(config.getAwardsForFindingDiamonds())) {
-                int randomNumber = (int)(Math.random()*1000);
-                if (randomNumber >= 0 && randomNumber <= 150) {
-                    handleRandomItems(randomNumber);
+                int randomInt = (int) (Math.random()*100);
+                if (randomInt <= fd.getConfig().getInt(config.getPercentTogetAwards())) {
+                    int randomNumber = (int)(Math.random()*150);
+                    if (randomNumber >= 0 && randomNumber <= 150) {
+                        handleRandomItems(randomNumber);
+                    }
                 }
             }
         } else if ((blockMaterial == Material.REDSTONE_ORE || blockMaterial == Material.GLOWING_REDSTONE_ORE)
                 && fd.getConfig().getBoolean(config.getBcRedstone())) {
-            broadcastFoundBlock(blockMaterial, ChatColor.RED, total, playername, blockname);
+            broadcastFoundBlock(blockMaterial, ChatColor.DARK_RED, total, playername, blockname);
         } else if (blockMaterial == Material.MOSSY_COBBLESTONE && fd.getConfig().getBoolean(config.getBcMossy())) {
             broadcastFoundBlock(blockMaterial, ChatColor.DARK_GREEN, total, playername, blockname);
         } else if (blockMaterial == Material.GOLD_ORE && fd.getConfig().getBoolean(config.getBcGold())) {
@@ -211,6 +214,8 @@ public class BlockListener implements Listener  {
             broadcastFoundBlock(blockMaterial, ChatColor.GRAY, total, playername, blockname);
         } else if (blockMaterial == Material.LAPIS_ORE && fd.getConfig().getBoolean(config.getBcLapis())) {
             broadcastFoundBlock(blockMaterial, ChatColor.BLUE, total, playername, blockname);
+        } else if (blockMaterial == Material.COAL_ORE && fd.getConfig().getBoolean(config.getBcCoal())) {
+            broadcastFoundBlock(blockMaterial, ChatColor.DARK_GRAY, total, playername, blockname);
         }
     }
 
@@ -248,19 +253,18 @@ public class BlockListener implements Listener  {
         return true;
     }
 
-    private int getTotalBlocks(Block block) {
+    private int getTotalBlocks(Block origBlock) {
         blockList = new LinkedList<Block>();
         checkedBlocks = new LinkedList<Block>();
-        blockList.add(block);
+        blockList.add(origBlock);
         for (BlockFace y : BlockFace.values()) {
-            Block cycle = block.getRelative(y);
-            if ((cycle.getType() == block.getType() && !blockList.contains(cycle) && !checkedBlocks.contains(cycle)) ||
-                    (((block.getType() == Material.GLOWING_REDSTONE_ORE || block.getType() == Material.REDSTONE_ORE) &&
-                    cycle.getType() == Material.GLOWING_REDSTONE_ORE || cycle.getType() == Material.REDSTONE_ORE) &&
+            Block cycle = origBlock.getRelative(y);
+            if ((cycle.getType() == origBlock.getType() && !blockList.contains(cycle) && !checkedBlocks.contains(cycle)) ||
+                    ((isRedstone(origBlock) && isRedstone(cycle)) &&
                     !blockList.contains(cycle) && !checkedBlocks.contains(cycle))) {
                 fd.getAnnouncedBlocks().add(cycle.getLocation());
                 blockList.add(cycle);
-                checkCyclesRelative(cycle);
+                checkCyclesRelative(origBlock, cycle);
             } else {
                 if (!checkedBlocks.contains(cycle)) {
                     checkedBlocks.add(cycle);
@@ -270,16 +274,14 @@ public class BlockListener implements Listener  {
         return blockList.size();
     }
 
-    private void checkCyclesRelative(Block cycle) {
+    private void checkCyclesRelative(Block origBlock, Block cycle) {
         for (BlockFace y : BlockFace.values()) {
             Block secondCycle = cycle.getRelative(y);
-            if ((secondCycle.getType() == cycle.getType() && !blockList.contains(secondCycle) && !checkedBlocks.contains(secondCycle)) ||
-                    (((cycle.getType() == Material.GLOWING_REDSTONE_ORE || cycle.getType() == Material.REDSTONE_ORE) &&
-                    secondCycle.getType() == Material.GLOWING_REDSTONE_ORE || secondCycle.getType() == Material.REDSTONE_ORE) &&
-                    !blockList.contains(secondCycle) && !checkedBlocks.contains(secondCycle))) {
+            if ((secondCycle.getType() == origBlock.getType() && !blockList.contains(secondCycle) && !checkedBlocks.contains(secondCycle)) ||
+               (isRedstone(origBlock) && isRedstone(secondCycle) && (!blockList.contains(secondCycle) && !checkedBlocks.contains(secondCycle)))) {
                 blockList.add(secondCycle);
                 fd.getAnnouncedBlocks().add(secondCycle.getLocation());
-                checkCyclesRelative(secondCycle);
+                checkCyclesRelative(origBlock, secondCycle);
             } else {
                 if (!checkedBlocks.contains(secondCycle)) {
                     checkedBlocks.add(secondCycle);
@@ -291,6 +293,10 @@ public class BlockListener implements Listener  {
 
     public String getPrefix() {
         return prefix;
+    }
+
+    private boolean isRedstone(Block m) {
+        return (m.getType() == Material.REDSTONE_ORE || m.getType() == Material.GLOWING_REDSTONE_ORE);
     }
 
  }
