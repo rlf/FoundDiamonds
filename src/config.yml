@@ -2,7 +2,7 @@ Found Diamonds Configuration:
   Main:
     Disable in creative mode: true
     Disable ore mining in total darkness: true
-    Treat OPS as FD Admin: true
+    Give OPs all permissions: true
   Traps:
     Kick players on trap break: true
     Ban players on trap break: false
@@ -22,7 +22,7 @@ Found Diamonds Configuration:
     Iron Ore: true
     Coal Ore: true
     Mossy Cobblestone: true
-    Message: '@Player@ just found @Number@ @BlockName@!'
+    Message: '@Player@ just found @Number@ @BlockName@.'
     Use player nicknames: true
   Logging:
     Log all diamond ore breaks: false

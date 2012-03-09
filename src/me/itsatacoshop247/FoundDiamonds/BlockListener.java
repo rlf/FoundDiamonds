@@ -113,12 +113,12 @@ public class BlockListener implements Listener  {
     private void handleTrapBlock(Player player, Block block) {
         if(fd.getConfig().getBoolean(config.getAdminAlertsOnAllTrapBreaks())) {
             for (Player x: fd.getServer().getOnlinePlayers()) {
-                if(fd.hasPerms(x) && (x != player)) {
+                if(fd.hasPerms(x, "FD.messages") && (x != player)) {
                     x.sendMessage(prefix + ChatColor.RED + player.getName() + " just broke a trap block");
                 }
             }
         }
-        if (fd.hasPerms(player)) {
+        if (fd.hasPerms(player, "FD.trap")) {
             player.sendMessage(prefix + ChatColor.AQUA + "Trap block removed");
         } else {
             fd.getServer().broadcastMessage(prefix + ChatColor.RED + player.getName() + " just broke a trap block");
@@ -126,10 +126,10 @@ public class BlockListener implements Listener  {
         if(fd.getConfig().getBoolean(config.getLogDiamondBreaks())) {
             handleLogging(player, block, true);
         }
-        if (fd.getConfig().getBoolean(config.getKickOnTrapBreak())  && !fd.hasPerms(player)) {
+        if (fd.getConfig().getBoolean(config.getKickOnTrapBreak())  && !fd.hasPerms(player, "FD.trap")) {
             player.kickPlayer(fd.getConfig().getString(config.getKickMessage()));
         }
-        if (fd.getConfig().getBoolean(config.getBanOnTrapBreak()) && !fd.hasPerms(player)) {
+        if (fd.getConfig().getBoolean(config.getBanOnTrapBreak()) && !fd.hasPerms(player, "FD.trap")) {
             player.setBanned(true);
         }
         removeTrapBlock(block);

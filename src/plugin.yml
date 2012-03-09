@@ -1,9 +1,37 @@
 name: FoundDiamonds
-version: 3.1.3
+version: 3.1.4
 main: me.itsatacoshop247.FoundDiamonds.FoundDiamonds
 author: itsatacoshop247, SeeD419
+website: http://dev.bukkit.org/server-mods/founddiamonds/
+database: false
+
 commands:
    fd:
      description: Shows the main menu
-   founddiamonds:
-     description: Shows the main menu
+     aliases: [founddiamonds]
+
+permissions:
+  fd.*:
+    description: Gives access to all FD commands
+    default: false
+    children:
+      fd.trap: true
+      fd.messages: true
+      fd.config: true
+      fd.reload: true
+      fd.toggle: true
+  fd.trap:
+    description: Allows users to set FD traps
+    default: false
+  fd.messages:
+    description: Allows users to see admin and trap messages
+    default: false
+  fd.config:
+    description: Allows users to view the FD configuration file in game
+    default: false
+  fd.reload:
+    description: Allows users to reload the configuration file in game
+    default: false
+  fd.toggle:
+    description: Allows users to change the configuration file in game
+    default: false

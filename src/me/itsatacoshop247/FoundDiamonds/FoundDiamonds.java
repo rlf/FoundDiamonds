@@ -86,64 +86,19 @@ public class FoundDiamonds extends JavaPlugin {
     public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
         if ((sender instanceof Player)) {
             Player player = (Player)sender;
-            if (((commandLabel.equalsIgnoreCase("fd")) || commandLabel.equalsIgnoreCase("founddiamonds")) && hasPerms(player)) {
+            if (((commandLabel.equalsIgnoreCase("fd")) || commandLabel.equalsIgnoreCase("founddiamonds"))) {
                 if (args.length == 0) {
-                    player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "[FoundDiamonds Main Menu]");
-                    player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "admin");
-                    player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "config");
-                    player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "reload");
-                    player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "toggle");
-                    player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "trap");
-                    player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "trap <itemname>");
+                    printMainMenu(player);
                     return true;
                 } else {
                     String arg = args[0];
-                    if (arg.equalsIgnoreCase("trap") && hasPerms(player)) {
-                        Location playerLoc = player.getLocation();
-                        Material trap;
-                        if (args.length == 1) {
-                            trap = Material.DIAMOND_ORE;
-                        } else if (args.length == 2) {
-                            String item = args[1];
-                            Material temp = Material.matchMaterial(item);
-                            if (temp != null && temp.isBlock()) {
-                                trap = temp;
-                            } else {
-                                player.sendMessage(blockListener.getPrefix() + ChatColor.RED + "Unable to set a trap with '" + item + "'");
-                                player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold_ore");
-                                return false;
-                            }
-                        } else {
-                            player.sendMessage(blockListener.getPrefix() + ChatColor.RED + "Invalid number of arguments");
-                            player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold_ore");
-                            return false;
-                        }
-                        int x = playerLoc.getBlockX();
-                        int y = playerLoc.getBlockY();
-                        int z = playerLoc.getBlockZ();
-                        World world = player.getWorld();
-                        player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "Trap set using " + trap.name().toLowerCase().replace("_", " "));
-                        int randomnumber = (int)(Math.random() * 100.0D);
-                        if ((randomnumber >= 0) && randomnumber < 50) {
-                            Block block1 = world.getBlockAt(x, y - 1, z);
-                            Block block2 = world.getBlockAt(x, y - 2, z + 1);
-                            Block block3 = world.getBlockAt(x - 1, y - 2, z);
-                            Block block4 = world.getBlockAt(x, y - 2, z);
-                            handleTrapBlocks(trap, block1, block2, block3, block4);
-                            return true;
-                        } else if (randomnumber >= 50) {
-                            Block block1 = world.getBlockAt(x, y - 1, z);
-                            Block block2 = world.getBlockAt(x - 1, y - 2, z);
-                            Block block3 = world.getBlockAt(x , y - 2, z);
-                            Block block4 = world.getBlockAt(x -1, y - 1, z);
-                            handleTrapBlocks(trap, block1, block2, block3, block4);
-                            return true;
-                        }
-                    } else if (arg.equalsIgnoreCase("reload")) {
+                    if (arg.equalsIgnoreCase("trap") && hasPerms(player, "fd.trap")) {
+                        handleTrap(player, args);
+                    } else if (arg.equalsIgnoreCase("reload") && hasPerms(player, "fd.reload")) {
                         reloadConfig();
                         player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "Configuration reloaded.");
                         return true;
-                    } else if (arg.equalsIgnoreCase("toggle")) {
+                    } else if (arg.equalsIgnoreCase("toggle") && hasPerms(player, "fd.toggle")) {
                         if (args.length == 1) {
                             player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "[Toggle Configurations]");
                             player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "diamond");
@@ -161,9 +116,6 @@ public class FoundDiamonds extends JavaPlugin {
                             player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "trapalerts");
                             player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "randomitems");
                             player.sendMessage(ChatColor.AQUA + "    /fd toggle "+ ChatColor.WHITE + "logging");
-//                            player.sendMessage("    /fd set randomitem1 <id number>");
-//                            player.sendMessage("    /fd set randomitem2 <id number>");
-//                            player.sendMessage("    /fd set randomitem3 <id number>");
                             return true;
                         } else  if (args.length == 2) {
                             arg = args[1];
@@ -217,10 +169,10 @@ public class FoundDiamonds extends JavaPlugin {
                             player.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
                             return false;
                         }
-                    } else if (arg.equalsIgnoreCase("config")) {
+                    } else if (arg.equalsIgnoreCase("config") && hasPerms(player, "fd.config")) {
                         player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "[Configuration]");
                         showConfig(player);
-                    } else if (arg.equalsIgnoreCase("admin")) {
+                    } else if (arg.equalsIgnoreCase("admin") && hasPerms(player, "fd.messages")) {
                         reloadAdminMessageMap(player);
                         if (adminMessagePlayers.get(player)) {
                             player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "Admin messages are " + ChatColor.DARK_GREEN + "ON");
@@ -228,6 +180,13 @@ public class FoundDiamonds extends JavaPlugin {
                             player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "Admin messages are " + ChatColor.RED + "OFF");
                         }
                         return true;
+                    } else if (arg.equalsIgnoreCase("set") && hasPerms(player, "fd.toggle")) {
+                        if (args.length == 1) {
+                            player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "[Set]");
+                            player.sendMessage(ChatColor.AQUA + "    /fd set randomitem1 <id number>");
+                            player.sendMessage(ChatColor.AQUA + "    /fd set randomitem2 <id number>");
+                            player.sendMessage(ChatColor.AQUA + "    /fd set randomitem3 <id number>");
+                        }
                     } else {
                         return false;
                     }
@@ -242,6 +201,8 @@ public class FoundDiamonds extends JavaPlugin {
         if ((adminMessagePlayers.containsKey(player)) && adminMessagePlayers.get(player)) {
             adminMessagePlayers.put(player, false);
         } else if ((adminMessagePlayers.containsKey(player)) && (!adminMessagePlayers.get(player))) {
+            adminMessagePlayers.put(player, true);
+        } else {
             adminMessagePlayers.put(player, true);
         }
     }
@@ -360,6 +321,16 @@ public class FoundDiamonds extends JavaPlugin {
          }
     }
 
+    //TODO Unused yet
+    public void addWorld(String worldName) {
+        List<World> tempWorldList = getServer().getWorlds();
+        for (World w : tempWorldList) {
+            if (w.getName().equalsIgnoreCase(worldName)) {
+                config.getEnabledWorlds();
+            }
+        }
+    }
+
     public void loadWorlds() {
         @SuppressWarnings("unchecked")
         List<String> temp = (List<String>) getConfig().getList(config.getEnabledWorlds());
@@ -444,8 +415,9 @@ public class FoundDiamonds extends JavaPlugin {
         return logs;
     }
 
-    public boolean hasPerms(Player player) {
-        return (player.hasPermission("FD.admin") || player.hasPermission("*") || (getConfig().getBoolean(config.getOpsAsFDAdmin()) && player.isOp()));
+    public boolean hasPerms(Player player, String permission) {
+        return (player.hasPermission(permission) || (getConfig().getBoolean(config.getOpsAsFDAdmin()) && player.isOp())
+                || player.hasPermission("fd.*"));
     }
 
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
@@ -479,6 +451,76 @@ public class FoundDiamonds extends JavaPlugin {
             return ChatColor.DARK_GREEN + "[On]";
         }
         return ChatColor.DARK_RED + "[Off]";
+    }
+
+    private void printMainMenu(Player player) {
+        if (hasPerms(player, "FD.trap") || hasPerms(player, "FD.messages") || hasPerms(player, "FD.config")
+                || hasPerms(player, "FD.config") || hasPerms(player, "fd.reload") || hasPerms(player, "fd.toggle")) {
+            player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "[FoundDiamonds Main Menu]");
+        }
+        if (hasPerms(player, "FD.messages")) {
+            player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "admin");
+        }
+        if (hasPerms(player, "FD.config")) {
+            player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "config");
+        }
+        if (hasPerms(player, "FD.reload")) {
+            player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "reload");
+        }
+        if (hasPerms(player, "FD.toggle")) {
+            player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "toggle");
+        }
+        if (hasPerms(player, "FD.trap")) {
+            player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "trap");
+        }
+        if (hasPerms(player, "FD.trap")) {
+            player.sendMessage(ChatColor.AQUA + "    /fd " + ChatColor.WHITE + "trap <itemname>");
+        }
+    }
+
+    private boolean handleTrap(Player player, String[] args) {
+        Location playerLoc = player.getLocation();
+        Material trap;
+        if (args.length == 1) {
+            trap = Material.DIAMOND_ORE;
+        } else if (args.length == 2) {
+            String item = args[1];
+            Material temp = Material.matchMaterial(item);
+            if (temp != null && temp.isBlock()) {
+                trap = temp;
+            } else {
+                player.sendMessage(blockListener.getPrefix() + ChatColor.RED + "Unable to set a trap with '" + item + "'");
+                player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold_ore");
+                return false;
+            }
+        } else {
+            player.sendMessage(blockListener.getPrefix() + ChatColor.RED + "Invalid number of arguments");
+            player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold_ore");
+            return false;
+        }
+        int x = playerLoc.getBlockX();
+        int y = playerLoc.getBlockY();
+        int z = playerLoc.getBlockZ();
+        World world = player.getWorld();
+        player.sendMessage(blockListener.getPrefix() + ChatColor.AQUA + "Trap set using " + trap.name().toLowerCase().replace("_", " "));
+        int randomnumber = (int)(Math.random() * 100.0D);
+        if ((randomnumber >= 0) && randomnumber < 50) {
+            Block block1 = world.getBlockAt(x, y - 1, z);
+            Block block2 = world.getBlockAt(x, y - 2, z + 1);
+            Block block3 = world.getBlockAt(x - 1, y - 2, z);
+            Block block4 = world.getBlockAt(x, y - 2, z);
+            handleTrapBlocks(trap, block1, block2, block3, block4);
+            return true;
+        } else if (randomnumber >= 50) {
+            Block block1 = world.getBlockAt(x, y - 1, z);
+            Block block2 = world.getBlockAt(x - 1, y - 2, z);
+            Block block3 = world.getBlockAt(x , y - 2, z);
+            Block block4 = world.getBlockAt(x -1, y - 1, z);
+            handleTrapBlocks(trap, block1, block2, block3, block4);
+            return true;
+        } else {
+            return false;
+        }
     }
 
 }

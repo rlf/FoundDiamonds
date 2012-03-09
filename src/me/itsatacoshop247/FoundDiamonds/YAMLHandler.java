@@ -14,13 +14,16 @@ public class YAMLHandler {
     private FoundDiamonds fd;
     private String disableInCreative = "Found Diamonds Configuration.Main.Disable in creative mode";
     private String disableMiningInTotalDarkness = "Found Diamonds Configuration.Main.Disable ore mining in total darkness";
-    private String opsAsFDAdmin = "Found Diamonds Configuration.Main.Treat OPS as FD Admin";
+    private String opsAsFDAdmin = "Found Diamonds Configuration.Main.Give OPs all permissions";
     private String kickOnTrapBreak = "Found Diamonds Configuration.Traps.Kick players on trap break";
+    //Message not configurable in game
     private String kickMessage = "Found Diamonds Configuration.Traps.Kick message";
     private String banOnTrapBreak = "Found Diamonds Configuration.Traps.Ban players on trap break";
     private String adminAlertsOnAllTrapBreaks = "Found Diamonds Configuration.Traps.Admin alerts on all trap breaks";
     private String awardsForFindingDiamonds = "Found Diamonds Configuration.Awards.Random awards for finding diamonds";
+    //Chance not configurable in game
     private String chanceToGetAward = "Found Diamonds Configuration.Awards.Percent of time awards are given";
+    //Random items not configurable in game
     private String randomItem1 = "Found Diamonds Configuration.Awards.Random Item 1";
     private String randomItem2 = "Found Diamonds Configuration.Awards.Random Item 2";
     private String randomItem3 = "Found Diamonds Configuration.Awards.Random Item 3";
@@ -31,9 +34,12 @@ public class YAMLHandler {
     private String bcIron = "Found Diamonds Configuration.Broadcasts.Iron Ore";
     private String bcCoal = "Found Diamonds Configuration.Broadcasts.Coal Ore";
     private String bcMossy = "Found Diamonds Configuration.Broadcasts.Mossy Cobblestone";
+    //Message not configurable in game
     private String bcMessage = "Found Diamonds Configuration.Broadcasts.Message";
+    //Use nick not configurable in game
     private String useNick = "Found Diamonds Configuration.Broadcasts.Use player nicknames";
     private String logDiamondBreaks = "Found Diamonds Configuration.Logging.Log all diamond ore breaks";
+    //Enabled worlds not configurable in game
     private String enabledWorlds = "Found Diamonds Configuration.Enabled Worlds";
     private String diamondAdmin = "Found Diamonds Configuration.Admin Messages.Diamond Ore";
 

@@ -13,24 +13,24 @@ import org.bukkit.event.player.PlayerJoinEvent;
  * @author seed419
  */
 public class JoinListener implements Listener {
-    
-    
+
+
     private FoundDiamonds fd;
     private YAMLHandler config;
-    
-    
+
+
     public JoinListener(FoundDiamonds fd, YAMLHandler config) {
         this.fd = fd;
         this.config = config;
     }
-    
+
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         if (fd.getConfig().getBoolean(config.getDiamondAdmin())) {
-            if (fd.hasPerms(event.getPlayer())) {
+            if (fd.hasPerms(event.getPlayer(), "FD.messages")) {
                 fd.getAdminMessageMap().put(event.getPlayer(), true);
             }
         }
     }
-    
+
 }
