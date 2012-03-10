@@ -34,9 +34,9 @@ public class YAMLHandler {
     private String bcIron = "Found Diamonds Configuration.Broadcasts.Iron Ore";
     private String bcCoal = "Found Diamonds Configuration.Broadcasts.Coal Ore";
     private String bcMossy = "Found Diamonds Configuration.Broadcasts.Mossy Cobblestone";
+    private String bcObby = "Found Diamonds Configuration.Broadcasts.Obsidian";
     //Message not configurable in game
     private String bcMessage = "Found Diamonds Configuration.Broadcasts.Message";
-    //Use nick not configurable in game
     private String useNick = "Found Diamonds Configuration.Broadcasts.Use player nicknames";
     private String logDiamondBreaks = "Found Diamonds Configuration.Logging.Log all diamond ore breaks";
     //Enabled worlds not configurable in game
@@ -151,6 +151,10 @@ public class YAMLHandler {
 
     public String getLogDiamondBreaks() {
         return logDiamondBreaks;
+    }
+
+    public String getBcObby() {
+        return bcObby;
     }
 
 }

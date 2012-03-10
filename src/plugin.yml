@@ -1,7 +1,7 @@
 name: FoundDiamonds
-version: 3.1.4
+version: 3.1.5
 main: me.itsatacoshop247.FoundDiamonds.FoundDiamonds
-author: itsatacoshop247, SeeD419
+author: SeeD419
 website: http://dev.bukkit.org/server-mods/founddiamonds/
 database: false
 

@@ -22,7 +22,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 
-public class BlockListener implements Listener  {
+public class BlockBreakListener implements Listener  {
 
 
     private FoundDiamonds fd;
@@ -34,7 +34,7 @@ public class BlockListener implements Listener  {
     private List<Block> checkedBlocks;
 
 
-    public BlockListener(FoundDiamonds instance, YAMLHandler config) {
+    public BlockBreakListener(FoundDiamonds instance, YAMLHandler config) {
         fd = instance;
         this.config = config;
     }
@@ -43,6 +43,10 @@ public class BlockListener implements Listener  {
     public void onBlockBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
         Player player = event.getPlayer();
+        if (fd.getPlacedBlocks().contains(block.getLocation())) {
+            fd.getPlacedBlocks().remove(block.getLocation());
+            return;
+        }
         if (isTrapBlock(block)) {
         handleTrapBlock(player, block);
         return;
@@ -216,6 +220,8 @@ public class BlockListener implements Listener  {
             broadcastFoundBlock(blockMaterial, ChatColor.BLUE, total, playername, blockname);
         } else if (blockMaterial == Material.COAL_ORE && fd.getConfig().getBoolean(config.getBcCoal())) {
             broadcastFoundBlock(blockMaterial, ChatColor.DARK_GRAY, total, playername, blockname);
+        }else if (blockMaterial == Material.OBSIDIAN && fd.getConfig().getBoolean(config.getBcObby())) {
+            broadcastFoundBlock(blockMaterial, ChatColor.DARK_PURPLE, total, playername, blockname);
         }
     }
 
@@ -230,7 +236,11 @@ public class BlockListener implements Listener  {
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
                         + color).replace("@Number@", total).replace("@BlockName@", "redstone ore"));
             }
-        } else {
+        } else if (mat == Material.OBSIDIAN) {
+                fd.getServer().broadcastMessage(prefix + color +
+                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
+                        + color).replace("@Number@", total).replace("@BlockName@", "obsidian"));
+        }else {
             if (Integer.parseInt(total) > 1) {
                 fd.getServer().broadcastMessage(prefix + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
