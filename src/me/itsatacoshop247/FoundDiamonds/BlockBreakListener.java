@@ -12,6 +12,7 @@ import java.util.Random;
 import java.util.logging.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -29,7 +30,7 @@ public class BlockBreakListener implements Listener  {
     private YAMLHandler config;
     private static final Logger log = Logger.getLogger("FoundDiamonds");
     private String prefix = ChatColor.WHITE + "[FD] ";
-    private String adminPrefix = ChatColor.RED + "[FD Admin] ";
+    private String adminPrefix = ChatColor.DARK_RED + "[FD Admin] ";
     private List<Block> blockList;
     private List<Block> checkedBlocks;
 
@@ -42,62 +43,125 @@ public class BlockBreakListener implements Listener  {
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
+        Material mat = block.getType();
         Player player = event.getPlayer();
-        if (fd.getPlacedBlocks().contains(block.getLocation())) {
-            fd.getPlacedBlocks().remove(block.getLocation());
+
+        //Check for trap block first, as it can be any block
+        if (isTrapBlock(block)) {
+            handleTrapBlock(player, block);
             return;
         }
-        if (isTrapBlock(block)) {
-        handleTrapBlock(player, block);
-        return;
-        }
-        if (block.getType() == Material.DIAMOND_ORE) {
+
+        //Handle every other material
+        if (mat == Material.DIAMOND_ORE) {
+            if (wasPlacedRemove(block)) {
+                return;
+            }
+            materialNeedsHandled(player, mat, block, event);
             if (fd.getConfig().getBoolean(config.getLogDiamondBreaks())) {
                 handleLogging(player, block, false);
             }
-            if (fd.getConfig().getBoolean(config.getDiamondAdmin())) {
-                sendAdminMessage(player);
-            }
-
-        }
-        if (monitoredMaterial(block)) {
-            if (fd.getAnnouncedBlocks().contains(block.getLocation())) {
-                fd.getAnnouncedBlocks().remove(block.getLocation());
+        } else if (mat == Material.REDSTONE_ORE || mat == Material.GLOWING_REDSTONE_ORE || mat == Material.OBSIDIAN
+                || mat == Material.GOLD_ORE || mat == Material.LAPIS_ORE || mat == Material.IRON_ORE ||
+                mat == Material.COAL_ORE || mat == Material.MOSSY_COBBLESTONE) {
+            if (wasPlacedRemove(block)) {
                 return;
             }
-            if (fd.getEnabledWorlds().contains(player.getWorld().getName())) {
-                if (player.getGameMode() == GameMode.CREATIVE && fd.getConfig().getBoolean(config.getDisableInCreative())) {
-                    return;
-                }
-                if (fd.getConfig().getBoolean(config.getDisableMiningInTotalDarkness()) && blockSeesNoLight(block)) {
-                    event.setCancelled(true);
-                    player.sendMessage(prefix + ChatColor.RED + "Mining in total darkness is dangerous, place a torch!");
-                    return;
-                }
-                String playername;
-                if (fd.getConfig().getBoolean(config.getUseNick())) {
-                    playername = event.getPlayer().getDisplayName();
-                } else {
-                    playername = event.getPlayer().getName();
-                }
-                String blockname = block.getType().toString().toLowerCase().replace("_", " ");
-                handleBlock(player, block, playername, blockname);
-            }
+            materialNeedsHandled(player, mat, block, event);
         }
     }
 
-    public void sendAdminMessage(Player player) {
+    private void materialNeedsHandled(Player player, Material mat, Block block, BlockBreakEvent event) {
+        isAdminMessageMaterial(player, mat);
+        if (monitoredMaterial(mat)) {
+            if (alreadyAnnounced(block.getLocation())) {
+                return;
+            }
+            if (!isValidWorld(player)) {
+                return;
+            }
+            if (!isValidGameMode(player)) {
+                return;
+            }
+            if (isTooDark(player, block, event)) {
+                return;
+            }
+            String playername = getBroadcastName(player);
+            String blockname = mat.toString().toLowerCase().replace("_", " ");
+            handleBroadcast(player, block, playername, blockname);
+        }
+    }
+
+    private String getBroadcastName(Player player) {
+        if (fd.getConfig().getBoolean(config.getUseNick())) {
+            return player.getDisplayName();
+        } else {
+            return player.getName();
+        }
+    }
+
+    private boolean isTooDark(Player player, Block block, BlockBreakEvent event) {
+        if (fd.getConfig().getBoolean(config.getDisableMiningInTotalDarkness()) && blockSeesNoLight(block)) {
+            event.setCancelled(true);
+            player.sendMessage(prefix + ChatColor.RED + "Mining in total darkness is dangerous, place a torch!");
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isValidWorld(Player player) {
+        return (fd.getEnabledWorlds().contains(player.getWorld().getName()));
+    }
+
+    private boolean isValidGameMode(Player player) {
+        return !((player.getGameMode() == GameMode.CREATIVE) && (fd.getConfig().getBoolean(config.getDisableInCreative())));
+    }
+
+    private boolean alreadyAnnounced(Location loc) {
+        if (fd.getAnnouncedBlocks().contains(loc)) {
+            fd.getAnnouncedBlocks().remove(loc);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean wasPlacedRemove(Block block) {
+        if (fd.getPlacedBlocks().contains(block.getLocation())) {
+            fd.getPlacedBlocks().remove(block.getLocation());
+            return true;
+        }
+        return false;
+    }
+
+    private boolean wasPlaced(Block block) {
+        if (fd.getPlacedBlocks().contains(block.getLocation())) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private void isAdminMessageMaterial(Player player, Material mat) {
+        if ((mat == Material.DIAMOND_ORE && fd.getConfig().getBoolean(config.getDiamondAdmin())) ||
+                (mat == Material.GOLD_ORE && fd.getConfig().getBoolean(config.getGoldAdmin())) ||
+                (mat == Material.LAPIS_ORE && fd.getConfig().getBoolean(config.getLapisAdmin())) ||
+                (mat == Material.IRON_ORE && fd.getConfig().getBoolean(config.getIronAdmin()))) {
+            sendAdminMessage(player, mat);
+        }
+    }
+
+    private void sendAdminMessage(Player player, Material mat) {
         for (Player x : fd.getServer().getOnlinePlayers()) {
             if (fd.getAdminMessageMap().containsKey(x)) {
                 if (fd.getAdminMessageMap().get(x)) {
                     x.sendMessage(adminPrefix + ChatColor.YELLOW + player.getName() + ChatColor.WHITE
-                            + " just broke a diamond block.");
+                            + " just broke a " + mat.name().toLowerCase().replace("_", " ") + " block.");
                 }
             }
         }
     }
 
-    public int getRandomAmount(){
+    private int getRandomAmount(){
         Random rand = new Random();
         int amount = rand.nextInt(3);
         return amount;
@@ -174,10 +238,10 @@ public class BlockBreakListener implements Listener  {
     private void broadcastRandomItem(int item) {
         if (Material.getMaterial(item) == Material.COAL) {
             fd.getServer().broadcastMessage(prefix + "Everyone else got some "
-                    + ChatColor.GRAY + Material.getMaterial(item).name().toLowerCase().replace("_", " ") + "!");
+                    + ChatColor.GRAY + Material.getMaterial(item).name().toLowerCase().replace("_", " ") + "");
         } else {
             fd.getServer().broadcastMessage(prefix + "Everyone else got some "
-                    + ChatColor.GRAY + Material.getMaterial(item).name().toLowerCase().replace("_", " ") + "s!");
+                    + ChatColor.GRAY + Material.getMaterial(item).name().toLowerCase().replace("_", " ") + "s");
         }
     }
 
@@ -189,11 +253,11 @@ public class BlockBreakListener implements Listener  {
         }
     }
 
-    private boolean monitoredMaterial(Block block) {
-        return fd.getEnabledBlocks().contains(block.getType());
+    private boolean monitoredMaterial(Material mat) {
+        return fd.getEnabledBlocks().contains(mat);
     }
 
-    private void handleBlock(Player player, Block block, String playername, String blockname) {
+    private void handleBroadcast(Player player, Block block, String playername, String blockname) {
         Material blockMaterial = block.getType();
         String total = String.valueOf(getTotalBlocks(block));
         if (blockMaterial == Material.DIAMOND_ORE && fd.getConfig().getBoolean(config.getBcDiamond())) {
@@ -240,15 +304,17 @@ public class BlockBreakListener implements Listener  {
                 fd.getServer().broadcastMessage(prefix + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
                         + color).replace("@Number@", total).replace("@BlockName@", "obsidian"));
-        }else {
+        } else {
             if (Integer.parseInt(total) > 1) {
                 fd.getServer().broadcastMessage(prefix + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        + color).replace("@Number@", total).replace("@BlockName@", block + "s"));
+                        + color).replace("@Number@", total).replace("@BlockName@", block  +
+                        (mat == Material.DIAMOND_ORE ? "s!" : "s")));
             } else {
                 fd.getServer().broadcastMessage(prefix + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        + color).replace("@Number@", total).replace("@BlockName@", block));
+                        + color).replace("@Number@", total).replace("@BlockName@", block +
+                        (mat == Material.DIAMOND_ORE ? "!" : "")));
             }
         }
     }
@@ -269,10 +335,11 @@ public class BlockBreakListener implements Listener  {
         blockList.add(origBlock);
         for (BlockFace y : BlockFace.values()) {
             Block cycle = origBlock.getRelative(y);
-            if ((cycle.getType() == origBlock.getType() && !blockList.contains(cycle) && !checkedBlocks.contains(cycle)) ||
+            if ((cycle.getType() == origBlock.getType() && !blockList.contains(cycle) && !checkedBlocks.contains(cycle) && !wasPlaced(cycle)) ||
                     ((isRedstone(origBlock) && isRedstone(cycle)) &&
-                    !blockList.contains(cycle) && !checkedBlocks.contains(cycle))) {
+                    !blockList.contains(cycle) && !checkedBlocks.contains(cycle) && !wasPlaced(cycle))) {
                 fd.getAnnouncedBlocks().add(cycle.getLocation());
+                //System.out.println("Total+=" + cycle.getType().name() + " X: "+ cycle.getX() + " Y:" + cycle.getY() + " Z:" + cycle.getZ());
                 blockList.add(cycle);
                 checkCyclesRelative(origBlock, cycle);
             } else {
@@ -287,10 +354,11 @@ public class BlockBreakListener implements Listener  {
     private void checkCyclesRelative(Block origBlock, Block cycle) {
         for (BlockFace y : BlockFace.values()) {
             Block secondCycle = cycle.getRelative(y);
-            if ((secondCycle.getType() == origBlock.getType() && !blockList.contains(secondCycle) && !checkedBlocks.contains(secondCycle)) ||
-               (isRedstone(origBlock) && isRedstone(secondCycle) && (!blockList.contains(secondCycle) && !checkedBlocks.contains(secondCycle)))) {
+            if ((secondCycle.getType() == origBlock.getType() && !blockList.contains(secondCycle) && !checkedBlocks.contains(secondCycle) && !wasPlaced(secondCycle)) ||
+               (isRedstone(origBlock) && isRedstone(secondCycle) && (!blockList.contains(secondCycle) && !checkedBlocks.contains(secondCycle) && !wasPlaced(secondCycle)))) {
                 blockList.add(secondCycle);
                 fd.getAnnouncedBlocks().add(secondCycle.getLocation());
+                //System.out.println("Total+=" + secondCycle.getType().name() + " X: "+ secondCycle.getX() + " Y:" + secondCycle.getY() + " Z:" + secondCycle.getZ());
                 checkCyclesRelative(origBlock, secondCycle);
             } else {
                 if (!checkedBlocks.contains(secondCycle)) {
@@ -299,7 +367,6 @@ public class BlockBreakListener implements Listener  {
             }
         }
     }
-
 
     public String getPrefix() {
         return prefix;
@@ -312,3 +379,84 @@ public class BlockBreakListener implements Listener  {
  }
 
 
+//        switch(mat) {
+//        case DIAMOND_ORE:
+//            if (beenPlaced(block)) {
+//                return;
+//            }
+//            if (fd.getConfig().getBoolean(config.getLogDiamondBreaks())) {
+//                handleLogging(player, block, false);
+//            }
+//            materialNeedsHandled(player, mat, block, event);
+//            break;
+//        case GOLD_ORE:
+//            if (beenPlaced(block)) {
+//                return;
+//            }
+//            materialNeedsHandled(player, mat, block, event);
+//            break;
+//        case IRON_ORE:
+//            if (beenPlaced(block)) {
+//                return;
+//            }
+//            materialNeedsHandled(player, mat, block, event);
+//            break;
+//        case LAPIS_ORE:
+//            if (beenPlaced(block)) {
+//                return;
+//            }
+//            materialNeedsHandled(player, mat, block, event);
+//            break;
+//        case OBSIDIAN:
+//            if (beenPlaced(block)) {
+//                return;
+//            }
+//            materialNeedsHandled(player, mat, block, event);
+//        case REDSTONE_ORE:
+//            if (beenPlaced(block)) {
+//                return;
+//            }
+//            materialNeedsHandled(player, mat, block, event);
+//        }
+
+
+        //Make sure it hasn't been placed by a player before we take any action.
+//        if (fd.getPlacedBlocks().contains(block.getLocation())) {
+//            fd.getPlacedBlocks().remove(block.getLocation());
+//            return;
+//        }
+
+
+//        //Are we logging?
+//        if (block.getType() == Material.DIAMOND_ORE && fd.getConfig().getBoolean(config.getLogDiamondBreaks())) {
+//            handleLogging(player, block, false);
+//        }
+
+        //Are we sending an admin message?
+//        isAdminMessageMaterial(player, mat);
+
+        //Are we broadcasting this material?
+//        if (monitoredMaterial(block)) {
+//            if (fd.getAnnouncedBlocks().contains(block.getLocation())) {
+//                fd.getAnnouncedBlocks().remove(block.getLocation());
+//                return;
+//            }
+//            if (fd.getEnabledWorlds().contains(player.getWorld().getName())) {
+//                if (player.getGameMode() == GameMode.CREATIVE && fd.getConfig().getBoolean(config.getDisableInCreative())) {
+//                    return;
+//                }
+//                if (fd.getConfig().getBoolean(config.getDisableMiningInTotalDarkness()) && blockSeesNoLight(block)) {
+//                    event.setCancelled(true);
+//                    player.sendMessage(prefix + ChatColor.RED + "Mining in total darkness is dangerous, place a torch!");
+//                    return;
+//                }
+//                String playername;
+//                if (fd.getConfig().getBoolean(config.getUseNick())) {
+//                    playername = event.getPlayer().getDisplayName();
+//                } else {
+//                    playername = event.getPlayer().getName();
+//                }
+//                String blockname = block.getType().toString().toLowerCase().replace("_", " ");
+//                handleBroadcast(player, block, playername, blockname);
+//            }
+//        }

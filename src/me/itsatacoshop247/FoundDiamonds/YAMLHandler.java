@@ -42,6 +42,9 @@ public class YAMLHandler {
     //Enabled worlds not configurable in game
     private String enabledWorlds = "Found Diamonds Configuration.Enabled Worlds";
     private String diamondAdmin = "Found Diamonds Configuration.Admin Messages.Diamond Ore";
+    private String goldAdmin = "Found Diamonds Configuration.Admin Messages.Gold Ore";
+    private String lapisAdmin = "Found Diamonds Configuration.Admin Messages.Lapis Ore";
+    private String ironAdmin = "Found Diamonds Configuration.Admin Messages.Iron Ore";
 
 
     public YAMLHandler(FoundDiamonds fd) {
@@ -57,6 +60,18 @@ public class YAMLHandler {
         return useNick;
     }
 
+    public String getGoldAdmin() {
+        return goldAdmin;
+    }
+
+    public String getLapisAdmin() {
+        return lapisAdmin;
+    }
+
+    public String getIronAdmin() {
+        return ironAdmin;
+    }
+    
     public String getBcCoal() {
         return bcCoal;
     }

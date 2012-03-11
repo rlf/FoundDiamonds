@@ -27,6 +27,7 @@ public class BlockPlaceListener implements Listener {
     public void onBlockPlace(BlockPlaceEvent event) {
         if (fd.getEnabledBlocks().contains(event.getBlock().getType())) {
             fd.addToPlacedBlocks(event.getBlock().getLocation());
+            //event.getPlayer().sendMessage("Block placed: " + event.getBlock().getType().name() + " X:"+ event.getBlock().getX() + " Y:" + event.getBlock().getY() + " Z:" + event.getBlock().getZ());
         }
     }
 }

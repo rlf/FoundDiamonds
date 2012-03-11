@@ -17,6 +17,7 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+//TODO Worlds in menu.
 public class FoundDiamonds extends JavaPlugin {
 
     private final File mainDir = new File("plugins/FoundDiamonds/");
@@ -170,7 +171,7 @@ public class FoundDiamonds extends JavaPlugin {
                             } else if (arg.equalsIgnoreCase("usenicks")) {
                                 getConfig().set(config.getUseNick(), !getConfig().getBoolean(config.getUseNick()));
                                 printSaved(player);
-                            } else if (arg.equalsIgnoreCase("obby")) {
+                            } else if (arg.equalsIgnoreCase("obby") || arg.equalsIgnoreCase("obsidian")) {
                                 getConfig().set(config.getBcObby(), !getConfig().getBoolean(config.getBcObby()));
                                 reloadEnabledBlocks(getConfig().getBoolean(config.getBcObby()), Material.OBSIDIAN);
                                 printSaved(player);
@@ -481,7 +482,7 @@ public class FoundDiamonds extends JavaPlugin {
         player.sendMessage(ChatColor.RED + "    ops" + ChatColor.WHITE + " - OPs have all permissions");
         player.sendMessage(ChatColor.RED + "    kick" + ChatColor.WHITE + " - Kick player on trap break");
         player.sendMessage(ChatColor.RED + "    ban" + ChatColor.WHITE + " - Ban player on trap break");
-        player.sendMessage(ChatColor.RED + "    trapalerts" + ChatColor.WHITE + " - Send admin alerts on trap breaks by ALL players");
+        player.sendMessage(ChatColor.RED + "    trapalerts" + ChatColor.WHITE + " - Send admin alerts on trap breaks");
         player.sendMessage(ChatColor.RED + "    diamondadmin" + ChatColor.WHITE + " - Send admin messages on diamond breaks");
         player.sendMessage(ChatColor.RED + "    logging" + ChatColor.WHITE + " - Log all diamond breaks to log.txt");
         player.sendMessage(ChatColor.RED + "    usenicks" + ChatColor.WHITE + " - Use player nicknames in broadcasts");
@@ -522,7 +523,11 @@ public class FoundDiamonds extends JavaPlugin {
         player.sendMessage(breakListener.getPrefix() + ChatColor.AQUA + "[Configuration 3/3]");
         player.sendMessage(ChatColor.RED + "    Disable in creative mode: " + getConfigBoolean(getConfig().getBoolean(config.getDisableInCreative())));
         player.sendMessage(ChatColor.RED + "    Logging all diamond ore breaks: " + getConfigBoolean(getConfig().getBoolean(config.getLogDiamondBreaks())));
+        player.sendMessage(ChatColor.RED + "    Enabled worlds: ");
+        for (String x : getEnabledWorlds()) {
+            player.sendMessage("    - " + x);
         }
+    }
 
     private String getConfigBoolean(Boolean b) {
         if(b) {

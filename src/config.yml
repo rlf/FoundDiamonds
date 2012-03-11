@@ -23,7 +23,7 @@ Found Diamonds Configuration:
     Coal Ore: false
     Mossy Cobblestone: false
     Obsidian: false
-    Message: '@Player@ just found @Number@ @BlockName@.'
+    Message: '@Player@ found @Number@ @BlockName@'
     Use player nicknames: false
   Logging:
     Log all diamond ore breaks: false
@@ -31,3 +31,6 @@ Found Diamonds Configuration:
   - world
   Admin Messages:
     Diamond Ore: false
+    Gold Ore: false
+    Lapis Ore: false
+    Iron Ore: false
