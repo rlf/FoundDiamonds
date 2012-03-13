@@ -27,7 +27,7 @@ public class JoinListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         if (fd.getConfig().getBoolean(config.getDiamondAdmin())) {
-            if (fd.hasPerms(event.getPlayer(), "FD.messages")) {
+            if (fd.hasPerms(event.getPlayer(), "fd.messages")) {
                 fd.getAdminMessageMap().put(event.getPlayer(), true);
             }
         }

@@ -20,13 +20,19 @@ public class YAMLHandler {
     private String kickMessage = "Found Diamonds Configuration.Traps.Kick message";
     private String banOnTrapBreak = "Found Diamonds Configuration.Traps.Ban players on trap break";
     private String adminAlertsOnAllTrapBreaks = "Found Diamonds Configuration.Traps.Admin alerts on all trap breaks";
-    private String awardsForFindingDiamonds = "Found Diamonds Configuration.Awards.Random awards for finding diamonds";
+    private String awardsForFindingDiamonds = "Found Diamonds Configuration.Awards.Items.Random items for finding diamonds";
     //Chance not configurable in game
-    private String chanceToGetAward = "Found Diamonds Configuration.Awards.Percent of time awards are given";
+    private String chanceToGetAward = "Found Diamonds Configuration.Awards.Items.Percent of time items are given";
     //Random items not configurable in game
-    private String randomItem1 = "Found Diamonds Configuration.Awards.Random Item 1";
+    private String randomItem1 = "Found Diamonds Configuration.Awards.Items.Random Item 1";
     private String randomItem2 = "Found Diamonds Configuration.Awards.Random Item 2";
     private String randomItem3 = "Found Diamonds Configuration.Awards.Random Item 3";
+
+    //spells
+    private String potionsForFindingDiamonds = "Found Diamonds Configuration.Awards.Spells.Random spells for finding diamonds";
+    private String potionStrength = "Found Diamonds Configuration.Awards.Spells.Spell strength (1-5)";
+    private String chanceToGetPotion = "Found Diamonds Configuration.Awards.Spells.Percent of time spells are casted";
+
     private String bcDiamond = "Found Diamonds Configuration.Broadcasts.Diamond Ore";
     private String bcGold = "Found Diamonds Configuration.Broadcasts.Gold Ore";
     private String bcLapis = "Found Diamonds Configuration.Broadcasts.Lapis Ore";
@@ -51,9 +57,21 @@ public class YAMLHandler {
         this.fd = fd;
     }
 
-    public void firstLoad() {
+    public void load() {
         fd.getConfig().options().copyDefaults(true);
         fd.saveConfig();
+    }
+
+    public String getPotionsForFindingDiamonds() {
+        return potionsForFindingDiamonds;
+    }
+
+    public String getPotionStrength() {
+        return potionStrength;
+    }
+
+    public String getPercentToGetPotion() {
+        return chanceToGetPotion;
     }
 
     public String getUseNick() {
@@ -71,12 +89,12 @@ public class YAMLHandler {
     public String getIronAdmin() {
         return ironAdmin;
     }
-    
+
     public String getBcCoal() {
         return bcCoal;
     }
 
-    public String getPercentTogetAwards() {
+    public String getPercentToGetItem() {
         return chanceToGetAward;
     }
 

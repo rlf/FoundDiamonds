@@ -35,3 +35,6 @@ permissions:
   fd.toggle:
     description: Allows users to change the configuration file in game
     default: false
+  fd.world:
+    description: Allows edit FD enabled worlds in game (soon)
+    default: false

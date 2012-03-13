@@ -18,6 +18,13 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 //TODO Worlds in menu.
+//TODO AdminMap memory.
+//TODO Finish menus - full funcationality.
+//TODO Clean log
+//TODO Mcmmo compatibility
+//TODO Custom color formatting
+//TODO Versatile lists
+
 public class FoundDiamonds extends JavaPlugin {
 
     private final File mainDir = new File("plugins/FoundDiamonds/");
@@ -26,6 +33,7 @@ public class FoundDiamonds extends JavaPlugin {
     private File announced;
     private File configFile;
     private File placed;
+    private File adminMapFile;
     private List<Material> enabledBlocks = new LinkedList<Material>();
     private List<String> enabledWorlds = new LinkedList<String>();
     private List<Location> trapBlocks = new LinkedList<Location>();
@@ -40,12 +48,14 @@ public class FoundDiamonds extends JavaPlugin {
     private QuitListener quit;
     private String pluginName;
     private PluginDescriptionFile pdf;
+    private boolean printed = false;
 
 
     @Override
     public void onEnable() {
         //Manage files - get data
         config = new YAMLHandler(this);
+
         checkFiles();
         loadWorlds();
         loadEnabledBlocks();
@@ -66,6 +76,9 @@ public class FoundDiamonds extends JavaPlugin {
 
 	pdf = this.getDescription();
 	pluginName = pdf.getName();
+
+        //Check for that damn superbreaker shit
+        //if (getServer().)
 
         log.info(MessageFormat.format("[{0}] Enabled", pluginName));
     }
@@ -88,6 +101,7 @@ public class FoundDiamonds extends JavaPlugin {
             log.warning(MessageFormat.format("[{0}] Couldn't save blocks to files!", pluginName));
             log.warning(MessageFormat.format("[{0}] You could try deleting .announced and .traplocations", pluginName));
         }
+        //saveAdminMap(adminMapFile);
         log.info(MessageFormat.format("[{0}] Disabled", pluginName));
     }
 
@@ -113,76 +127,7 @@ public class FoundDiamonds extends JavaPlugin {
                             return true;
                         } else  if (args.length == 2) {
                             arg = args[1];
-                            if (arg.equalsIgnoreCase("creative")) {
-                                getConfig().set(config.getDisableInCreative(), !getConfig().getBoolean(config.getDisableInCreative()));
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("darkness")) {
-                                getConfig().set(config.getDisableMiningInTotalDarkness(), !getConfig().getBoolean(config.getDisableMiningInTotalDarkness()));
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("ops")) {
-                                getConfig().set(config.getOpsAsFDAdmin(), !getConfig().getBoolean(config.getOpsAsFDAdmin()));
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("kick")) {
-                                getConfig().set(config.getKickOnTrapBreak(), !getConfig().getBoolean(config.getKickOnTrapBreak()));
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("ban")) {
-                                getConfig().set(config.getBanOnTrapBreak(), !getConfig().getBoolean(config.getBanOnTrapBreak()));
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("trapalerts")) {
-                                getConfig().set(config.getAdminAlertsOnAllTrapBreaks(), !getConfig().getBoolean(config.getAdminAlertsOnAllTrapBreaks()));
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("randomitems")) {
-                                getConfig().set(config.getAwardsForFindingDiamonds(), !getConfig().getBoolean(config.getAwardsForFindingDiamonds()));
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("diamond")) {
-                                getConfig().set(config.getBcDiamond(), !getConfig().getBoolean(config.getBcDiamond()));
-                                reloadEnabledBlocks(getConfig().getBoolean(config.getBcDiamond()), Material.DIAMOND_ORE);
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("gold")) {
-                                getConfig().set(config.getBcGold(), !getConfig().getBoolean(config.getBcGold()));
-                                reloadEnabledBlocks(getConfig().getBoolean(config.getBcGold()), Material.GOLD_ORE);
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("lapis")) {
-                                getConfig().set(config.getBcLapis(), !getConfig().getBoolean(config.getBcLapis()));
-                                reloadEnabledBlocks(getConfig().getBoolean(config.getBcLapis()), Material.LAPIS_ORE);
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("redstone")) {
-                                getConfig().set(config.getBcRedstone(), !getConfig().getBoolean(config.getBcRedstone()));
-                                reloadEnabledBlocks(getConfig().getBoolean(config.getBcRedstone()), Material.REDSTONE_ORE, Material.GLOWING_REDSTONE_ORE);
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("iron")) {
-                                getConfig().set(config.getBcIron(), !getConfig().getBoolean(config.getBcIron()));
-                                reloadEnabledBlocks(getConfig().getBoolean(config.getBcIron()), Material.IRON_ORE);
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("mossy")) {
-                                getConfig().set(config.getBcMossy(), !getConfig().getBoolean(config.getBcMossy()));
-                                reloadEnabledBlocks(getConfig().getBoolean(config.getBcMossy()), Material.MOSSY_COBBLESTONE);
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("logging")) {
-                                getConfig().set(config.getLogDiamondBreaks(), !getConfig().getBoolean(config.getLogDiamondBreaks()));
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("coal")) {
-                                getConfig().set(config.getBcCoal(), !getConfig().getBoolean(config.getBcCoal()));
-                                reloadEnabledBlocks(getConfig().getBoolean(config.getBcIron()), Material.COAL_ORE);
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("diamondadmin")) {
-                                getConfig().set(config.getDiamondAdmin(), !getConfig().getBoolean(config.getDiamondAdmin()));
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("usenicks")) {
-                                getConfig().set(config.getUseNick(), !getConfig().getBoolean(config.getUseNick()));
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("obby") || arg.equalsIgnoreCase("obsidian")) {
-                                getConfig().set(config.getBcObby(), !getConfig().getBoolean(config.getBcObby()));
-                                reloadEnabledBlocks(getConfig().getBoolean(config.getBcObby()), Material.OBSIDIAN);
-                                printSaved(player);
-                            } else if (arg.equalsIgnoreCase("2")) {
-                                showToggle2(player);
-                            } else {
-                                player.sendMessage(breakListener.getPrefix() + ChatColor.RED + "Argument '" + arg + "' unrecognized.");
-                                player.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
-                                return false;
-                            }
-                            return true;
+                            return handleToggle(player, arg);
                         } else {
                             player.sendMessage(breakListener.getPrefix() + ChatColor.RED + "Invalid number of arguments.");
                             player.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
@@ -212,6 +157,18 @@ public class FoundDiamonds extends JavaPlugin {
                             player.sendMessage(ChatColor.AQUA + "    /fd set randomitem1 <id number>");
                             player.sendMessage(ChatColor.AQUA + "    /fd set randomitem2 <id number>");
                             player.sendMessage(ChatColor.AQUA + "    /fd set randomitem3 <id number>");
+                            player.sendMessage(ChatColor.AQUA + "    This is not implemented yet.");
+                            return true;
+                        }
+                    } else if (arg.equalsIgnoreCase("world") && hasPerms(player, "fd.world")) {
+                        if (args.length == 1) {
+                            showWorldMenu(player);
+                            return true;
+                        } else if (args.length == 2) {
+                            if (args[1].equalsIgnoreCase("list")) {
+                                printEnabledWorlds(player);
+                                return true;
+                            }
                         }
                     } else {
                         return false;
@@ -289,7 +246,11 @@ public class FoundDiamonds extends JavaPlugin {
                     return false;
                 }
             } else {
-                log.warning(MessageFormat.format("[{0}] Plugin folder not found.  Did you delete it?", pluginName));
+                if (!printed) {
+                    log.warning(MessageFormat.format("[{0}] Plugin folder not found.  Did you delete it?", pluginName));
+                    printed = true;
+                    return false;
+                }
                 return false;
             }
         } else {
@@ -332,6 +293,7 @@ public class FoundDiamonds extends JavaPlugin {
         announced = new File(getDataFolder(), ".announced");
         configFile = new File(getDataFolder(), "config.yml");
         placed = new File(getDataFolder(), ".placed");
+        adminMapFile = new File(getDataFolder(), ".adminMap");
 
         if (!logs.exists()) {
             try {
@@ -350,10 +312,13 @@ public class FoundDiamonds extends JavaPlugin {
              readBlocksFromFile(placed, placedBlocks);
          }
          if(!configFile.exists()) {
-             config.firstLoad();
+             config.load();
          } else {
              loadYaml();
          }
+//         if (adminMapFile.exists()) {
+//             loadAdminMap();
+//         }
     }
 
     //TODO Unused yet
@@ -430,6 +395,8 @@ public class FoundDiamonds extends JavaPlugin {
 
     public void loadYaml() {
         try {
+            getConfig().options().copyDefaults(true);
+            getConfig().save(configFile);
             getConfig().load(configFile);
         } catch (FileNotFoundException ex) {
             log.severe(MessageFormat.format("[{0}] Unable to load configuration file! {1}", pluginName, ex));
@@ -464,7 +431,7 @@ public class FoundDiamonds extends JavaPlugin {
     }
 
     private void showToggle(Player player) {
-        player.sendMessage(breakListener.getPrefix() + ChatColor.AQUA + "[Toggle Options 1/2]");
+        player.sendMessage(breakListener.getPrefix() + ChatColor.AQUA + "[Toggle Options 1/3]");
         player.sendMessage(ChatColor.RED + "    diamond" + ChatColor.WHITE + " - Diamond broadcast");
         player.sendMessage(ChatColor.RED + "    gold" + ChatColor.WHITE + " - Gold broadcast");
         player.sendMessage(ChatColor.RED + "    lapis" + ChatColor.WHITE + " - Lapis broadcast");
@@ -478,7 +445,7 @@ public class FoundDiamonds extends JavaPlugin {
     }
 
     private void showToggle2(Player player) {
-        player.sendMessage(breakListener.getPrefix() + ChatColor.AQUA + "[Toggle Options 2/2]");
+        player.sendMessage(breakListener.getPrefix() + ChatColor.AQUA + "[Toggle Options 2/3]");
         player.sendMessage(ChatColor.RED + "    ops" + ChatColor.WHITE + " - OPs have all permissions");
         player.sendMessage(ChatColor.RED + "    kick" + ChatColor.WHITE + " - Kick player on trap break");
         player.sendMessage(ChatColor.RED + "    ban" + ChatColor.WHITE + " - Ban player on trap break");
@@ -487,7 +454,15 @@ public class FoundDiamonds extends JavaPlugin {
         player.sendMessage(ChatColor.RED + "    logging" + ChatColor.WHITE + " - Log all diamond breaks to log.txt");
         player.sendMessage(ChatColor.RED + "    usenicks" + ChatColor.WHITE + " - Use player nicknames in broadcasts");
         player.sendMessage(ChatColor.RED + "    creative" + ChatColor.WHITE + " - Disable in creative gamemode");
-        //one more
+        player.sendMessage(ChatColor.RED + "    diamondadmin" + ChatColor.WHITE + " - Show admin messages for diamond");
+        player.sendMessage("Type /fd toggle 3 to read the next page");
+    }
+
+    private void showToggle3(Player player) {
+        player.sendMessage(breakListener.getPrefix() + ChatColor.AQUA + "[Toggle Options 2/3]");
+        player.sendMessage(ChatColor.RED + "    goldadmin" + ChatColor.WHITE + " - Show admin messages for gold");
+        player.sendMessage(ChatColor.RED + "    lapisadmin" + ChatColor.WHITE + " - Show admin messages for lapis");
+        player.sendMessage(ChatColor.RED + "    ironadmin" + ChatColor.WHITE + " - Show admin messages for iron");
     }
 
     private void showConfig(Player player) {
@@ -523,11 +498,22 @@ public class FoundDiamonds extends JavaPlugin {
         player.sendMessage(breakListener.getPrefix() + ChatColor.AQUA + "[Configuration 3/3]");
         player.sendMessage(ChatColor.RED + "    Disable in creative mode: " + getConfigBoolean(getConfig().getBoolean(config.getDisableInCreative())));
         player.sendMessage(ChatColor.RED + "    Logging all diamond ore breaks: " + getConfigBoolean(getConfig().getBoolean(config.getLogDiamondBreaks())));
-        player.sendMessage(ChatColor.RED + "    Enabled worlds: ");
+        player.sendMessage(ChatColor.RED + "    Diamond Admin Messages: " + getConfigBoolean(getConfig().getBoolean(config.getDiamondAdmin())));
+        player.sendMessage(ChatColor.RED + "    Gold Admin Messages: " + getConfigBoolean(getConfig().getBoolean(config.getGoldAdmin())));
+        player.sendMessage(ChatColor.RED + "    Lapis Admin Messages: " + getConfigBoolean(getConfig().getBoolean(config.getLapisAdmin())));
+        player.sendMessage(ChatColor.RED + "    Iron Admin Messages: " + getConfigBoolean(getConfig().getBoolean(config.getIronAdmin())));
+    }
+
+    private void printEnabledWorlds(Player player) {
+        player.sendMessage(breakListener.getPrefix() + ChatColor.AQUA + "[Enabled Worlds]");
         for (String x : getEnabledWorlds()) {
             player.sendMessage("    - " + x);
         }
     }
+
+//    private void showAdmin(Player player) {
+//        player.sendMessage(breakListener.getPrefix() + ChatColor.AQUA + "[Admin 1/1]");
+//    }
 
     private String getConfigBoolean(Boolean b) {
         if(b) {
@@ -537,8 +523,9 @@ public class FoundDiamonds extends JavaPlugin {
     }
 
     private void printMainMenu(Player player) {
-        if (hasPerms(player, "FD.trap") || hasPerms(player, "FD.messages") || hasPerms(player, "FD.config")
-                || hasPerms(player, "FD.config") || hasPerms(player, "fd.reload") || hasPerms(player, "fd.toggle")) {
+        if (hasPerms(player, "fd.trap") || hasPerms(player, "fd.messages") || hasPerms(player, "fd.config")
+                || hasPerms(player, "fd.config") || hasPerms(player, "fd.reload") || hasPerms(player, "fd.toggle")
+                || hasPerms(player, "fd.world")) {
             player.sendMessage(breakListener.getPrefix() + ChatColor.AQUA + "[FoundDiamonds Main Menu]");
             player.sendMessage("/fd " + ChatColor.RED + "<option>");
         }
@@ -559,6 +546,9 @@ public class FoundDiamonds extends JavaPlugin {
         }
         if (hasPerms(player, "FD.trap")) {
             player.sendMessage(ChatColor.RED + "    trap <itemname>" + ChatColor.WHITE + " - Set a trap with another block");
+        }
+        if (hasPerms(player, "FD.world")) {
+            player.sendMessage(ChatColor.RED + "    world" + ChatColor.WHITE + " - Manange FD enabled worlds");
         }
     }
 
@@ -616,4 +606,134 @@ public class FoundDiamonds extends JavaPlugin {
         return placedBlocks;
     }
 
+    private boolean handleToggle(Player player, String arg) {
+        if (arg.equalsIgnoreCase("creative")) {
+            getConfig().set(config.getDisableInCreative(), !getConfig().getBoolean(config.getDisableInCreative()));
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("darkness")) {
+            getConfig().set(config.getDisableMiningInTotalDarkness(), !getConfig().getBoolean(config.getDisableMiningInTotalDarkness()));
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("ops")) {
+            getConfig().set(config.getOpsAsFDAdmin(), !getConfig().getBoolean(config.getOpsAsFDAdmin()));
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("kick")) {
+            getConfig().set(config.getKickOnTrapBreak(), !getConfig().getBoolean(config.getKickOnTrapBreak()));
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("ban")) {
+            getConfig().set(config.getBanOnTrapBreak(), !getConfig().getBoolean(config.getBanOnTrapBreak()));
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("trapalerts")) {
+            getConfig().set(config.getAdminAlertsOnAllTrapBreaks(), !getConfig().getBoolean(config.getAdminAlertsOnAllTrapBreaks()));
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("randomitems")) {
+            getConfig().set(config.getAwardsForFindingDiamonds(), !getConfig().getBoolean(config.getAwardsForFindingDiamonds()));
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("diamond")) {
+            getConfig().set(config.getBcDiamond(), !getConfig().getBoolean(config.getBcDiamond()));
+            reloadEnabledBlocks(getConfig().getBoolean(config.getBcDiamond()), Material.DIAMOND_ORE);
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("gold")) {
+            getConfig().set(config.getBcGold(), !getConfig().getBoolean(config.getBcGold()));
+            reloadEnabledBlocks(getConfig().getBoolean(config.getBcGold()), Material.GOLD_ORE);
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("lapis")) {
+            getConfig().set(config.getBcLapis(), !getConfig().getBoolean(config.getBcLapis()));
+            reloadEnabledBlocks(getConfig().getBoolean(config.getBcLapis()), Material.LAPIS_ORE);
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("redstone")) {
+            getConfig().set(config.getBcRedstone(), !getConfig().getBoolean(config.getBcRedstone()));
+            reloadEnabledBlocks(getConfig().getBoolean(config.getBcRedstone()), Material.REDSTONE_ORE, Material.GLOWING_REDSTONE_ORE);
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("iron")) {
+            getConfig().set(config.getBcIron(), !getConfig().getBoolean(config.getBcIron()));
+            reloadEnabledBlocks(getConfig().getBoolean(config.getBcIron()), Material.IRON_ORE);
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("mossy") || arg.equalsIgnoreCase("moss")) {
+            getConfig().set(config.getBcMossy(), !getConfig().getBoolean(config.getBcMossy()));
+            reloadEnabledBlocks(getConfig().getBoolean(config.getBcMossy()), Material.MOSSY_COBBLESTONE);
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("logging")) {
+            getConfig().set(config.getLogDiamondBreaks(), !getConfig().getBoolean(config.getLogDiamondBreaks()));
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("coal")) {
+            getConfig().set(config.getBcCoal(), !getConfig().getBoolean(config.getBcCoal()));
+            reloadEnabledBlocks(getConfig().getBoolean(config.getBcIron()), Material.COAL_ORE);
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("diamondadmin")) {
+            getConfig().set(config.getDiamondAdmin(), !getConfig().getBoolean(config.getDiamondAdmin()));
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("goldadmin")) {
+            getConfig().set(config.getGoldAdmin(), !getConfig().getBoolean(config.getGoldAdmin()));
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("lapisadmin")) {
+            getConfig().set(config.getLapisAdmin(), !getConfig().getBoolean(config.getLapisAdmin()));
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("ironadmin")) {
+            getConfig().set(config.getIronAdmin(), !getConfig().getBoolean(config.getIronAdmin()));
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("usenicks") || arg.equalsIgnoreCase("nick") || arg.equalsIgnoreCase("nicks")) {
+            getConfig().set(config.getUseNick(), !getConfig().getBoolean(config.getUseNick()));
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("obby") || arg.equalsIgnoreCase("obsidian")) {
+            getConfig().set(config.getBcObby(), !getConfig().getBoolean(config.getBcObby()));
+            reloadEnabledBlocks(getConfig().getBoolean(config.getBcObby()), Material.OBSIDIAN);
+            printSaved(player);
+        } else if (arg.equalsIgnoreCase("2")) {
+            showToggle2(player);
+        } else if (arg.equalsIgnoreCase("3")) {
+            showToggle3(player);
+        } else {
+            player.sendMessage(breakListener.getPrefix() + ChatColor.RED + "Argument '" + arg + "' unrecognized.");
+            player.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
+            return false;
+        }
+        return true;
+    }
+
+    private void showWorldMenu(Player player) {
+        player.sendMessage(breakListener.getPrefix() + ChatColor.AQUA + "[Worlds 1/1]");
+        player.sendMessage("/fd world" + ChatColor.RED + " <option>");
+        player.sendMessage(ChatColor.RED + "    list" + ChatColor.WHITE + " - List FD enabled worlds");
+        player.sendMessage(ChatColor.RED + "    add <world>" + ChatColor.WHITE + " - Not implemented yet.");
+        player.sendMessage(ChatColor.RED + "    remove <world>" + ChatColor.WHITE + " - Not implemented yet.");
+    }
+
+    //Maybe this would be pointless...
+//    private void saveAdminMap(File file) {
+//        if (adminMessagePlayers.size() > 0) {
+//            if (this.getDataFolder().exists()) {
+//                try {
+//                    file.createNewFile();
+//                    BufferedWriter out = new BufferedWriter(new FileWriter(file, false));
+//                    out.write("# Memory of who recieves admin messages");
+//                    out.newLine();
+//                    for (Map.Entry<Player, Boolean> entry : adminMessagePlayers.entrySet()) {
+//                        out.write(m.getWorld().getName() + ";" + m.getX() + ";" + m.getY() + ";" + m.getZ());
+//                        out.newLine();
+//                    }
+//                    out.close();
+//                    return true;
+//                } catch (IOException ex) {
+//                    log.severe(MessageFormat.format("[{0}] Error writing blocks to file!", pluginName, file.getName()));
+//                    return false;
+//                }
+//            } else {
+//                if (!printed) {
+//                    log.warning(MessageFormat.format("[{0}] Plugin folder not found.  Did you delete it?", pluginName));
+//                    printed = true;
+//                    return false;
+//                }
+//                return false;
+//            }
+//        } else {
+//            if (file.exists()) {
+//                file.delete();
+//            }
+//            return true;
+//        }
+//    }
+//
+//    private void loadAdminMap() {
+//
+//    }
 }

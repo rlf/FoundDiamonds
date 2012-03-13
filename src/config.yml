@@ -9,11 +9,16 @@ Found Diamonds Configuration:
     Admin alerts on all trap breaks: false
     Kick message: You broke a FoundDiamonds trap block.
   Awards:
-    Random awards for finding diamonds: true
-    Percent of time awards are given: 25
-    Random Item 1: 265
-    Random Item 2: 263
-    Random Item 3: 341
+    Items:
+      Random items for finding diamonds: false
+      Percent of time awards are given: 25
+      Random Item 1: 265
+      Random Item 2: 263
+      Random Item 3: 341
+    Spells:
+      Random spells for finding diamonds: true
+      Spell strength (1-5): 5
+      Percent of time spells are casted: 25
   Broadcasts:
     Diamond Ore: true
     Gold Ore: true
