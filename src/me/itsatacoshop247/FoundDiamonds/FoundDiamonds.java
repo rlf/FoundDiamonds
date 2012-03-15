@@ -22,7 +22,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 //TODO Finish menus - full funcationality.
 //TODO Clean log
 //TODO Mcmmo compatibility
-//TODO Custom color formatting
 //TODO Versatile lists
 
 public class FoundDiamonds extends JavaPlugin {
@@ -176,8 +175,13 @@ public class FoundDiamonds extends JavaPlugin {
                 }
             }
             return false;
+        } else if (commandLabel.equalsIgnoreCase("fd") && args[0].equalsIgnoreCase("reload")) {
+            reloadConfig();
+            getServer().getConsoleSender().sendMessage(breakListener.getPrefix() + ChatColor.AQUA + "Configuration reloaded.");
+            return true;
+        } else {
+            return false;
         }
-        return false;
     }
 
     private void reloadAdminMessageMap(Player player) {

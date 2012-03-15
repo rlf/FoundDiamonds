@@ -79,7 +79,8 @@ public class BlockBreakListener implements Listener  {
         }
         if (monitoredMaterial(mat)) {
             //remove already announced blocks here.
-            if (!alreadyAnnouncedRemove(block.getLocation())) {
+            if (alreadyAnnounced(block.getLocation())) {
+                fd.getAnnouncedBlocks().remove(block.getLocation());
                 return;
             }
             if (!isValidWorld(player)) {
@@ -122,13 +123,13 @@ public class BlockBreakListener implements Listener  {
         return !((player.getGameMode() == GameMode.CREATIVE) && (fd.getConfig().getBoolean(config.getDisableInCreative())));
     }
 
-    private boolean alreadyAnnouncedRemove(Location loc) {
-        if (fd.getAnnouncedBlocks().contains(loc)) {
-            fd.getAnnouncedBlocks().remove(loc);
-            return true;
-        }
-        return false;
-    }
+//    private boolean alreadyAnnouncedRemove(Location loc) {
+//        if (fd.getAnnouncedBlocks().contains(loc)) {
+//            fd.getAnnouncedBlocks().remove(loc);
+//            return true;
+//        }
+//        return false;
+//    }
 
     private boolean alreadyAnnounced(Location loc) {
         return (fd.getAnnouncedBlocks().contains(loc));
@@ -371,22 +372,22 @@ public class BlockBreakListener implements Listener  {
             } else {
                 fd.getServer().broadcastMessage(prefix + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        + color).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ore"));
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ore"));
             }
         } else if (mat == Material.OBSIDIAN) {
                 fd.getServer().broadcastMessage(prefix + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        + color).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "obsidian"));
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "obsidian"));
         } else {
             if (total > 1) {
                 fd.getServer().broadcastMessage(prefix + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        + color).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block  +
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block +
                         (mat == Material.DIAMOND_ORE ? "s!" : "s")));
             } else {
                 fd.getServer().broadcastMessage(prefix + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        + color).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block +
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block +
                         (mat == Material.DIAMOND_ORE ? "!" : "")));
             }
         }
