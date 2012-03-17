@@ -116,20 +116,13 @@ public class BlockBreakListener implements Listener  {
     }
 
     private boolean isValidWorld(Player player) {
-        return (fd.getEnabledWorlds().contains(player.getWorld().getName()));
+        return fd.getConfig().getList(config.getEnabledWorlds()).contains(player.getWorld().getName());
+        //return (fd.getEnabledWorlds().contains(player.getWorld().getName()));
     }
 
     private boolean isValidGameMode(Player player) {
         return !((player.getGameMode() == GameMode.CREATIVE) && (fd.getConfig().getBoolean(config.getDisableInCreative())));
     }
-
-//    private boolean alreadyAnnouncedRemove(Location loc) {
-//        if (fd.getAnnouncedBlocks().contains(loc)) {
-//            fd.getAnnouncedBlocks().remove(loc);
-//            return true;
-//        }
-//        return false;
-//    }
 
     private boolean alreadyAnnounced(Location loc) {
         return (fd.getAnnouncedBlocks().contains(loc));
@@ -313,6 +306,9 @@ public class BlockBreakListener implements Listener  {
         for (Player p : fd.getServer().getOnlinePlayers()) {
             if (!p.hasPotionEffect(potion.getType())) {
                 p.addPotionEffect(potion);
+                if (potion.getType() == PotionEffectType.JUMP) {
+                    fd.getJumpPotion().put(p, Boolean.TRUE);
+                }
                 p.sendMessage(prefix + ChatColor.DARK_RED + "You feel an energy come over you...");
             }
         }
