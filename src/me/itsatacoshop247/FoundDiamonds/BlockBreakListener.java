@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -360,32 +361,77 @@ public class BlockBreakListener implements Listener  {
     }
 
     private void broadcastFoundBlock(Material mat, ChatColor color, int total, String name, String block) {
+        String message;
         if (mat == Material.GLOWING_REDSTONE_ORE || mat == Material.REDSTONE_ORE) {
             if (total > 1) {
-                fd.getServer().broadcastMessage((fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
+                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        + color).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ores"));
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ores");
             } else {
-                fd.getServer().broadcastMessage((fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
+                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ore"));
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ore");
             }
         } else if (mat == Material.OBSIDIAN) {
-                fd.getServer().broadcastMessage((fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
+                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "obsidian"));
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "obsidian");
         } else {
             if (total > 1) {
-                fd.getServer().broadcastMessage((fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
+                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
                         ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block +
-                        (mat == Material.DIAMOND_ORE ? "s!" : "s")));
+                        (mat == Material.DIAMOND_ORE ? "s!" : "s"));
             } else {
-                fd.getServer().broadcastMessage((fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
+                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
                         ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block +
-                        (mat == Material.DIAMOND_ORE ? "!" : "")));
+                        (mat == Material.DIAMOND_ORE ? "!" : ""));
             }
+        }
+        fd.getServer().broadcastMessage(message);
+        if (fd.getConfig().getBoolean(config.getCleanLog())) {
+            writeToCleanLog(mat, total, name, block);
+        }
+    }
+    
+    private void writeToCleanLog(Material mat, int total, String name, String block) {
+        String message;
+        if (mat == Material.GLOWING_REDSTONE_ORE || mat == Material.REDSTONE_ORE) {
+            if (total > 1) {
+                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + 
+                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ores");
+            } else {
+                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
+                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ore");
+            }
+        } else if (mat == Material.OBSIDIAN) {
+                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
+                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "obsidian");
+        } else {
+            if (total > 1) {
+                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
+                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block +
+                        (mat == Material.DIAMOND_ORE ? "s!" : "s"));
+            } else {
+                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
+                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block +
+                        (mat == Material.DIAMOND_ORE ? "!" : ""));
+            }
+        }
+        try {
+            BufferedWriter br = new BufferedWriter(new FileWriter(fd.getCleanLog(), true));
+            br.write(message);
+            br.newLine();
+            br.flush();
+            br.close();
+        } catch (IOException ex) {
+            Logger.getLogger(BlockBreakListener.class.getName()).log(Level.SEVERE, "Couldn't write to clean log!", ex);
         }
     }
 

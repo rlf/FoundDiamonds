@@ -46,6 +46,7 @@ public class YAMLHandler {
     private String useNick = "Found Diamonds Configuration.Broadcasts.Use player nicknames";
     private String includePrefix = "Found Diamonds Configuration.Broadcasts.Include [FD] Prefix";
     private String logDiamondBreaks = "Found Diamonds Configuration.Logging.Log all diamond ore breaks";
+    private String cleanLog = "Found Diamonds Configuration.Logging.Clean log (all ores)";
     //Enabled worlds not configurable in game
     private String enabledWorlds = "Found Diamonds Configuration.Enabled Worlds";
     private String diamondAdmin = "Found Diamonds Configuration.Admin Messages.Diamond Ore";
@@ -61,6 +62,10 @@ public class YAMLHandler {
     public void load() {
         fd.getConfig().options().copyDefaults(true);
         fd.saveConfig();
+    }
+    
+    public String getCleanLog() {
+        return cleanLog;
     }
 
     public String getPotionsForFindingDiamonds() {

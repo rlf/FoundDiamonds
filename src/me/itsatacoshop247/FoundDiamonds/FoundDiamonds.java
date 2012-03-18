@@ -3,6 +3,7 @@ package me.itsatacoshop247.FoundDiamonds;
 import java.io.*;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -19,7 +20,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 /* TODO
 * AdminMap memory?
-* Clean log
 * Mcmmo compatibility
 * Versatile lists
 * Redstone Admin
@@ -59,6 +59,7 @@ public class FoundDiamonds extends JavaPlugin {
     private File logs;
     private File traps;
     //private File announced;
+    private File cleanLog;
     private File configFile;
     private File placed;
     private File adminMapFile;
@@ -587,6 +588,7 @@ public class FoundDiamonds extends JavaPlugin {
         configFile = new File(getDataFolder(), "config.yml");
         placed = new File(getDataFolder(), ".placed");
         adminMapFile = new File(getDataFolder(), ".adminMap");
+        cleanLog = new File(getDataFolder(), "CleanLog.txt");
 
         if (!logs.exists()) {
             try {
@@ -609,6 +611,13 @@ public class FoundDiamonds extends JavaPlugin {
          } else {
              loadYaml();
          }
+         if (getConfig().getBoolean(config.getCleanLog())) {
+            try {
+                cleanLog.createNewFile();
+            } catch (IOException ex) {
+                Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Couldn't create clean log file!", ex);
+            }
+         }
     }
 
     public File getTrapsFile() {
@@ -617,6 +626,10 @@ public class FoundDiamonds extends JavaPlugin {
 
     public File getLogFile() {
         return logs;
+    }
+    
+    public File getCleanLog() {
+        return cleanLog;
     }
 
 
