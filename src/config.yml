@@ -30,6 +30,7 @@ Found Diamonds Configuration:
     Obsidian: false
     Message: '@Player@ found @Number@ @BlockName@'
     Use player nicknames: false
+    Include [FD] Prefix: true
   Logging:
     Log all diamond ore breaks: false
   Enabled Worlds:

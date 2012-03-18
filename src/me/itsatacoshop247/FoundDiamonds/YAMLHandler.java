@@ -4,8 +4,6 @@
  */
 package me.itsatacoshop247.FoundDiamonds;
 
-import java.util.List;
-
 /**
  *
  * @author seed419
@@ -46,6 +44,7 @@ public class YAMLHandler {
     //Message not configurable in game
     private String bcMessage = "Found Diamonds Configuration.Broadcasts.Message";
     private String useNick = "Found Diamonds Configuration.Broadcasts.Use player nicknames";
+    private String includePrefix = "Found Diamonds Configuration.Broadcasts.Include [FD] Prefix";
     private String logDiamondBreaks = "Found Diamonds Configuration.Logging.Log all diamond ore breaks";
     //Enabled worlds not configurable in game
     private String enabledWorlds = "Found Diamonds Configuration.Enabled Worlds";
@@ -53,7 +52,7 @@ public class YAMLHandler {
     private String goldAdmin = "Found Diamonds Configuration.Admin Messages.Gold Ore";
     private String lapisAdmin = "Found Diamonds Configuration.Admin Messages.Lapis Ore";
     private String ironAdmin = "Found Diamonds Configuration.Admin Messages.Iron Ore";
-
+    
 
     public YAMLHandler(FoundDiamonds fd) {
         this.fd = fd;
@@ -66,6 +65,10 @@ public class YAMLHandler {
 
     public String getPotionsForFindingDiamonds() {
         return potionsForFindingDiamonds;
+    }
+    
+    public String getIncludePrefix() {
+        return includePrefix;
     }
 
     public String getPotionStrength() {

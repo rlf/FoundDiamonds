@@ -18,18 +18,19 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /* TODO
- AdminMap memory?
- Clean log
- Mcmmo compatibility
- Versatile lists
- Finish set menu, integrate with main menu
+* AdminMap memory?
+* Clean log
+* Mcmmo compatibility
+* Versatile lists
+* Redstone Admin
+* Finish set menu, integrate with main menu
 * /
 
 
 /*  Attribute Only (Public) License
         Version 0.a3, July 11, 2011
 
-    Copyright (C) 2012 SeeD419 <seed419@gmail.com> (@seed419)
+    Copyright (C) 2012 Blake Bartenbach <seed419@gmail.com> (@seed419)
 
     Anyone is allowed to copy and distribute verbatim or modified
     copies of this license document and altering is allowed as long

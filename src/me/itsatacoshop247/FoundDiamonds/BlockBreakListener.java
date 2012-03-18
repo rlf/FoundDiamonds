@@ -362,26 +362,26 @@ public class BlockBreakListener implements Listener  {
     private void broadcastFoundBlock(Material mat, ChatColor color, int total, String name, String block) {
         if (mat == Material.GLOWING_REDSTONE_ORE || mat == Material.REDSTONE_ORE) {
             if (total > 1) {
-                fd.getServer().broadcastMessage(prefix + color +
+                fd.getServer().broadcastMessage((fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
                         + color).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ores"));
             } else {
-                fd.getServer().broadcastMessage(prefix + color +
+                fd.getServer().broadcastMessage((fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
                         ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ore"));
             }
         } else if (mat == Material.OBSIDIAN) {
-                fd.getServer().broadcastMessage(prefix + color +
+                fd.getServer().broadcastMessage((fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
                         ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "obsidian"));
         } else {
             if (total > 1) {
-                fd.getServer().broadcastMessage(prefix + color +
+                fd.getServer().broadcastMessage((fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
                         ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block +
                         (mat == Material.DIAMOND_ORE ? "s!" : "s")));
             } else {
-                fd.getServer().broadcastMessage(prefix + color +
+                fd.getServer().broadcastMessage((fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
                         ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block +
                         (mat == Material.DIAMOND_ORE ? "!" : "")));
