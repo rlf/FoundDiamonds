@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package me.itsatacoshop247.FoundDiamonds;
+package org.seed419.FoundDiamonds;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

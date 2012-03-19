@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package me.itsatacoshop247.FoundDiamonds;
+package org.seed419.FoundDiamonds;
 
 /**
  *
@@ -53,7 +53,7 @@ public class YAMLHandler {
     private String goldAdmin = "Found Diamonds Configuration.Admin Messages.Gold Ore";
     private String lapisAdmin = "Found Diamonds Configuration.Admin Messages.Lapis Ore";
     private String ironAdmin = "Found Diamonds Configuration.Admin Messages.Iron Ore";
-    
+
 
     public YAMLHandler(FoundDiamonds fd) {
         this.fd = fd;
@@ -63,7 +63,7 @@ public class YAMLHandler {
         fd.getConfig().options().copyDefaults(true);
         fd.saveConfig();
     }
-    
+
     public String getCleanLog() {
         return cleanLog;
     }
@@ -71,7 +71,7 @@ public class YAMLHandler {
     public String getPotionsForFindingDiamonds() {
         return potionsForFindingDiamonds;
     }
-    
+
     public String getIncludePrefix() {
         return includePrefix;
     }

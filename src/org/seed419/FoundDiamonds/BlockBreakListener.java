@@ -1,4 +1,4 @@
-package me.itsatacoshop247.FoundDiamonds;
+package org.seed419.FoundDiamonds;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -43,6 +43,12 @@ public class BlockBreakListener implements Listener  {
         this.config = config;
     }
 
+
+
+
+    /*
+     * BlockBreakEvent
+     */
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
@@ -74,6 +80,12 @@ public class BlockBreakListener implements Listener  {
         }
     }
 
+
+
+
+    /*
+     * Main handler
+     */
     private void materialNeedsHandled(Player player, Material mat, Block block, BlockBreakEvent event) {
         if (!player.hasPermission("fd.messages")) {
             isAdminMessageMaterial(player, mat, block);
@@ -99,36 +111,12 @@ public class BlockBreakListener implements Listener  {
         }
     }
 
-    private String getBroadcastName(Player player) {
-        if (fd.getConfig().getBoolean(config.getUseNick())) {
-            return player.getDisplayName();
-        } else {
-            return player.getName();
-        }
-    }
 
-    private boolean isTooDark(Player player, Block block, BlockBreakEvent event) {
-        if (fd.getConfig().getBoolean(config.getDisableMiningInTotalDarkness()) && blockSeesNoLight(block)) {
-            event.setCancelled(true);
-            player.sendMessage(prefix + ChatColor.RED + "Mining in total darkness is dangerous, place a torch!");
-            return true;
-        }
-        return false;
-    }
 
-    private boolean isValidWorld(Player player) {
-        return fd.getConfig().getList(config.getEnabledWorlds()).contains(player.getWorld().getName());
-        //return (fd.getEnabledWorlds().contains(player.getWorld().getName()));
-    }
 
-    private boolean isValidGameMode(Player player) {
-        return !((player.getGameMode() == GameMode.CREATIVE) && (fd.getConfig().getBoolean(config.getDisableInCreative())));
-    }
-
-    private boolean alreadyAnnounced(Location loc) {
-        return (fd.getAnnouncedBlocks().contains(loc));
-    }
-
+    /*
+     * Placed block methods
+     */
     private boolean wasPlacedRemove(Block block) {
         if (fd.getPlacedBlocks().contains(block.getLocation())) {
             fd.getPlacedBlocks().remove(block.getLocation());
@@ -140,6 +128,13 @@ public class BlockBreakListener implements Listener  {
     private boolean wasPlaced(Block block) {
         return (fd.getPlacedBlocks().contains(block.getLocation()));
     }
+
+
+
+
+    /*
+     * Admin Message Handlers
+     */
 
     private void isAdminMessageMaterial(Player player, Material mat, Block block) {
         if (!alreadyAnnounced(block.getLocation())) {
@@ -195,12 +190,12 @@ public class BlockBreakListener implements Listener  {
         }
     }
 
-    private int getRandomAmount(){
-        Random rand = new Random();
-        int amount = rand.nextInt(3);
-        return amount;
-    }
 
+
+
+    /*
+     * Trap block handlers
+     */
     private boolean isTrapBlock(Block block) {
         if (fd.getTrapBlocks().contains(block.getLocation())) {
             return true;
@@ -237,6 +232,12 @@ public class BlockBreakListener implements Listener  {
         removeTrapBlock(block);
     }
 
+
+
+
+    /*
+     * Logging Handlers
+     */
     private void handleLogging(Player player, Block block, boolean trapBlock) {
         Date todaysDate = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss");
@@ -255,6 +256,53 @@ public class BlockBreakListener implements Listener  {
             log.severe(MessageFormat.format("[{0}] Unable to write block to log file! {1}", fd.getPluginName(), ex));
         }
     }
+
+    private void writeToCleanLog(Material mat, int total, String name, String block) {
+        String message;
+        if (mat == Material.GLOWING_REDSTONE_ORE || mat == Material.REDSTONE_ORE) {
+            if (total > 1) {
+                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
+                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ores");
+            } else {
+                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
+                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ore");
+            }
+        } else if (mat == Material.OBSIDIAN) {
+                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
+                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "obsidian");
+        } else {
+            if (total > 1) {
+                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
+                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block +
+                        (mat == Material.DIAMOND_ORE ? "s!" : "s"));
+            } else {
+                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
+                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block +
+                        (mat == Material.DIAMOND_ORE ? "!" : ""));
+            }
+        }
+        try {
+            BufferedWriter br = new BufferedWriter(new FileWriter(fd.getCleanLog(), true));
+            br.write(message);
+            br.newLine();
+            br.flush();
+            br.close();
+        } catch (IOException ex) {
+            Logger.getLogger(BlockBreakListener.class.getName()).log(Level.SEVERE, "Couldn't write to clean log!", ex);
+        }
+    }
+
+
+
+
+    /*
+     * Random Item methods
+     */
 
     private void handleRandomItems(int randomNumber) {
         int randomItem;
@@ -287,6 +335,19 @@ public class BlockBreakListener implements Listener  {
         }
     }
 
+    private int getRandomAmount(){
+        Random rand = new Random();
+        int amount = rand.nextInt(3);
+        return amount;
+    }
+
+
+
+
+    /*
+     * Spells
+     */
+
     private void handleRandomPotions(int randomNumber) {
         PotionEffect potion;
         if (randomNumber < 25) {
@@ -315,9 +376,12 @@ public class BlockBreakListener implements Listener  {
         }
     }
 
-    private boolean monitoredMaterial(Material mat) {
-        return fd.getEnabledBlocks().contains(mat);
-    }
+
+
+
+    /*
+     * Broadcasting
+     */
 
     private void handleBroadcast(Player player, Block block, String playername, String blockname) {
         Material blockMaterial = block.getType();
@@ -394,57 +458,25 @@ public class BlockBreakListener implements Listener  {
             writeToCleanLog(mat, total, name, block);
         }
     }
-    
-    private void writeToCleanLog(Material mat, int total, String name, String block) {
-        String message;
-        if (mat == Material.GLOWING_REDSTONE_ORE || mat == Material.REDSTONE_ORE) {
-            if (total > 1) {
-                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + 
-                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ores");
-            } else {
-                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
-                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ore");
-            }
-        } else if (mat == Material.OBSIDIAN) {
-                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
-                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "obsidian");
+
+    private boolean monitoredMaterial(Material mat) {
+        return fd.getEnabledBlocks().contains(mat);
+    }
+
+    private String getBroadcastName(Player player) {
+        if (fd.getConfig().getBoolean(config.getUseNick())) {
+            return player.getDisplayName();
         } else {
-            if (total > 1) {
-                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
-                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block +
-                        (mat == Material.DIAMOND_ORE ? "s!" : "s"));
-            } else {
-                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
-                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block +
-                        (mat == Material.DIAMOND_ORE ? "!" : ""));
-            }
-        }
-        try {
-            BufferedWriter br = new BufferedWriter(new FileWriter(fd.getCleanLog(), true));
-            br.write(message);
-            br.newLine();
-            br.flush();
-            br.close();
-        } catch (IOException ex) {
-            Logger.getLogger(BlockBreakListener.class.getName()).log(Level.SEVERE, "Couldn't write to clean log!", ex);
+            return player.getName();
         }
     }
 
 
-    private boolean blockSeesNoLight(Block block) {
-        for (BlockFace y : BlockFace.values()) {
-            if (block.getRelative(y).getLightLevel() != 0) {
-                return false;
-            }
-        }
-        return true;
-    }
 
+
+    /*
+     * Total block counters
+     */
     private int getTotalBlocks(Block origBlock) {
         blockList = new LinkedList<Block>();
         checkedBlocks = new LinkedList<Block>();
@@ -486,6 +518,12 @@ public class BlockBreakListener implements Listener  {
         }
     }
 
+
+
+
+    /*
+     * Other Methods
+     */
     public String getPrefix() {
         return prefix;
     }
@@ -494,4 +532,40 @@ public class BlockBreakListener implements Listener  {
         return (m.getType() == Material.REDSTONE_ORE || m.getType() == Material.GLOWING_REDSTONE_ORE);
     }
 
- }
+    private boolean isValidWorld(Player player) {
+        return fd.getConfig().getList(config.getEnabledWorlds()).contains(player.getWorld().getName());
+    }
+
+    private boolean isValidGameMode(Player player) {
+        return !((player.getGameMode() == GameMode.CREATIVE) && (fd.getConfig().getBoolean(config.getDisableInCreative())));
+    }
+
+    private boolean alreadyAnnounced(Location loc) {
+        return (fd.getAnnouncedBlocks().contains(loc));
+    }
+
+
+
+
+    /*
+     * Light Methods
+     */
+    private boolean blockSeesNoLight(Block block) {
+        for (BlockFace y : BlockFace.values()) {
+            if (block.getRelative(y).getLightLevel() != 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isTooDark(Player player, Block block, BlockBreakEvent event) {
+        if (fd.getConfig().getBoolean(config.getDisableMiningInTotalDarkness()) && blockSeesNoLight(block)) {
+            event.setCancelled(true);
+            player.sendMessage(prefix + ChatColor.RED + "Mining in total darkness is dangerous, place a torch!");
+            return true;
+        }
+        return false;
+    }
+
+}

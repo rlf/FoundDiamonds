@@ -2,7 +2,7 @@ Found Diamonds Configuration:
   Main:
     Disable in creative mode: true
     Disable ore mining in total darkness: true
-    Give OPs all permissions: false
+    Give OPs all permissions: true
   Traps:
     Kick players on trap break: true
     Ban players on trap break: false
@@ -17,15 +17,15 @@ Found Diamonds Configuration:
       Random Item 3: 341
     Spells:
       Random spells for finding diamonds: true
-      Spell strength (1-5): 5
-      Percent of time spells are casted: 25
+      Spell strength (1-5): 4
+      Percent of time spells are casted: 100
   Broadcasts:
     Diamond Ore: true
     Gold Ore: true
     Lapis Ore: true
-    Redstone Ore: false
-    Iron Ore: false
-    Coal Ore: false
+    Redstone Ore: true
+    Iron Ore: true
+    Coal Ore: true
     Mossy Cobblestone: false
     Obsidian: false
     Message: '@Player@ found @Number@ @BlockName@'
@@ -35,7 +35,6 @@ Found Diamonds Configuration:
     Log all diamond ore breaks: false
     Clean log (all ores): false
   Enabled Worlds:
-  - world
   Admin Messages:
     Diamond Ore: false
     Gold Ore: false

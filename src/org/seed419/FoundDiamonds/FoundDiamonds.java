@@ -1,4 +1,4 @@
-package me.itsatacoshop247.FoundDiamonds;
+package org.seed419.FoundDiamonds;
 
 import java.io.*;
 import java.text.MessageFormat;
@@ -83,13 +83,11 @@ public class FoundDiamonds extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        //Manage files - get data
         config = new YAMLHandler(this);
 
         checkFiles();
         loadEnabledBlocks();
 
-        //Init variables
         adminMessagePlayers = new HashMap<Player, Boolean>();
         join = new JoinListener(this, config);
         quit = new QuitListener(this);
@@ -97,7 +95,6 @@ public class FoundDiamonds extends JavaPlugin {
         placeListener = new BlockPlaceListener(this);
         damage = new PlayerDamageListener(this);
 
-        //Register listeners
 	PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(this.breakListener, this);
         pm.registerEvents(this.join, this);
@@ -117,6 +114,7 @@ public class FoundDiamonds extends JavaPlugin {
         String info = "This file stores your trap block locations.";
         String info2 = "If you have any issues with traps - feel free to delete this file.";
         boolean temp = writeBlocksToFile(traps, trapBlocks, info, info2);
+        //Old announced file commented out:
 //        String info3 = "This file stores the blocks that have already been announced.";
 //        String info4 = "If you'd like to reannounce all the blocks - feel free to delete this file.";
 //        boolean temp2 = writeBlocksToFile(announced, announcedBlocks, info3, info4);
@@ -608,6 +606,7 @@ public class FoundDiamonds extends JavaPlugin {
          }
          if(!configFile.exists()) {
              config.load();
+             addAllWorlds();
          } else {
              loadYaml();
          }
@@ -627,7 +626,7 @@ public class FoundDiamonds extends JavaPlugin {
     public File getLogFile() {
         return logs;
     }
-    
+
     public File getCleanLog() {
         return cleanLog;
     }
@@ -918,6 +917,15 @@ public class FoundDiamonds extends JavaPlugin {
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
     public HashMap<Player, Boolean> getJumpPotion() {
         return jumpPotion;
+    }
+
+    private void addAllWorlds() {
+        List<World> worldList = getServer().getWorlds();
+        List<String> worldNames = new LinkedList<String>();
+        for (World w : worldList) {
+            worldNames.add(w.getName());
+        }
+        getConfig().set(config.getEnabledWorlds(), worldNames);
     }
 
 
