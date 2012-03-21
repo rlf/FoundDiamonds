@@ -51,6 +51,12 @@ public class BlockBreakListener implements Listener  {
      */
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
+
+        //Prevent mcMMO's superbreaker from re-announcing.
+        if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) {
+            return;
+        }
+
         Block block = event.getBlock();
         Material mat = block.getType();
         Player player = event.getPlayer();
@@ -141,7 +147,9 @@ public class BlockBreakListener implements Listener  {
             if ((mat == Material.DIAMOND_ORE && fd.getConfig().getBoolean(config.getDiamondAdmin())) ||
                 (mat == Material.GOLD_ORE && fd.getConfig().getBoolean(config.getGoldAdmin())) ||
                 (mat == Material.LAPIS_ORE && fd.getConfig().getBoolean(config.getLapisAdmin())) ||
-                (mat == Material.IRON_ORE && fd.getConfig().getBoolean(config.getIronAdmin()))) {
+                (mat == Material.IRON_ORE && fd.getConfig().getBoolean(config.getIronAdmin())) ||
+                (mat == Material.GLOWING_REDSTONE_ORE && fd.getConfig().getBoolean(config.getRedstoneAdmin())) ||
+                (mat == Material.REDSTONE_ORE && fd.getConfig().getBoolean(config.getRedstoneAdmin()))) {
                 handleAdminMessage(player, mat, block);
             }
         }
@@ -162,6 +170,7 @@ public class BlockBreakListener implements Listener  {
         }
     }
 
+    //TODO send to console
     private void sendAdminMessage(Player x, Material mat, int total, String name, String matName) {
         if (mat == Material.GLOWING_REDSTONE_ORE || mat == Material.REDSTONE_ORE) {
             if (total > 1) {
@@ -258,37 +267,34 @@ public class BlockBreakListener implements Listener  {
     }
 
     private void writeToCleanLog(Material mat, int total, String name, String block) {
-        String message;
+        Date todaysDate = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss");
+        String formattedDate = formatter.format(todaysDate);        String message;
         if (mat == Material.GLOWING_REDSTONE_ORE || mat == Material.REDSTONE_ORE) {
             if (total > 1) {
-                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
-                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
+                message = fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
                         ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ores");
             } else {
-                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
-                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
+                message = fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
                         ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ore");
             }
         } else if (mat == Material.OBSIDIAN) {
-                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
-                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
+                message = fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
                         ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "obsidian");
         } else {
             if (total > 1) {
-                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
-                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
+                message = fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
                         ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block +
                         (mat == Material.DIAMOND_ORE ? "s!" : "s"));
             } else {
-                message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") +
-                        fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
+                message = fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
                         ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block +
                         (mat == Material.DIAMOND_ORE ? "!" : ""));
             }
         }
         try {
             BufferedWriter br = new BufferedWriter(new FileWriter(fd.getCleanLog(), true));
-            br.write(message);
+            br.write("[" + formattedDate + "] " + message);
             br.newLine();
             br.flush();
             br.close();
@@ -453,7 +459,8 @@ public class BlockBreakListener implements Listener  {
                         (mat == Material.DIAMOND_ORE ? "!" : ""));
             }
         }
-        fd.getServer().broadcastMessage(message);
+        String formatted = translateAlternateColorCodes('&', message);
+        fd.getServer().broadcastMessage(formatted);
         if (fd.getConfig().getBoolean(config.getCleanLog())) {
             writeToCleanLog(mat, total, name, block);
         }
@@ -469,6 +476,24 @@ public class BlockBreakListener implements Listener  {
         } else {
             return player.getName();
         }
+    }
+
+
+
+
+    /*
+     * Craftbukkit lol
+     */
+
+    public static String translateAlternateColorCodes(char altColorChar, String textToTranslate) {
+        char[] b = textToTranslate.toCharArray();
+        for (int i = 0; i < b.length - 1; i++) {
+            if (b[i] == altColorChar && "0123456789AaBbCcDdEeFfKk".indexOf(b[i+1]) > -1) {
+                b[i] = ChatColor.COLOR_CHAR;
+                b[i+1] = Character.toLowerCase(b[i+1]);
+            }
+        }
+        return new String(b);
     }
 
 

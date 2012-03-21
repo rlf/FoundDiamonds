@@ -25,8 +25,8 @@ public class YAMLHandler {
     private String chanceToGetAward = "Found Diamonds Configuration.Awards.Items.Percent of time items are given";
     //Random items not configurable in game
     private String randomItem1 = "Found Diamonds Configuration.Awards.Items.Random Item 1";
-    private String randomItem2 = "Found Diamonds Configuration.Awards.Random Item 2";
-    private String randomItem3 = "Found Diamonds Configuration.Awards.Random Item 3";
+    private String randomItem2 = "Found Diamonds Configuration.Awards.Items.Random Item 2";
+    private String randomItem3 = "Found Diamonds Configuration.Awards.Items.Random Item 3";
 
     //spells
     private String potionsForFindingDiamonds = "Found Diamonds Configuration.Awards.Spells.Random spells for finding diamonds";
@@ -51,6 +51,7 @@ public class YAMLHandler {
     private String enabledWorlds = "Found Diamonds Configuration.Enabled Worlds";
     private String diamondAdmin = "Found Diamonds Configuration.Admin Messages.Diamond Ore";
     private String goldAdmin = "Found Diamonds Configuration.Admin Messages.Gold Ore";
+    private String redstoneAdmin = "Found Diamonds Configuration.Admin Messages.Redstone Ore";
     private String lapisAdmin = "Found Diamonds Configuration.Admin Messages.Lapis Ore";
     private String ironAdmin = "Found Diamonds Configuration.Admin Messages.Iron Ore";
 
@@ -198,6 +199,10 @@ public class YAMLHandler {
 
     public String getBcObby() {
         return bcObby;
+    }
+
+    String getRedstoneAdmin() {
+        return redstoneAdmin;
     }
 
 }

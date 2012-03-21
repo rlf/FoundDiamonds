@@ -17,7 +17,7 @@ Found Diamonds Configuration:
       Random Item 3: 341
     Spells:
       Random spells for finding diamonds: true
-      Spell strength (1-5): 4
+      Spell strength (1-5): 3
       Percent of time spells are casted: 100
   Broadcasts:
     Diamond Ore: true
@@ -38,5 +38,6 @@ Found Diamonds Configuration:
   Admin Messages:
     Diamond Ore: false
     Gold Ore: false
+    Redstone Ore: false
     Lapis Ore: false
     Iron Ore: false
