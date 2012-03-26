@@ -436,26 +436,31 @@ public class BlockBreakListener implements Listener  {
             if (total > 1) {
                 message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ores");
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@",
+                        (fd.getConfig().getBoolean(config.getUseOreColors()) ? color : "") + "redstone ores");
             } else {
                 message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ore");
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@",
+                        (fd.getConfig().getBoolean(config.getUseOreColors()) ? color : "") + "redstone ore");
             }
         } else if (mat == Material.OBSIDIAN) {
                 message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "obsidian");
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@",
+                        (fd.getConfig().getBoolean(config.getUseOreColors()) ? color : "") + "obsidian");
         } else {
             if (total > 1) {
                 message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block +
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@",
+                        (fd.getConfig().getBoolean(config.getUseOreColors()) ? color : "") + block +
                         (mat == Material.DIAMOND_ORE ? "s!" : "s"));
             } else {
                 message = (fd.getConfig().getBoolean(config.getIncludePrefix()) ? prefix : "") + color +
                         fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name
-                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", block +
+                        ).replace("@Number@", String.valueOf(total)).replace("@BlockName@",
+                        (fd.getConfig().getBoolean(config.getUseOreColors()) ? color : "") + block +
                         (mat == Material.DIAMOND_ORE ? "!" : ""));
             }
         }

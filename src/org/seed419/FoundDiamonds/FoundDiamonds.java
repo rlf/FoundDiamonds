@@ -20,21 +20,18 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 /* TODO
 * AdminMap memory?
-* Mcmmo compatibility
 * Versatile lists
-* Redstone Admin
 * Finish set menu, integrate with main menu
+* Look into pulling stats from MC client?
+* Finish config and toggle
+* /fd top ?
 * /
 
 /*
 * Changelog:
-* mcMMO spam fixed!
-* Now supports custom color formatting!!
-* Improved clean log.
-* Added redstone admin messages.
-* Set plugin to add ALL worlds on first run and enable most everything (should help these noobs with issues)
-* Improved world menu a bit
-* Added more functionality to the config, toggle, and set menus + fixed a few bugs.
+  Added option to Use Classic ore colors in broadcasts.  It seems the color formatting overrides them.  Defaults to true.
+  * If you don't like the ore names being colored to their type, set this to false.
+  */
 
 /*  Attribute Only (Public) License
         Version 0.a3, July 11, 2011
@@ -96,7 +93,7 @@ public class FoundDiamonds extends JavaPlugin {
 
         checkFiles();
         loadEnabledBlocks();
-
+        
         adminMessagePlayers = new HashMap<Player, Boolean>();
         join = new JoinListener(this, config);
         quit = new QuitListener(this);
@@ -634,6 +631,16 @@ public class FoundDiamonds extends JavaPlugin {
 
     public File getCleanLog() {
         return cleanLog;
+    }
+
+    private void close(Closeable stream) {
+        if (stream != null) {
+            try {
+                stream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Couldn't close stream", ex);
+            }
+        }
     }
 
 

@@ -33,6 +33,7 @@ public class YAMLHandler {
     private String potionStrength = "Found Diamonds Configuration.Awards.Spells.Spell strength (1-5)";
     private String chanceToGetPotion = "Found Diamonds Configuration.Awards.Spells.Percent of time spells are casted";
 
+//BROADCASTS
     private String bcDiamond = "Found Diamonds Configuration.Broadcasts.Diamond Ore";
     private String bcGold = "Found Diamonds Configuration.Broadcasts.Gold Ore";
     private String bcLapis = "Found Diamonds Configuration.Broadcasts.Lapis Ore";
@@ -45,6 +46,9 @@ public class YAMLHandler {
     private String bcMessage = "Found Diamonds Configuration.Broadcasts.Message";
     private String useNick = "Found Diamonds Configuration.Broadcasts.Use player nicknames";
     private String includePrefix = "Found Diamonds Configuration.Broadcasts.Include [FD] Prefix";
+    private String useOreColors = "Found Diamonds Configuration.Broadcasts.Use classic ore colors for ores";
+
+//LOGGING
     private String logDiamondBreaks = "Found Diamonds Configuration.Logging.Log all diamond ore breaks";
     private String cleanLog = "Found Diamonds Configuration.Logging.Clean log (all ores)";
     //Enabled worlds not configurable in game
@@ -67,6 +71,10 @@ public class YAMLHandler {
 
     public String getCleanLog() {
         return cleanLog;
+    }
+
+    public String getUseOreColors() {
+        return useOreColors;
     }
 
     public String getPotionsForFindingDiamonds() {

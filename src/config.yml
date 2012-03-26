@@ -31,6 +31,7 @@ Found Diamonds Configuration:
     Message: '@Player@ found @Number@ @BlockName@'
     Use player nicknames: false
     Include [FD] Prefix: true
+    Use classic ore colors for ores: true
   Logging:
     Log all diamond ore breaks: false
     Clean log (all ores): false
