@@ -25,12 +25,21 @@ import org.bukkit.plugin.java.JavaPlugin;
 * Look into pulling stats from MC client?
 * Finish config and toggle
 * /fd top ?
-* /
 
 /*
 * Changelog:
   Added option to Use Classic ore colors in broadcasts.  It seems the color formatting overrides them.  Defaults to true.
   * If you don't like the ore names being colored to their type, set this to false.
+  *
+  * Cleaned up some sketchy file handling methods
+  *
+  * Impelemented ignore.broadcasts permission for players who don't like broadcasts :(
+  *
+  * Made admin messages conform to the custom color codes in the config.
+  *
+  * Made admin messages send a message to the console!
+  *
+  * Fixed a terrible bug that prevented announcements when using admin messages :/
   */
 
 /*  Attribute Only (Public) License
@@ -64,11 +73,9 @@ public class FoundDiamonds extends JavaPlugin {
     private final File mainDir = new File("plugins/FoundDiamonds/");
     private File logs;
     private File traps;
-    //private File announced;
     private File cleanLog;
     private File configFile;
     private File placed;
-    private File adminMapFile;
     private List<Material> enabledBlocks = new LinkedList<Material>();
     private List<Location> trapBlocks = new LinkedList<Location>();
     private List<Location> announcedBlocks = new LinkedList<Location>();
@@ -93,7 +100,7 @@ public class FoundDiamonds extends JavaPlugin {
 
         checkFiles();
         loadEnabledBlocks();
-        
+
         adminMessagePlayers = new HashMap<Player, Boolean>();
         join = new JoinListener(this, config);
         quit = new QuitListener(this);
@@ -120,10 +127,6 @@ public class FoundDiamonds extends JavaPlugin {
         String info = "This file stores your trap block locations.";
         String info2 = "If you have any issues with traps - feel free to delete this file.";
         boolean temp = writeBlocksToFile(traps, trapBlocks, info, info2);
-        //Old announced file commented out:
-//        String info3 = "This file stores the blocks that have already been announced.";
-//        String info4 = "If you'd like to reannounce all the blocks - feel free to delete this file.";
-//        boolean temp2 = writeBlocksToFile(announced, announcedBlocks, info3, info4);
         String info5 = "This file stores blocks that would be announced that players placed";
         String info6 = "If you'd like to announce these placed blocks, feel free to delete this file.";
         boolean temp3 = writeBlocksToFile(placed, placedBlocks, info5, info6);
@@ -133,7 +136,6 @@ public class FoundDiamonds extends JavaPlugin {
             log.warning(MessageFormat.format("[{0}] Couldn't save blocks to files!", pluginName));
             log.warning(MessageFormat.format("[{0}] You could try deleting .placed and .traplocations", pluginName));
         }
-        //saveAdminMap(adminMapFile);
         log.info(MessageFormat.format("[{0}] Disabled", pluginName));
     }
 
@@ -145,8 +147,7 @@ public class FoundDiamonds extends JavaPlugin {
         }
         if (((commandLabel.equalsIgnoreCase("fd")) || commandLabel.equalsIgnoreCase("founddiamonds"))) {
             if (args.length == 0) {
-                printMainMenu(sender);
-                return true;
+                return printMainMenu(sender);
             } else {
                 String arg = args[0];
                 if (arg.equalsIgnoreCase("trap")) {
@@ -368,7 +369,7 @@ public class FoundDiamonds extends JavaPlugin {
     /*
      * Main Menu
      */
-    private void printMainMenu(CommandSender sender) {
+    private boolean printMainMenu(CommandSender sender) {
         if (sender instanceof Player) {
             Player player = (Player) sender;
             if (hasPerms(player, "fd.trap") || hasPerms(player, "fd.messages") || hasPerms(player, "fd.config")
@@ -376,6 +377,8 @@ public class FoundDiamonds extends JavaPlugin {
                     || hasPerms(player, "fd.world")) {
                 player.sendMessage(breakListener.getPrefix() + ChatColor.AQUA + "[FoundDiamonds Main Menu]");
                 player.sendMessage("/fd " + ChatColor.RED + "<option>");
+            } else {
+                return false;
             }
             if (hasPerms(player, "FD.messages")) {
                 player.sendMessage(ChatColor.RED + "    admin" + ChatColor.WHITE + " - Toggle your admin messages");
@@ -405,6 +408,7 @@ public class FoundDiamonds extends JavaPlugin {
                 sender.sendMessage(ChatColor.RED + "    toggle <option>" + ChatColor.WHITE + " - Change the configuration");
                 sender.sendMessage(ChatColor.RED + "    world" + ChatColor.WHITE + " - Manange FD enabled worlds");
         }
+        return true;
     }
 
 
@@ -517,24 +521,25 @@ public class FoundDiamonds extends JavaPlugin {
     private boolean writeBlocksToFile(File file, List<Location> blockList, String info, String info2) {
         if (blockList.size() > 0) {
             if (this.getDataFolder().exists()) {
+                PrintWriter out = null;
                 try {
                     file.createNewFile();
-                    BufferedWriter out = new BufferedWriter(new FileWriter(file, false));
+                    out =  new PrintWriter(new BufferedWriter(new FileWriter(file, false)));
                     out.write("# " + info);
-                    out.newLine();
+                    out.println();
                     out.write("# " + info2);
-                    out.newLine();
+                    out.println();
                     for (Iterator<Location> it = blockList.iterator(); it.hasNext();) {
                         Location m = it.next();
                         out.write(m.getWorld().getName() + ";" + m.getX() + ";" + m.getY() + ";" + m.getZ());
-                        out.newLine();
+                        out.println();
                     }
-                    out.close();
-                    return true;
                 } catch (IOException ex) {
                     log.severe(MessageFormat.format("[{0}] Error writing blocks to file!", pluginName, file.getName()));
-                    return false;
+                } finally {
+                    close(out);
                 }
+                return true;
             } else {
                 if (!printed) {
                     log.warning(MessageFormat.format("[{0}] Plugin folder not found.  Did you delete it?", pluginName));
@@ -552,8 +557,9 @@ public class FoundDiamonds extends JavaPlugin {
     }
 
     private void readBlocksFromFile(File file, List<Location> list) {
+        BufferedReader b = null;
         try {
-            BufferedReader b = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+            b = new BufferedReader(new FileReader(file));
             String strLine = b.readLine();
             while (strLine != null) {
                 if (!strLine.startsWith("#")) {
@@ -568,9 +574,10 @@ public class FoundDiamonds extends JavaPlugin {
                 }
                 strLine = b.readLine();
             }
-            b.close();
         } catch (Exception ex) {
             log.severe(MessageFormat.format("[{0}] Unable to read trap blocks from file! {1}", pluginName, ex));
+        } finally {
+            close(b);
         }
     }
 
@@ -580,10 +587,8 @@ public class FoundDiamonds extends JavaPlugin {
         }
         logs = new File(getDataFolder(), "logs.txt");
         traps = new File(getDataFolder(), ".traplocations");
-        //announced = new File(getDataFolder(), ".announced");
         configFile = new File(getDataFolder(), "config.yml");
         placed = new File(getDataFolder(), ".placed");
-        adminMapFile = new File(getDataFolder(), ".adminMap");
         cleanLog = new File(getDataFolder(), "CleanLog.txt");
 
         if (!logs.exists()) {
@@ -596,9 +601,6 @@ public class FoundDiamonds extends JavaPlugin {
          if (traps.exists()) {
              readBlocksFromFile(traps, trapBlocks);
          }
-//         if (announced.exists()) {
-//             readBlocksFromFile(announced, announcedBlocks);
-//         }
          if (placed.exists()) {
              readBlocksFromFile(placed, placedBlocks);
          }

@@ -36,6 +36,8 @@ public class BlockBreakListener implements Listener  {
     private String adminPrefix = ChatColor.RED + "[FD Admin] ";
     private List<Block> blockList;
     private List<Block> checkedBlocks;
+    private List<Player> recievedAdminMessage = new LinkedList<Player>();
+    private boolean consoleRecieved;
 
 
     public BlockBreakListener(FoundDiamonds instance, YAMLHandler config) {
@@ -68,6 +70,7 @@ public class BlockBreakListener implements Listener  {
         }
 
         //Handle every other material
+        System.out.println(mat.name());
         if (mat == Material.DIAMOND_ORE) {
             if (wasPlacedRemove(block)) {
                 return;
@@ -93,22 +96,25 @@ public class BlockBreakListener implements Listener  {
      * Main handler
      */
     private void materialNeedsHandled(Player player, Material mat, Block block, BlockBreakEvent event) {
+        if (alreadyAnnounced(block.getLocation())) {
+            fd.getAnnouncedBlocks().remove(block.getLocation());
+            return;
+        }
         if (!player.hasPermission("fd.messages")) {
             isAdminMessageMaterial(player, mat, block);
         }
         if (monitoredMaterial(mat)) {
             //remove already announced blocks here.
-            if (alreadyAnnounced(block.getLocation())) {
-                fd.getAnnouncedBlocks().remove(block.getLocation());
-                return;
-            }
             if (!isValidWorld(player)) {
+                //System.out.println("invalid world");
                 return;
             }
             if (!isValidGameMode(player)) {
+                //System.out.println("invalid gm");
                 return;
             }
             if (isTooDark(player, block, event)) {
+                //System.out.println("too dark.");
                 return;
             }
             String playername = getBroadcastName(player);
@@ -159,42 +165,47 @@ public class BlockBreakListener implements Listener  {
         int total = getTotalBlocks(block);
         String name = player.getName();
         String matName = mat.name().toLowerCase().replace("_", " ");
-        for (Player x : fd.getServer().getOnlinePlayers()) {
-            if (fd.getAdminMessageMap().containsKey(x)) {
-                if (fd.getAdminMessageMap().get(x)) {
-                    if (fd.hasPerms(x, "fd.messages")) {
-                        sendAdminMessage(x, mat, total, name, matName);
-                    }
-                }
-            }
-        }
+        sendAdminMessage(mat, total, name, matName);
     }
 
-    //TODO send to console
-    private void sendAdminMessage(Player x, Material mat, int total, String name, String matName) {
+    private void sendAdminMessage(Material mat, int total, String name, String matName) {
+        String message;
         if (mat == Material.GLOWING_REDSTONE_ORE || mat == Material.REDSTONE_ORE) {
             if (total > 1) {
-                x.sendMessage(adminPrefix  + ChatColor.YELLOW +
+                message = (adminPrefix  + ChatColor.YELLOW +
                 fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name + ChatColor.GRAY
                 ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ores"));
             } else {
-                x.sendMessage(adminPrefix + ChatColor.YELLOW +
+                message = (adminPrefix + ChatColor.YELLOW +
                 fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name + ChatColor.GRAY
                 ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "redstone ore"));
             }
         } else if (mat == Material.OBSIDIAN) {
-            x.sendMessage(adminPrefix + ChatColor.YELLOW +
+            message = (adminPrefix + ChatColor.YELLOW +
             fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name + ChatColor.GRAY
             ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "obsidian"));
         } else {
             if (total > 1) {
-                x.sendMessage(adminPrefix + ChatColor.YELLOW +
+                message = (adminPrefix + ChatColor.YELLOW +
                 fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name + ChatColor.GRAY
                 ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", matName  + "s"));
             } else {
-                x.sendMessage(adminPrefix + ChatColor.YELLOW +
+                message = (adminPrefix + ChatColor.YELLOW +
                 fd.getConfig().getString(config.getBcMessage()).replace("@Player@", name + ChatColor.GRAY
-                ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", matName  + "s"));
+                ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", matName));
+            }
+        }
+        //This is incredibly confusing, but must be done.
+        String formatted = customTranslateAlternateColorCodes('&', message);
+        String f = ChatColor.stripColor(formatted);
+        fd.getServer().getConsoleSender().sendMessage(formatted);
+        consoleRecieved = true;
+        for (Player y : fd.getServer().getOnlinePlayers()) {
+            if (fd.getAdminMessageMap().containsKey(y)) {
+                if (fd.getAdminMessageMap().get(y)) {
+                    y.sendMessage(formatted);
+                    recievedAdminMessage.add(y);
+                }
             }
         }
     }
@@ -464,8 +475,21 @@ public class BlockBreakListener implements Listener  {
                         (mat == Material.DIAMOND_ORE ? "!" : ""));
             }
         }
-        String formatted = translateAlternateColorCodes('&', message);
-        fd.getServer().broadcastMessage(formatted);
+        String formatted = customTranslateAlternateColorCodes('&', message);
+        //Prevent redunant output to the console
+        if (!consoleRecieved) {
+        fd.getServer().getConsoleSender().sendMessage(formatted);
+        }
+        for (Player x : fd.getServer().getOnlinePlayers()) {
+            //TODO prevent those using admin messages from seeing broadcasts?
+            if (!x.hasPermission("ignore.broadcasts")) {
+                if (!recievedAdminMessage.contains(x)) {
+                    x.sendMessage(formatted);
+                }
+            }
+        }
+        recievedAdminMessage.clear();
+        consoleRecieved = false;
         if (fd.getConfig().getBoolean(config.getCleanLog())) {
             writeToCleanLog(mat, total, name, block);
         }
@@ -481,24 +505,6 @@ public class BlockBreakListener implements Listener  {
         } else {
             return player.getName();
         }
-    }
-
-
-
-
-    /*
-     * Craftbukkit lol
-     */
-
-    public static String translateAlternateColorCodes(char altColorChar, String textToTranslate) {
-        char[] b = textToTranslate.toCharArray();
-        for (int i = 0; i < b.length - 1; i++) {
-            if (b[i] == altColorChar && "0123456789AaBbCcDdEeFfKk".indexOf(b[i+1]) > -1) {
-                b[i] = ChatColor.COLOR_CHAR;
-                b[i+1] = Character.toLowerCase(b[i+1]);
-            }
-        }
-        return new String(b);
     }
 
 
@@ -572,6 +578,17 @@ public class BlockBreakListener implements Listener  {
 
     private boolean alreadyAnnounced(Location loc) {
         return (fd.getAnnouncedBlocks().contains(loc));
+    }
+
+    public static String customTranslateAlternateColorCodes(char altColorChar, String textToTranslate) {
+        char[] charArray = textToTranslate.toCharArray();
+        for (int i = 0; i < charArray.length - 1; i++) {
+            if (charArray[i] == altColorChar && "0123456789AaBbCcDdEeFfKkNnRrLlMmOo".indexOf(charArray[i+1]) > -1) {
+                charArray[i] = ChatColor.COLOR_CHAR;
+                charArray[i+1] = Character.toLowerCase(charArray[i+1]);
+            }
+        }
+        return new String(charArray);
     }
 
 
