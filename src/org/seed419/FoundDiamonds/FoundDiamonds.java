@@ -28,18 +28,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 /*
 * Changelog:
-  Added option to Use Classic ore colors in broadcasts.  It seems the color formatting overrides them.  Defaults to true.
-  * If you don't like the ore names being colored to their type, set this to false.
-  *
-  * Cleaned up some sketchy file handling methods
-  *
-  * Impelemented ignore.broadcasts permission for players who don't like broadcasts :(
-  *
-  * Made admin messages conform to the custom color codes in the config.
-  *
-  * Made admin messages send a message to the console!
-  *
-  * Fixed a terrible bug that prevented announcements when using admin messages :/
+  Fixed bug where we weren't respecting the world list for spells and announcements from other worlds.
+  * Attempted fix for world issue for some.
+  * Cleaned up certain areas of code that were sorta messy.
   */
 
 /*  Attribute Only (Public) License
@@ -117,6 +108,11 @@ public class FoundDiamonds extends JavaPlugin {
 
 	pdf = this.getDescription();
 	pluginName = pdf.getName();
+
+        //Attempted fix for worlds not working for some.
+        if (config.getEnabledWorlds().isEmpty()) {
+            addAllWorlds();
+        }
 
         log.info(MessageFormat.format("[{0}] Enabled", pluginName));
     }
