@@ -33,10 +33,12 @@ public class BlockBreakListener implements Listener  {
     private static final Logger log = Logger.getLogger("FoundDiamonds");
     private String prefix = ChatColor.WHITE + "[FD] ";
     private String adminPrefix = ChatColor.RED + "[FD Admin] " + ChatColor.YELLOW;
+    private String debugPrefix = "[FD Debug] ";
     private List<Block> blockList;
     private List<Block> checkedBlocks;
     private List<Player> recievedAdminMessage = new LinkedList<Player>();
     private boolean consoleRecieved;
+    private boolean debug = false;
 
 
     public BlockBreakListener(FoundDiamonds instance, YAMLHandler config) {
@@ -52,6 +54,9 @@ public class BlockBreakListener implements Listener  {
      */
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
+
+        //Check for debug mode
+        debug = fd.getConfig().getBoolean(config.debug());
 
         //Prevent mcMMO's superbreaker from re-announcing.
         if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) {
@@ -96,17 +101,25 @@ public class BlockBreakListener implements Listener  {
     private void materialNeedsHandled(Player player, Material mat, Block block, BlockBreakEvent event) {
         if (alreadyAnnounced(block.getLocation())) {
             fd.getAnnouncedBlocks().remove(block.getLocation());
+            if (debug) {
+                log.info(debugPrefix + "Broadcast canceled: Block already announced.");
+            }
             return;
         }
         if (!player.hasPermission("fd.messages")) {
             isAdminMessageMaterial(player, mat, block);
         }
         if (monitoredMaterial(mat)) {
-            //remove already announced blocks here.
             if (!isValidWorld(player)) {
+                if (debug) {
+                    log.info(debugPrefix + "Broadcast canceled: User is not in an enabled world.");
+                }
                 return;
             }
             if (!isValidGameMode(player)) {
+                if (debug) {
+                    log.info(debugPrefix + "Broadcast canceled: User is in creative mode.");
+                }
                 return;
             }
             if (isTooDark(player, block, event)) {
@@ -208,7 +221,7 @@ public class BlockBreakListener implements Listener  {
         } else {
             fd.getServer().broadcastMessage(prefix + ChatColor.RED + player.getName() + " just broke a trap block");
         }
-        if(fd.getConfig().getBoolean(config.getLogDiamondBreaks())) {
+        if(fd.getConfig().getBoolean(config.getLogTrapBreaks())) {
             handleLogging(player, block, true);
         }
         if (fd.getConfig().getBoolean(config.getKickOnTrapBreak())  && !fd.hasPerms(player, "FD.trap")) {
@@ -241,7 +254,7 @@ public class BlockBreakListener implements Listener  {
             out.newLine();
             out.close();
         } catch (IOException ex) {
-            log.severe(MessageFormat.format("[{0}] Unable to write block to log file! {1}", fd.getPluginName(), ex));
+            log.severe(MessageFormat.format("[{0}] Unable to write block to log file! {1}", prefix, ex));
         }
     }
 
@@ -413,9 +426,23 @@ public class BlockBreakListener implements Listener  {
         }
 
         for (Player x : fd.getServer().getOnlinePlayers()) {
-            if (!x.hasPermission("ignore.broadcasts") && config.getEnabledWorlds().contains(x.getWorld().getName())) {
+            if (!x.hasPermission("ignore.broadcasts") && isValidWorld(x)) {
                 if (!recievedAdminMessage.contains(x)) {
                     x.sendMessage(formatted);
+                    if (debug) {
+                        log.info(debugPrefix + "Sent broadcast to " + x.getName());
+                    }
+                } else if (debug) {
+                    log.info(debugPrefix + x.getName() + "recieved an admin message already, so not broadcasting to " + x.getName());
+                }
+            } else {
+                if (debug) {
+                    if (x.hasPermission("ignore.broadcasts")) {
+                        log.info(debugPrefix + x.getName() + " has permissions 'ignore.broadcasts'.  Not broadcasting to " + x.getName());
+                    }
+                    if (!isValidWorld(x)) {
+                        log.info(debugPrefix + x.getName() + " is not in an enabled world.  Broadcast canceled.");
+                    }
                 }
             }
         }

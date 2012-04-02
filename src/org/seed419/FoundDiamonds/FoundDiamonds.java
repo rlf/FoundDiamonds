@@ -25,12 +25,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 * Look into pulling stats from MC client?
 * Finish config and toggle
 * /fd top ?
-
+* find out why our trap didn't get logged!
 /*
 * Changelog:
-  Fixed bug where we weren't respecting the world list for spells and announcements from other worlds.
-  * Attempted fix for world issue for some.
-  * Cleaned up certain areas of code that were sorta messy.
+* Made adding worlds case sensitive!  This will prevent confusion in the future.
+* Fixed ANOTHER multi-world issue DX
+* Added a new config option under Logging:  Trap Breaks.  Defaults to true.  Not sure why I had diamonds and trap breaks
+* under the same configuration option.
   */
 
 /*  Attribute Only (Public) License
@@ -110,7 +111,7 @@ public class FoundDiamonds extends JavaPlugin {
 	pluginName = pdf.getName();
 
         //Attempted fix for worlds not working for some.
-        if (config.getEnabledWorlds().isEmpty()) {
+        if (getConfig().getList(config.getEnabledWorlds()).isEmpty()) {
             addAllWorlds();
         }
 
@@ -293,7 +294,7 @@ public class FoundDiamonds extends JavaPlugin {
     private void validateWorld(CommandSender sender, String worldName) {
         List<World> temp = getServer().getWorlds();
         for (World w : temp) {
-            if (w.getName().equalsIgnoreCase(worldName)) {
+            if (w.getName().equals(worldName)) {
                 @SuppressWarnings("unchecked")
                 List<String> worldList = (List<String>) getConfig().getList(config.getEnabledWorlds());
                 if (!worldList.contains(worldName)) {
@@ -741,7 +742,7 @@ public class FoundDiamonds extends JavaPlugin {
         sender.sendMessage(ChatColor.RED + "    items" + ChatColor.WHITE + " - Random items for finding diamonds");
         sender.sendMessage(ChatColor.RED + "    spells" + ChatColor.WHITE + " - Random spells for finding diamonds");
         sender.sendMessage(ChatColor.RED + "    cleanlog" + ChatColor.WHITE + " - Clean log (all ore announcements)");
-        //sender.sendMessage(ChatColor.RED + "    randomspells" + ChatColor.WHITE + " - Random spells for finding diamonds");
+        sender.sendMessage(ChatColor.RED + "    debug" + ChatColor.WHITE + " - Toggle debug output to the console");
     }
 
     private boolean handleToggle(CommandSender sender, String arg) {
@@ -827,6 +828,9 @@ public class FoundDiamonds extends JavaPlugin {
         } else if (arg.equalsIgnoreCase("usenicks") || arg.equalsIgnoreCase("nick") || arg.equalsIgnoreCase("nicks")) {
             getConfig().set(config.getUseNick(), !getConfig().getBoolean(config.getUseNick()));
             printSaved(sender);
+        } else if (arg.equalsIgnoreCase("debug")) {
+            getConfig().set(config.debug(), !getConfig().getBoolean(config.debug()));
+            printSaved(sender);
         } else if (arg.equalsIgnoreCase("obby") || arg.equalsIgnoreCase("obsidian")) {
             getConfig().set(config.getBcObby(), !getConfig().getBoolean(config.getBcObby()));
             reloadEnabledBlocks(getConfig().getBoolean(config.getBcObby()), Material.OBSIDIAN);
@@ -899,7 +903,7 @@ public class FoundDiamonds extends JavaPlugin {
         sender.sendMessage(ChatColor.RED + "    Iron Admin Messages: " + getConfigBoolean(getConfig().getBoolean(config.getIronAdmin())));
         sender.sendMessage(ChatColor.RED + "    Use [FD] Prefix: " + getConfigBoolean(getConfig().getBoolean(config.getIncludePrefix())));
         sender.sendMessage(ChatColor.RED + "    Clean Log: " + getConfigBoolean(getConfig().getBoolean(config.getCleanLog())));
-       // sender.sendMessage(ChatColor.RED + "    Use [FD] Prefix: " + getConfigBoolean(getConfig().getBoolean(config.getIncludePrefix())));
+        sender.sendMessage(ChatColor.RED + "    Debug Mode: " + getConfigBoolean(getConfig().getBoolean(config.debug())));
        // sender.sendMessage(ChatColor.RED + "    Use [FD] Prefix: " + getConfigBoolean(getConfig().getBoolean(config.getIncludePrefix())));
         //sender.sendMessage(ChatColor.RED + "    Use [FD] Prefix: " + getConfigBoolean(getConfig().getBoolean(config.getIncludePrefix())));
         //sender.sendMessage(ChatColor.RED + "    Use [FD] Prefix: " + getConfigBoolean(getConfig().getBoolean(config.getIncludePrefix())));
@@ -1004,10 +1008,6 @@ public class FoundDiamonds extends JavaPlugin {
     /*
      * Misc
      */
-    public String getPluginName() {
-        return pluginName;
-    }
-
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
     public List<Location> getAnnouncedBlocks() {
         return announcedBlocks;

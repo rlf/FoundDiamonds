@@ -33,6 +33,7 @@ Found Diamonds Configuration:
     Include [FD] Prefix: true
     Use classic ore colors for ores: true
   Logging:
+    Trap breaks: true
     Log all diamond ore breaks: false
     Clean log (all ores): false
   Enabled Worlds:
@@ -42,3 +43,5 @@ Found Diamonds Configuration:
     Redstone Ore: false
     Lapis Ore: false
     Iron Ore: false
+  Debug:
+    Enabled: false

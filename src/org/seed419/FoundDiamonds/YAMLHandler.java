@@ -22,13 +22,14 @@ public class YAMLHandler {
     private String adminAlertsOnAllTrapBreaks = "Found Diamonds Configuration.Traps.Admin alerts on all trap breaks";
     private String awardsForFindingDiamonds = "Found Diamonds Configuration.Awards.Items.Random items for finding diamonds";
     //Chance not configurable in game
+//ITEMS
     private String chanceToGetAward = "Found Diamonds Configuration.Awards.Items.Percent of time items are given";
     //Random items not configurable in game
     private String randomItem1 = "Found Diamonds Configuration.Awards.Items.Random Item 1";
     private String randomItem2 = "Found Diamonds Configuration.Awards.Items.Random Item 2";
     private String randomItem3 = "Found Diamonds Configuration.Awards.Items.Random Item 3";
 
-    //spells
+//SPELLS
     private String potionsForFindingDiamonds = "Found Diamonds Configuration.Awards.Spells.Random spells for finding diamonds";
     private String potionStrength = "Found Diamonds Configuration.Awards.Spells.Spell strength (1-5)";
     private String chanceToGetPotion = "Found Diamonds Configuration.Awards.Spells.Percent of time spells are casted";
@@ -49,15 +50,18 @@ public class YAMLHandler {
     private String useOreColors = "Found Diamonds Configuration.Broadcasts.Use classic ore colors for ores";
 
 //LOGGING
+    private String logTrapBreaks = "Found Diamonds Configuration.Logging.Trap breaks";
     private String logDiamondBreaks = "Found Diamonds Configuration.Logging.Log all diamond ore breaks";
     private String cleanLog = "Found Diamonds Configuration.Logging.Clean log (all ores)";
-    //Enabled worlds not configurable in game
     private String enabledWorlds = "Found Diamonds Configuration.Enabled Worlds";
     private String diamondAdmin = "Found Diamonds Configuration.Admin Messages.Diamond Ore";
     private String goldAdmin = "Found Diamonds Configuration.Admin Messages.Gold Ore";
     private String redstoneAdmin = "Found Diamonds Configuration.Admin Messages.Redstone Ore";
     private String lapisAdmin = "Found Diamonds Configuration.Admin Messages.Lapis Ore";
     private String ironAdmin = "Found Diamonds Configuration.Admin Messages.Iron Ore";
+
+//DEBUG
+    private String debug = "Found Diamonds Configuration.Debug.Enabled";
 
 
     public YAMLHandler(FoundDiamonds fd) {
@@ -71,6 +75,14 @@ public class YAMLHandler {
 
     public String getCleanLog() {
         return cleanLog;
+    }
+
+    public String debug() {
+        return debug;
+    }
+
+    public String getLogTrapBreaks() {
+        return logTrapBreaks;
     }
 
     public String getUseOreColors() {
