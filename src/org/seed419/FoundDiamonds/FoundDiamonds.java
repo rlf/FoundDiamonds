@@ -28,10 +28,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 * find out why our trap didn't get logged!
 /*
 * Changelog:
-* Made adding worlds case sensitive!  This will prevent confusion in the future.
-* Fixed ANOTHER multi-world issue DX
-* Added a new config option under Logging:  Trap Breaks.  Defaults to true.  Not sure why I had diamonds and trap breaks
-* under the same configuration option.
+* Fixed potions not working right in multiworld
   */
 
 /*  Attribute Only (Public) License

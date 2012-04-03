@@ -365,7 +365,7 @@ public class BlockBreakListener implements Listener  {
 
     private void givePotions(PotionEffect potion) {
         for (Player p : fd.getServer().getOnlinePlayers()) {
-            if (!p.hasPotionEffect(potion.getType()) && config.getEnabledWorlds().contains(p.getWorld().getName())) {
+            if (!p.hasPotionEffect(potion.getType()) && fd.getConfig().getList(config.getEnabledWorlds()).contains(p.getWorld().getName())) {
                 p.addPotionEffect(potion);
                 if (potion.getType() == PotionEffectType.JUMP) {
                     fd.getJumpPotion().put(p, Boolean.TRUE);
