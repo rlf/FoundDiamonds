@@ -12,9 +12,18 @@ public class YAMLHandler {
 
 
     private FoundDiamonds fd;
+
+ //Main
     private String disableInCreative = "Found Diamonds Configuration.Main.Disable in creative mode";
-    private String disableMiningInTotalDarkness = "Found Diamonds Configuration.Main.Disable ore mining in total darkness";
     private String opsAsFDAdmin = "Found Diamonds Configuration.Main.Give OPs all permissions";
+
+
+ //Light level
+    //private String disableMiningInTotalDarkness = "Found Diamonds Configuration.Main.Disable ore mining below certain light level";
+    //private String lightLevelToDisableAt = "Found Diamonds Configuration.Main.Disable ore mining below certain light level.Light level to disable mining";
+    private String disableMiningAtLightLevel = "Found Diamonds Configuration.Light Level.Disable ore mining below specified percent of light";
+    private String percentOfLightRequired = "Found Diamonds Configuration.Light Level.Minimum amount of light required to mine ore";
+
     private String kickOnTrapBreak = "Found Diamonds Configuration.Traps.Kick players on trap break";
     //Message not configurable in game
     private String kickMessage = "Found Diamonds Configuration.Traps.Kick message";
@@ -54,6 +63,9 @@ public class YAMLHandler {
     private String logDiamondBreaks = "Found Diamonds Configuration.Logging.Log all diamond ore breaks";
     private String cleanLog = "Found Diamonds Configuration.Logging.Clean log (all ores)";
     private String enabledWorlds = "Found Diamonds Configuration.Enabled Worlds";
+
+ //ADMIN MESSAGES
+    private String lightlevelAdmin = "Found Diamonds Configuration.Admin Messages.Light Level";
     private String diamondAdmin = "Found Diamonds Configuration.Admin Messages.Diamond Ore";
     private String goldAdmin = "Found Diamonds Configuration.Admin Messages.Gold Ore";
     private String redstoneAdmin = "Found Diamonds Configuration.Admin Messages.Redstone Ore";
@@ -71,6 +83,10 @@ public class YAMLHandler {
     public void load() {
         fd.getConfig().options().copyDefaults(true);
         fd.saveConfig();
+    }
+
+    public String getLightLevelAdmin() {
+        return lightlevelAdmin;
     }
 
     public String getCleanLog() {
@@ -149,9 +165,9 @@ public class YAMLHandler {
         return kickMessage;
     }
 
-    public String getDisableMiningInTotalDarkness() {
-        return disableMiningInTotalDarkness;
-    }
+//    public String getDisableMiningInTotalDarkness() {
+//        return disableMiningInTotalDarkness;
+//    }
 
     public String getOpsAsFDAdmin() {
         return opsAsFDAdmin;
@@ -223,6 +239,14 @@ public class YAMLHandler {
 
     String getRedstoneAdmin() {
         return redstoneAdmin;
+    }
+
+    public String getDisableMiningAtLightLevel() {
+        return disableMiningAtLightLevel;
+    }
+
+    public String getPercentOfLightRequired() {
+        return percentOfLightRequired;
     }
 
 }

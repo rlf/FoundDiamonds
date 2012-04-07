@@ -3,6 +3,7 @@ package org.seed419.FoundDiamonds;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -31,9 +32,6 @@ public class BlockBreakListener implements Listener  {
     private FoundDiamonds fd;
     private YAMLHandler config;
     private static final Logger log = Logger.getLogger("FoundDiamonds");
-    private String prefix = ChatColor.WHITE + "[FD] ";
-    private String adminPrefix = ChatColor.RED + "[FD Admin] " + ChatColor.YELLOW;
-    private String debugPrefix = "[FD Debug] ";
     private List<Block> blockList;
     private List<Block> checkedBlocks;
     private List<Player> recievedAdminMessage = new LinkedList<Player>();
@@ -102,7 +100,7 @@ public class BlockBreakListener implements Listener  {
         if (alreadyAnnounced(block.getLocation())) {
             fd.getAnnouncedBlocks().remove(block.getLocation());
             if (debug) {
-                log.info(debugPrefix + "Broadcast canceled: Block already announced.");
+                log.info(FoundDiamonds.getDebugPrefix() + "Broadcast canceled: Block already announced.");
             }
             return;
         }
@@ -112,18 +110,20 @@ public class BlockBreakListener implements Listener  {
         if (monitoredMaterial(mat)) {
             if (!isValidWorld(player)) {
                 if (debug) {
-                    log.info(debugPrefix + "Broadcast canceled: User is not in an enabled world.");
+                    log.info(FoundDiamonds.getDebugPrefix() + "Broadcast canceled: User is not in an enabled world.");
                 }
                 return;
             }
             if (!isValidGameMode(player)) {
                 if (debug) {
-                    log.info(debugPrefix + "Broadcast canceled: User is in creative mode.");
+                    log.info(FoundDiamonds.getDebugPrefix() + "Broadcast canceled: User is in creative mode.");
                 }
                 return;
             }
-            if (isTooDark(player, block, event)) {
-                return;
+            if (mat != Material.COAL_ORE) {
+                if (isTooDark(player, block, event)) {
+                    return;
+            }
             }
             String playername = getBroadcastName(player);
             handleBroadcast(mat, block, playername);
@@ -175,10 +175,9 @@ public class BlockBreakListener implements Listener  {
     }
 
     private void sendAdminMessage(BlockInformation b, String playerName) {
-        String message = formatMessage(adminPrefix, b.getMaterial(), b.getColor(), b.getTotal(), playerName);
+        String message = formatMessage(FoundDiamonds.getAdminPrefix(), b.getMaterial(), b.getColor(), b.getTotal(), playerName);
         //This is incredibly confusing, but must be done.
         String formatted = customTranslateAlternateColorCodes('&', message);
-        String f = ChatColor.stripColor(formatted);
         fd.getServer().getConsoleSender().sendMessage(formatted);
         consoleRecieved = true;
         for (Player y : fd.getServer().getOnlinePlayers()) {
@@ -186,6 +185,43 @@ public class BlockBreakListener implements Listener  {
                 if (fd.getAdminMessageMap().get(y)) {
                     y.sendMessage(formatted);
                     recievedAdminMessage.add(y);
+                    if (debug) {
+                        log.info(FoundDiamonds.getDebugPrefix() + "Sent admin message to " + y.getName());
+                    }
+                } else {
+                    if (debug) {
+                        log.info(FoundDiamonds.getDebugPrefix() + y.getName() + "'s admin messages are toggled off.");
+                    }
+                }
+            } else {
+                if (debug) {
+                    log.info(FoundDiamonds.getDebugPrefix() + y.getName() + " doesn't have permission fd.messages");
+                }
+            }
+        }
+    }
+
+    private void sendLightAdminMessage(Player player, Block block, int lightLevel) {
+        String lightAdminMessage = FoundDiamonds.getAdminPrefix() + ChatColor.YELLOW + player.getName() +
+                ChatColor.GRAY +" was denied mining " + ChatColor.YELLOW +
+                block.getType().name().toLowerCase().replace("_", " ") + ChatColor.GRAY + " at"
+                            + " light level " + ChatColor.WHITE +  lightLevel + ".";
+        fd.getServer().getConsoleSender().sendMessage(lightAdminMessage);
+        for (Player y : fd.getServer().getOnlinePlayers()) {
+            if (fd.getAdminMessageMap().containsKey(y)) {
+                if (fd.getAdminMessageMap().get(y)) {
+                    y.sendMessage(lightAdminMessage);
+                    if (debug) {
+                        log.info(FoundDiamonds.getDebugPrefix() + "Sent admin message to " + y.getName());
+                    }
+                } else {
+                    if (debug) {
+                        log.info(FoundDiamonds.getDebugPrefix() + y.getName() + "'s admin messages are toggled off.");
+                    }
+                }
+            } else {
+                if (debug) {
+                    log.info(FoundDiamonds.getDebugPrefix() + y.getName() + " either doesn't have permission 'fd.messages' or needs to turn them on with /fd admin");
                 }
             }
         }
@@ -212,14 +248,14 @@ public class BlockBreakListener implements Listener  {
         if(fd.getConfig().getBoolean(config.getAdminAlertsOnAllTrapBreaks())) {
             for (Player x: fd.getServer().getOnlinePlayers()) {
                 if(fd.hasPerms(x, "FD.messages") && (x != player)) {
-                    x.sendMessage(prefix + ChatColor.RED + player.getName() + " just broke a trap block");
+                    x.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + player.getName() + " just broke a trap block");
                 }
             }
         }
         if (fd.hasPerms(player, "FD.trap")) {
-            player.sendMessage(prefix + ChatColor.AQUA + "Trap block removed");
+            player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + "Trap block removed");
         } else {
-            fd.getServer().broadcastMessage(prefix + ChatColor.RED + player.getName() + " just broke a trap block");
+            fd.getServer().broadcastMessage(FoundDiamonds.getPrefix() + ChatColor.RED + player.getName() + " just broke a trap block");
         }
         if(fd.getConfig().getBoolean(config.getLogTrapBreaks())) {
             handleLogging(player, block, true);
@@ -246,15 +282,14 @@ public class BlockBreakListener implements Listener  {
         try {
             BufferedWriter out = new BufferedWriter(new FileWriter(fd.getLogFile(), true));
             if (trapBlock) {
-                out.write("[TRAP BLOCK]");
-                out.newLine();
+                out.write("[TRAP BLOCK] ");
             }
-            out.write("[" + formattedDate + "] " + block.getType().name() + " broken by "
-                    + player.getName() + " at (x-" + block.getX() + ", y-" + block.getY() + ", z-" + block.getZ() + ")");
+            out.write("" + formattedDate + " " + block.getType().name() + " broken by "
+                    + player.getName() + " at (x: " + block.getX() + ", y: " + block.getY() + ", z: " + block.getZ() + ") in world: " + player.getWorld().getName());
             out.newLine();
             out.close();
         } catch (IOException ex) {
-            log.severe(MessageFormat.format("[{0}] Unable to write block to log file! {1}", prefix, ex));
+            log.severe(MessageFormat.format("[{0}] Unable to write block to log file! {1}", FoundDiamonds.getPrefix(), ex));
         }
     }
 
@@ -302,7 +337,6 @@ public class BlockBreakListener implements Listener  {
     /*
      * Random Item methods
      */
-
     private void handleRandomItems(int randomNumber) {
         int randomItem;
         if (randomNumber < 50) {
@@ -318,10 +352,10 @@ public class BlockBreakListener implements Listener  {
 
     private void broadcastRandomItem(int item) {
         if (Material.getMaterial(item) == Material.COAL || Material.getMaterial(item) == Material.OBSIDIAN) {
-            fd.getServer().broadcastMessage(prefix + "Everyone else got some "
+            fd.getServer().broadcastMessage(FoundDiamonds.getPrefix() + "Everyone else got some "
                     + ChatColor.GRAY + Material.getMaterial(item).name().toLowerCase().replace("_", " ") + "");
         } else {
-            fd.getServer().broadcastMessage(prefix + "Everyone else got some "
+            fd.getServer().broadcastMessage(FoundDiamonds.getPrefix() + "Everyone else got some "
                     + ChatColor.GRAY + Material.getMaterial(item).name().toLowerCase().replace("_", " ") + "s");
         }
     }
@@ -370,7 +404,7 @@ public class BlockBreakListener implements Listener  {
                 if (potion.getType() == PotionEffectType.JUMP) {
                     fd.getJumpPotion().put(p, Boolean.TRUE);
                 }
-                p.sendMessage(prefix + ChatColor.DARK_RED + "You feel an energy come over you...");
+                p.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + "You feel an energy come over you...");
             }
         }
     }
@@ -417,7 +451,7 @@ public class BlockBreakListener implements Listener  {
     }
 
     private void broadcastFoundBlock(BlockInformation b, String playerName) {
-        String message = formatMessage(prefix, b.getMaterial(), b.getColor(), b.getTotal(), playerName);
+        String message = formatMessage(FoundDiamonds.getPrefix(), b.getMaterial(), b.getColor(), b.getTotal(), playerName);
         String formatted = customTranslateAlternateColorCodes('&', message);
 
         //Prevent redunant output to the console if an admin message was already sent.
@@ -430,18 +464,18 @@ public class BlockBreakListener implements Listener  {
                 if (!recievedAdminMessage.contains(x)) {
                     x.sendMessage(formatted);
                     if (debug) {
-                        log.info(debugPrefix + "Sent broadcast to " + x.getName());
+                        log.info(FoundDiamonds.getDebugPrefix() + "Sent broadcast to " + x.getName());
                     }
                 } else if (debug) {
-                    log.info(debugPrefix + x.getName() + "recieved an admin message already, so not broadcasting to " + x.getName());
+                    log.info(FoundDiamonds.getDebugPrefix() + x.getName() + "recieved an admin message already, so not broadcasting to " + x.getName());
                 }
             } else {
                 if (debug) {
                     if (x.hasPermission("ignore.broadcasts")) {
-                        log.info(debugPrefix + x.getName() + " has permissions 'ignore.broadcasts'.  Not broadcasting to " + x.getName());
+                        log.info(FoundDiamonds.getDebugPrefix() + x.getName() + " has permissions 'ignore.broadcasts'.  Not broadcasting to " + x.getName());
                     }
                     if (!isValidWorld(x)) {
-                        log.info(debugPrefix + x.getName() + " is not in an enabled world.  Broadcast canceled.");
+                        log.info(FoundDiamonds.getDebugPrefix() + x.getName() + " is not in an enabled world, so not broadcasting to  " + x.getName());
                     }
                 }
             }
@@ -478,8 +512,7 @@ public class BlockBreakListener implements Listener  {
     private int getTotalBlocks(Block origBlock) {
         blockList = new LinkedList<Block>();
         checkedBlocks = new LinkedList<Block>();
-        //This sucks...how to stop mcmmo spam??
-        fd.getAnnouncedBlocks().add(origBlock.getLocation());
+        //fd.getAnnouncedBlocks().add(origBlock.getLocation());
         blockList.add(origBlock);
         for (BlockFace y : BlockFace.values()) {
             Block cycle = origBlock.getRelative(y);
@@ -564,10 +597,6 @@ public class BlockBreakListener implements Listener  {
         return new BlockInformation(getTotalBlocks(block), getOreColor(block.getType()), block.getType());
     }
 
-    public String getPrefix() {
-        return prefix;
-    }
-
     private boolean isRedstone(Block m) {
         return (m.getType() == Material.REDSTONE_ORE || m.getType() == Material.GLOWING_REDSTONE_ORE);
     }
@@ -622,19 +651,42 @@ public class BlockBreakListener implements Listener  {
     /*
      * Light Methods
      */
-    private boolean blockSeesNoLight(Block block) {
+    private boolean blockSeesNoLight(Player player, Block block) {
+        double percentage = Double.parseDouble(fd.getConfig().getString(config.getPercentOfLightRequired()).replaceAll("%", ""));
+        double levelToDisableAt = percentage / 15.0;
+        DecimalFormat dform = new DecimalFormat("#.##");
+        String formattedLightLevel = dform.format(levelToDisableAt);
+        int lightLevel = 0;
+        int highestLevel = 0;
         for (BlockFace y : BlockFace.values()) {
-            if (block.getRelative(y).getLightLevel() != 0) {
+            lightLevel = block.getRelative(y).getLightLevel();
+            if (lightLevel > highestLevel) {
+                highestLevel = lightLevel;
+            }
+            if (lightLevel > levelToDisableAt) {
+                if (debug) {
+                    log.info(FoundDiamonds.getDebugPrefix() + player.getName() + " just mined " + block.getType().name().toLowerCase().replaceAll("_", " ")
+                        + " at light level " + highestLevel + ".  We are disabling ore mining at light level " + formattedLightLevel
+                        + " or " + percentage + "%");
+                }
                 return false;
             }
+        }
+        if ((fd.getConfig().getBoolean(config.getLightLevelAdmin())) && (!fd.hasPerms(player, "fd.messages"))) {
+            sendLightAdminMessage(player, block, highestLevel);
+        }
+        if (debug) {
+            log.info(FoundDiamonds.getDebugPrefix() + player.getName() + " was denied mining "+ block.getType().name().toLowerCase().replaceAll("_", " ")
+                    + " at light level " + highestLevel + ".  We are disabling ore mining at light level " + formattedLightLevel
+                    + " or " + percentage + "%");
         }
         return true;
     }
 
     private boolean isTooDark(Player player, Block block, BlockBreakEvent event) {
-        if (fd.getConfig().getBoolean(config.getDisableMiningInTotalDarkness()) && blockSeesNoLight(block)) {
+        if (fd.getConfig().getBoolean(config.getDisableMiningAtLightLevel()) && blockSeesNoLight(player, block)) {
             event.setCancelled(true);
-            player.sendMessage(prefix + ChatColor.RED + "Mining in total darkness is dangerous, place a torch!");
+            player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + "Mining in the dark is dangerous, place a torch!");
             return true;
         }
         return false;
