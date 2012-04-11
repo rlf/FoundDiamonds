@@ -3,13 +3,11 @@ package org.seed419.FoundDiamonds;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.ChatColor;
@@ -67,25 +65,29 @@ public class BlockBreakListener implements Listener  {
 
         //Check for trap block first, as it can be any block
         if (isTrapBlock(block)) {
-            handleTrapBlock(player, block);
+            handleTrapBlock(player, block, event);
             return;
         }
 
-        //Handle diamond specially because it can send rewards and spells.
-        if (mat == Material.DIAMOND_ORE) {
+        //Check here for if the block is a monitored material
+        // If it is, check light level, and if it was placed.
+        if (fd.getEnabledBlocks().contains(mat)) {
+            if (!isAbleToMineAtSpecifiedLightLevel(mat, player, block, event)) {
+                 return;
+            }
             if (wasPlacedRemove(block)) {
+                if (debug) {
+                    log.info(FoundDiamonds.getDebugPrefix() + "That block was placed.");
+                }
                 return;
             }
-            materialNeedsHandled(player, mat, block, event);
-            if (fd.getConfig().getBoolean(config.getLogDiamondBreaks())) {
-                handleLogging(player, block, false);
+            //Handle potential diamond logging, and then everything else.
+            if (mat == Material.DIAMOND_ORE) {
+                if (fd.getConfig().getBoolean(config.getLogDiamondBreaks())) {
+                    handleLogging(player, block, false, false, false);
+                }
             }
-
-        //Handle any other enabled materials.
-        } else if (fd.getEnabledBlocks().contains(mat)) {
-            if (wasPlacedRemove(block)) {
-                return;
-            }
+            // Handle the material
             materialNeedsHandled(player, mat, block, event);
         }
     }
@@ -104,30 +106,25 @@ public class BlockBreakListener implements Listener  {
             }
             return;
         }
+
         if (!player.hasPermission("fd.messages")) {
-            isAdminMessageMaterial(player, mat, block);
+            isEnabledAdminMessageMaterial(player, mat, block);
         }
-        if (monitoredMaterial(mat)) {
-            if (!isValidWorld(player)) {
-                if (debug) {
-                    log.info(FoundDiamonds.getDebugPrefix() + "Broadcast canceled: User is not in an enabled world.");
-                }
-                return;
+        if (!isValidWorld(player)) {
+
+            if (debug) {
+                log.info(FoundDiamonds.getDebugPrefix() + "Broadcast canceled: User is not in an enabled world.");
             }
-            if (!isValidGameMode(player)) {
-                if (debug) {
-                    log.info(FoundDiamonds.getDebugPrefix() + "Broadcast canceled: User is in creative mode.");
-                }
-                return;
-            }
-            if (mat != Material.COAL_ORE) {
-                if (isTooDark(player, block, event)) {
-                    return;
-            }
-            }
-            String playername = getBroadcastName(player);
-            handleBroadcast(mat, block, playername);
+            return;
         }
+        if (!isValidGameMode(player)) {
+            if (debug) {
+                log.info(FoundDiamonds.getDebugPrefix() + "Broadcast canceled: User is in creative mode.");
+            }
+            return;
+        }
+        String playername = getBroadcastName(player);
+        handleBroadcast(mat, block, playername);
     }
 
 
@@ -155,7 +152,7 @@ public class BlockBreakListener implements Listener  {
      * Admin Message Handlers
      */
 
-    private void isAdminMessageMaterial(Player player, Material mat, Block block) {
+    private void isEnabledAdminMessageMaterial(Player player, Material mat, Block block) {
         if (!alreadyAnnounced(block.getLocation())) {
             if ((mat == Material.DIAMOND_ORE && fd.getConfig().getBoolean(config.getDiamondAdmin())) ||
                 (mat == Material.GOLD_ORE && fd.getConfig().getBoolean(config.getGoldAdmin())) ||
@@ -163,18 +160,15 @@ public class BlockBreakListener implements Listener  {
                 (mat == Material.IRON_ORE && fd.getConfig().getBoolean(config.getIronAdmin())) ||
                 (mat == Material.GLOWING_REDSTONE_ORE && fd.getConfig().getBoolean(config.getRedstoneAdmin())) ||
                 (mat == Material.REDSTONE_ORE && fd.getConfig().getBoolean(config.getRedstoneAdmin()))) {
-                handleAdminMessage(player, block);
+                sendAdminMessage(player, block);
             }
         }
     }
 
-    private void handleAdminMessage(Player player, Block block) {
-        BlockInformation info = getBlockInformation(block);
+    //Maybe instead of ignoring those with permission fd.messages, use a separate permission for ignoring?
+    private void sendAdminMessage(Player player, Block block) {
+        BlockInformation b = getBlockInformation(block);
         String playerName = player.getName();
-        sendAdminMessage(info, playerName);
-    }
-
-    private void sendAdminMessage(BlockInformation b, String playerName) {
         String message = formatMessage(FoundDiamonds.getAdminPrefix(), b.getMaterial(), b.getColor(), b.getTotal(), playerName);
         //This is incredibly confusing, but must be done.
         String formatted = customTranslateAlternateColorCodes('&', message);
@@ -205,18 +199,24 @@ public class BlockBreakListener implements Listener  {
         String lightAdminMessage = FoundDiamonds.getAdminPrefix() + ChatColor.YELLOW + player.getName() +
                 ChatColor.GRAY +" was denied mining " + ChatColor.YELLOW +
                 block.getType().name().toLowerCase().replace("_", " ") + ChatColor.GRAY + " at"
-                            + " light level " + ChatColor.WHITE +  lightLevel + ".";
+                            + " light level " + ChatColor.WHITE +  lightLevel;
         fd.getServer().getConsoleSender().sendMessage(lightAdminMessage);
         for (Player y : fd.getServer().getOnlinePlayers()) {
             if (fd.getAdminMessageMap().containsKey(y)) {
                 if (fd.getAdminMessageMap().get(y)) {
-                    y.sendMessage(lightAdminMessage);
-                    if (debug) {
-                        log.info(FoundDiamonds.getDebugPrefix() + "Sent admin message to " + y.getName());
+                    if (y != player) {
+                        y.sendMessage(lightAdminMessage);
+                        if (debug) {
+                            log.info(FoundDiamonds.getDebugPrefix() + "Sent admin message to " + y.getName());
+                        }
+                    } else {
+                        if (debug) {
+                            log.info(FoundDiamonds.getDebugPrefix() +y.getName() + " was not sent an admin message because it was them who was denied mining.");
+                        }
                     }
                 } else {
                     if (debug) {
-                        log.info(FoundDiamonds.getDebugPrefix() + y.getName() + "'s admin messages are toggled off.");
+                        log.info(FoundDiamonds.getDebugPrefix() + y.getName() + "'s admin messages are toggled off");
                     }
                 }
             } else {
@@ -244,7 +244,7 @@ public class BlockBreakListener implements Listener  {
         fd.getTrapBlocks().remove(block.getLocation());
     }
 
-    private void handleTrapBlock(Player player, Block block) {
+    private void handleTrapBlock(Player player, Block block, BlockBreakEvent event) {
         if(fd.getConfig().getBoolean(config.getAdminAlertsOnAllTrapBreaks())) {
             for (Player x: fd.getServer().getOnlinePlayers()) {
                 if(fd.hasPerms(x, "FD.messages") && (x != player)) {
@@ -252,19 +252,26 @@ public class BlockBreakListener implements Listener  {
                 }
             }
         }
-        if (fd.hasPerms(player, "FD.trap")) {
+        if (fd.hasPerms(player, "fd.trap")) {
             player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + "Trap block removed");
+            event.setCancelled(true);
+            block.setType(Material.AIR);
         } else {
             fd.getServer().broadcastMessage(FoundDiamonds.getPrefix() + ChatColor.RED + player.getName() + " just broke a trap block");
+            event.setCancelled(true);
         }
-        if(fd.getConfig().getBoolean(config.getLogTrapBreaks())) {
-            handleLogging(player, block, true);
-        }
+        boolean banned = false;
+        boolean kicked = false;
         if (fd.getConfig().getBoolean(config.getKickOnTrapBreak())  && !fd.hasPerms(player, "FD.trap")) {
             player.kickPlayer(fd.getConfig().getString(config.getKickMessage()));
+            kicked = true;
         }
         if (fd.getConfig().getBoolean(config.getBanOnTrapBreak()) && !fd.hasPerms(player, "FD.trap")) {
             player.setBanned(true);
+            banned = true;
+        }
+        if((fd.getConfig().getBoolean(config.getLogTrapBreaks())) && (!fd.hasPerms(player, "fd.trap"))) {
+            handleLogging(player, block, true, kicked, banned);
         }
         removeTrapBlock(block);
     }
@@ -275,28 +282,51 @@ public class BlockBreakListener implements Listener  {
     /*
      * Logging Handlers
      */
-    private void handleLogging(Player player, Block block, boolean trapBlock) {
-        Date todaysDate = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss");
-        String formattedDate = formatter.format(todaysDate);
+    private void handleLogging(Player player, Block block, boolean trapBlock, boolean kicked, boolean banned) {
         try {
-            BufferedWriter out = new BufferedWriter(new FileWriter(fd.getLogFile(), true));
+            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fd.getLogFile(), true)));
+            pw.print("[" + getFormattedDate() + "]");
             if (trapBlock) {
-                out.write("[TRAP BLOCK] ");
+                pw.print(" [TRAP BLOCK]");
             }
-            out.write("" + formattedDate + " " + block.getType().name() + " broken by "
-                    + player.getName() + " at (x: " + block.getX() + ", y: " + block.getY() + ", z: " + block.getZ() + ") in world: " + player.getWorld().getName());
-            out.newLine();
-            out.close();
+            pw.println(" " + block.getType().name().toLowerCase().replace("_", " ") + " broken by "
+                    + player.getName() + " at (x: " + block.getX() + ", y: " + block.getY() + ", z: " + block.getZ()
+                    + ") in " + player.getWorld().getName());
+            if (trapBlock) {
+                pw.print("[" + getFormattedDate() + "]" + " [ACTION TAKEN] ");
+                if (kicked && !banned) {
+                    pw.println(player.getName() + " was kicked from the sever.");
+                } else if (banned && !kicked) {
+                    pw.println(player.getName() + " was banned from the sever.");
+                } else if (banned && kicked) {
+                    pw.println(player.getName() + " was kicked and banned from the sever.");
+                } else if (!banned && !kicked) {
+                    pw.println(player.getName() + " was neither kicked nor banned per the configuration.");
+                }
+            }
+            pw.flush();
+            fd.close(pw);
         } catch (IOException ex) {
-            log.severe(MessageFormat.format("[{0}] Unable to write block to log file! {1}", FoundDiamonds.getPrefix(), ex));
+            log.severe(MessageFormat.format("[{0}] Unable to write to log file {1}", FoundDiamonds.getPrefix(), ex));
+        }
+    }
+
+    private void logLightLevelViolation(Player player, Block block,  int lightLevel) {
+        String lightLogMsg = "[" + getFormattedDate() + "]" + " " + player.getName() + " was denied mining "
+                + block.getType().name().toLowerCase().replace("_", " ") + " at" + " light level " +  lightLevel;
+        try {
+            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fd.getLogFile(), true)));
+            pw.println(lightLogMsg);
+            pw.flush();
+            fd.close(pw);
+        } catch (IOException ex) {
+            log.severe(MessageFormat.format("[{0}] Unable to write to log file {1}", FoundDiamonds.getPrefix(), ex));
         }
     }
 
     private void writeToCleanLog(Material mat, int total, String playerName) {
-        Date todaysDate = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss");
-        String formattedDate = formatter.format(todaysDate);        String message;
+        String formattedDate = getFormattedDate();
+        String message;
         if (mat == Material.GLOWING_REDSTONE_ORE || mat == Material.REDSTONE_ORE) {
             if (total > 1) {
                 message = fd.getConfig().getString(config.getBcMessage()).replace("@Player@", playerName
@@ -309,7 +339,7 @@ public class BlockBreakListener implements Listener  {
                 message = fd.getConfig().getString(config.getBcMessage()).replace("@Player@", playerName
                         ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", "obsidian");
         } else {
-            String blockName = mat.name().replace("_", " ");
+            String blockName = mat.name().toLowerCase().replace("_", " ");
             if (total > 1) {
                 message = fd.getConfig().getString(config.getBcMessage()).replace("@Player@", playerName
                         ).replace("@Number@", String.valueOf(total)).replace("@BlockName@", blockName +
@@ -321,14 +351,19 @@ public class BlockBreakListener implements Listener  {
             }
         }
         try {
-            BufferedWriter br = new BufferedWriter(new FileWriter(fd.getCleanLog(), true));
-            br.write("[" + formattedDate + "] " + message);
-            br.newLine();
-            br.flush();
-            br.close();
+            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fd.getCleanLog(), true)));
+            pw.println("[" + formattedDate + "] " + message);
+            pw.flush();
+            fd.close(pw);
         } catch (IOException ex) {
             Logger.getLogger(BlockBreakListener.class.getName()).log(Level.SEVERE, "Couldn't write to clean log!", ex);
         }
+    }
+
+    private String getFormattedDate() {
+        Date todaysDate = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss");
+        return formatter.format(todaysDate);
     }
 
 
@@ -489,10 +524,6 @@ public class BlockBreakListener implements Listener  {
         if (fd.getConfig().getBoolean(config.getCleanLog())) {
             writeToCleanLog(b.getMaterial(), b.getTotal(), playerName);
         }
-    }
-
-    private boolean monitoredMaterial(Material mat) {
-        return fd.getEnabledBlocks().contains(mat);
     }
 
     private String getBroadcastName(Player player) {
@@ -672,8 +703,11 @@ public class BlockBreakListener implements Listener  {
                 return false;
             }
         }
-        if ((fd.getConfig().getBoolean(config.getLightLevelAdmin())) && (!fd.hasPerms(player, "fd.messages"))) {
+        if ((fd.getConfig().getBoolean(config.getLightLevelAdmin())) && (!fd.hasPerms(player, "fd.ignorelightlevel"))) {
             sendLightAdminMessage(player, block, highestLevel);
+        }
+        if ((fd.getConfig().getBoolean(config.getLogLightLevelViolations())) && (!fd.hasPerms(player, "fd.ignorelightlevel"))) {
+            logLightLevelViolation(player, block, highestLevel);
         }
         if (debug) {
             log.info(FoundDiamonds.getDebugPrefix() + player.getName() + " was denied mining "+ block.getType().name().toLowerCase().replaceAll("_", " ")
@@ -690,6 +724,15 @@ public class BlockBreakListener implements Listener  {
             return true;
         }
         return false;
+    }
+
+    private boolean isAbleToMineAtSpecifiedLightLevel(Material mat, Player player, Block block, BlockBreakEvent event) {
+        if ((mat != Material.COAL_ORE) && (!fd.hasPerms(player, "fd.ignorelightlevel"))) {
+            if (isTooDark(player, block, event)) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

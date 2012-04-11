@@ -1,5 +1,5 @@
 name: FoundDiamonds
-version: 3.2.6
+version: 3.2.7
 main: org.seed419.FoundDiamonds.FoundDiamonds
 author: SeeD419
 website: http://dev.bukkit.org/server-mods/founddiamonds/
@@ -38,6 +38,9 @@ permissions:
     default: false
   fd.world:
     description: Allows edit FD enabled worlds in game
+    default: false
+  fd.ignorelightlevel:
+    description: Lets a player mine below allowed light level
     default: false
   ignore.broadcasts:
     description: Ignores all FD broadcasts

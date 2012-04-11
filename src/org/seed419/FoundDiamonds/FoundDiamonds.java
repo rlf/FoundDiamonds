@@ -25,16 +25,18 @@ import org.bukkit.plugin.java.JavaPlugin;
 * Look into pulling stats from MC client?
 * Finish config and toggle
 * /fd top ?
-* Light level logging
+
 /*
 * Changelog:
-* Added some debugging info for admin messages.
-* Added lightlevel as a configurable percentage
-* Removed coal ore from light level monitoring (reason: )
-* Added lightlevel admin messages and debug
-* Fixed potential bug with trap blocks being set in the void or above max world height.
-* Improved trap block logging quite a bit.  Added world, improved readability.
-* Did some testing for weird trap block situations to ensure they would function.
+* Removed an old pointless option from config.
+* Cancelled block break event on trap breaks.
+* Fixed exploit using traps to get diamonds by stopping trap blocks from dropping anything.
+* Fixed a few minor bugs with lightlevel admin messages
+* Added light level logging to file.
+* Improved logging a lot.
+* Renamed logs.txt to log.txt.  Why was it plural?
+* Added a few more debug messages
+
 *
   */
 
@@ -149,6 +151,15 @@ public class FoundDiamonds extends JavaPlugin {
         Player player = null;
         if (sender instanceof Player) {
             player = (Player) sender;
+            StringBuilder sb = new StringBuilder();
+            sb.append(commandLabel).append(" ");
+            if (args.length > 0) {
+                for (String x : args) {
+                    sb.append(x).append(" ");
+                }
+            }
+            String cmd = sb.toString();
+            log.info("[PLAYER_COMMAND] " + player.getName() + ": /" + cmd);
         }
         if (((commandLabel.equalsIgnoreCase("fd")) || commandLabel.equalsIgnoreCase("founddiamonds"))) {
             if (args.length == 0) {
@@ -598,11 +609,11 @@ public class FoundDiamonds extends JavaPlugin {
         if (!mainDir.exists()) {
             mainDir.mkdir();
         }
-        logs = new File(getDataFolder(), "logs.txt");
+        logs = new File(getDataFolder(), "log.txt");
         traps = new File(getDataFolder(), ".traplocations");
         configFile = new File(getDataFolder(), "config.yml");
         placed = new File(getDataFolder(), ".placed");
-        cleanLog = new File(getDataFolder(), "CleanLog.txt");
+        cleanLog = new File(getDataFolder(), "cleanlog.txt");
 
         if (!logs.exists()) {
             try {
@@ -623,16 +634,12 @@ public class FoundDiamonds extends JavaPlugin {
          } else {
              loadYaml();
          }
-         boolean temp = false;
          if (getConfig().getBoolean(config.getCleanLog())) {
              try {
-                 temp = cleanLog.createNewFile();
+                 cleanLog.createNewFile();
              } catch (IOException ex) {
                  Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Couldn't create clean log file!", ex);
              }
-         }
-         if (temp) {
-             log.info("Clean log created.");
          }
     }
 
@@ -648,12 +655,12 @@ public class FoundDiamonds extends JavaPlugin {
         return cleanLog;
     }
 
-    private void close(Closeable stream) {
+    public void close(Closeable stream) {
         if (stream != null) {
             try {
                 stream.close();
             } catch (IOException ex) {
-                Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Couldn't close stream", ex);
+                Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Couldn't close a stream", ex);
             }
         }
     }
@@ -799,6 +806,15 @@ public class FoundDiamonds extends JavaPlugin {
             printSaved(sender);
         } else if (arg.equalsIgnoreCase("cleanlog")) {
             getConfig().set(config.getCleanLog(), !getConfig().getBoolean(config.getCleanLog()));
+            if (!cleanLog.exists()) {
+                try {
+                    cleanLog.createNewFile();
+                    sender.sendMessage(prefix + "CleanLog.txt created.");
+                } catch (IOException ex) {
+                    sender.sendMessage(prefix + "Uh-oh...couldn't create CleanLog.txt");
+                    Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Failed to create CleanLog file.", ex);
+                }
+            }
             printSaved(sender);
         } else if (arg.equalsIgnoreCase("lightadmin") || arg.equalsIgnoreCase("lightleveladmin")) {
             getConfig().set(config.getLightLevelAdmin(), !getConfig().getBoolean(config.getLightLevelAdmin()));

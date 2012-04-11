@@ -1,7 +1,6 @@
 Found Diamonds Configuration:
   Main:
     Disable in creative mode: true
-    Disable ore mining below certain light level: true
     Give OPs all permissions: true
   Light Level:
     Disable ore mining below specified percent of light: true
@@ -37,6 +36,7 @@ Found Diamonds Configuration:
     Use classic ore colors for ores: true
   Logging:
     Trap breaks: true
+    Light Level Violations: false
     Log all diamond ore breaks: false
     Clean log (all ores): false
   Enabled Worlds:

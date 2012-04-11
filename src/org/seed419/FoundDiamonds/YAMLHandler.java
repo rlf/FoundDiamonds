@@ -19,8 +19,6 @@ public class YAMLHandler {
 
 
  //Light level
-    //private String disableMiningInTotalDarkness = "Found Diamonds Configuration.Main.Disable ore mining below certain light level";
-    //private String lightLevelToDisableAt = "Found Diamonds Configuration.Main.Disable ore mining below certain light level.Light level to disable mining";
     private String disableMiningAtLightLevel = "Found Diamonds Configuration.Light Level.Disable ore mining below specified percent of light";
     private String percentOfLightRequired = "Found Diamonds Configuration.Light Level.Minimum amount of light required to mine ore";
 
@@ -60,6 +58,7 @@ public class YAMLHandler {
 
 //LOGGING
     private String logTrapBreaks = "Found Diamonds Configuration.Logging.Trap breaks";
+    private String logLightLevelViolations = "Found Diamonds Configuration.Logging.Light Level Violations";
     private String logDiamondBreaks = "Found Diamonds Configuration.Logging.Log all diamond ore breaks";
     private String cleanLog = "Found Diamonds Configuration.Logging.Clean log (all ores)";
     private String enabledWorlds = "Found Diamonds Configuration.Enabled Worlds";
@@ -83,6 +82,10 @@ public class YAMLHandler {
     public void load() {
         fd.getConfig().options().copyDefaults(true);
         fd.saveConfig();
+    }
+
+    public String getLogLightLevelViolations() {
+        return logLightLevelViolations;
     }
 
     public String getLightLevelAdmin() {
@@ -165,9 +168,6 @@ public class YAMLHandler {
         return kickMessage;
     }
 
-//    public String getDisableMiningInTotalDarkness() {
-//        return disableMiningInTotalDarkness;
-//    }
 
     public String getOpsAsFDAdmin() {
         return opsAsFDAdmin;
