@@ -2,12 +2,14 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.seed419.FoundDiamonds;
+package org.seed419.FoundDiamonds.Listeners;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.seed419.FoundDiamonds.Node;
+import org.seed419.FoundDiamonds.FoundDiamonds;
 
 /**
  *
@@ -25,8 +27,10 @@ public class BlockPlaceListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        if (fd.getEnabledBlocks().contains(event.getBlock().getType())) {
-            fd.addToPlacedBlocks(event.getBlock().getLocation());
+        for (Node x : fd.getBroadcastedBlocks()) {
+            if (x.getMaterial() == event.getBlockPlaced().getType()) {
+                fd.addToPlacedBlocks(event.getBlock().getLocation());
+            }
             //event.getPlayer().sendMessage("Block placed: " + event.getBlock().getType().name() + " X:"+ event.getBlock().getX() + " Y:" + event.getBlock().getY() + " Z:" + event.getBlock().getZ());
         }
     }

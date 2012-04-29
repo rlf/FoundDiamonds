@@ -2,11 +2,12 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.seed419.FoundDiamonds;
+package org.seed419.FoundDiamonds.Listeners;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.seed419.FoundDiamonds.FoundDiamonds;
 
 /**
  *

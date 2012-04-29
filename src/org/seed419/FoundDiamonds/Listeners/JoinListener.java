@@ -2,11 +2,13 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.seed419.FoundDiamonds;
+package org.seed419.FoundDiamonds.Listeners;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.seed419.FoundDiamonds.Config;
+import org.seed419.FoundDiamonds.FoundDiamonds;
 
 /**
  *
@@ -16,20 +18,16 @@ public class JoinListener implements Listener {
 
 
     private FoundDiamonds fd;
-    private YAMLHandler config;
 
 
-    public JoinListener(FoundDiamonds fd, YAMLHandler config) {
+    public JoinListener(FoundDiamonds fd) {
         this.fd = fd;
-        this.config = config;
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (fd.getConfig().getBoolean(config.getDiamondAdmin())) {
-            if (fd.hasPerms(event.getPlayer(), "fd.messages")) {
-                fd.getAdminMessageMap().put(event.getPlayer(), true);
-            }
+        if (fd.hasPerms(event.getPlayer(), "fd.admin")) {
+            fd.getAdminMessageMap().put(event.getPlayer(), true);
         }
     }
 

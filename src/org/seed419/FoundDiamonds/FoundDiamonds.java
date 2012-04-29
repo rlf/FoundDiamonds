@@ -5,6 +5,7 @@ import java.text.MessageFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -17,25 +18,34 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.seed419.FoundDiamonds.Listeners.*;
+import org.seed419.FoundDiamonds.Metrics.MetricsLite;
 
 /* TODO
 * AdminMap memory?
-* VERSITALE LISTS
+* VERSITALE LISTS - in progress
+* Smarter trap blocks - remember material.
 * Finish set menu, integrate with main menu
-* Look into pulling stats from MC client?
+* Look into pulling stats from MC client?  Or MySQL?
 * Finish config and toggle
 * /fd top ?
+* Re-implement admin messages
+* implement light level block list
 
 /*
 * Changelog:
-* Removed an old pointless option from config.
-* Cancelled block break event on trap breaks.
-* Fixed exploit using traps to get diamonds by stopping trap blocks from dropping anything.
-* Fixed a few minor bugs with lightlevel admin messages
-* Added light level logging to file.
-* Improved logging a lot.
-* Renamed logs.txt to log.txt.  Why was it plural?
-* Added a few more debug messages
+* Implemented versatile lists that can be edited to whatever you want!
+* Made fd log player commands to the console, including failed command attempts.
+* Fixed a terrible admin message bug :C
+* Moved prefix to broadcast message as @Prefix@ instead of having a separate option for it.
+* Fixed color bug when using nicknames in broadcast (now looks way better imo)
+* Fixed a bug with random items not even working -.-
+* Added 3 new potions.
+* Made potion messages more descriptive, and configurable.
+* Fixed bugs with menus and made other improvements to them.
+* Traps can now be set without using '_' characters, and just spaces (/fd trap gold ore)
+* Fixed a bug with /fd reload   (The fuck was the bug?)
+* Refactored a TON of code.
 
 *
   */
@@ -69,68 +79,71 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class FoundDiamonds extends JavaPlugin {
 
     private final File mainDir = new File("plugins/FoundDiamonds/");
-    private File logs;
-    private File traps;
-    private File cleanLog;
-    private File configFile;
-    private File placed;
-    private static String prefix = ChatColor.WHITE + "[FD] ";
-    private static String adminPrefix = ChatColor.RED + "[FD Admin] " + ChatColor.YELLOW;
-    private static String debugPrefix = "[FD Debug] ";
-    private List<Material> enabledBlocks = new LinkedList<Material>();
-    private List<Location> trapBlocks = new LinkedList<Location>();
-    private List<Location> announcedBlocks = new LinkedList<Location>();
-    private List<Location> placedBlocks = new LinkedList<Location>();
-    private HashMap<Player, Boolean> adminMessagePlayers;
-    private HashMap<Player, Boolean> jumpPotion = new HashMap<Player,Boolean>();
-    private static final Logger log = Logger.getLogger("FoundDiamonds");
+    private final File logs = new File(getDataFolder(), "log.txt");
+    private final File traps = new File(getDataFolder(), ".traplocations");
+    private final File cleanLog = new File(getDataFolder(), "cleanlog.txt");
+    private final File configFile = new File(getDataFolder(), "config.yml");
+    private final File placed = new File(getDataFolder(), ".placed");
+    private final static String prefix = "[FD]";
+    private final static String adminPrefix = ChatColor.RED + "[FD Admin]" + ChatColor.YELLOW;
+    private final static String debugPrefix = "[FD Debug] ";
+    private final static String loggerPrefix = "[FoundDiamonds]";
+    private List<Node> broadcastedBlocks = new LinkedList<Node>();
+    private final List<Node> adminMessageBlocks = new LinkedList<Node>();
+    private final List<Node> lightLevelBlocks = new LinkedList<Node>();
+    private final List<Location> trapBlocks = new LinkedList<Location>();
+    private final List<Location> announcedBlocks = new LinkedList<Location>();
+    private final List<Location> placedBlocks = new LinkedList<Location>();
+    private final HashMap<Player, Boolean> adminMessagePlayers = new HashMap<Player, Boolean>();
+    private final HashMap<Player, Boolean> jumpPotion = new HashMap<Player,Boolean>();
+    private final static Logger log = Logger.getLogger("FoundDiamonds");
     private BlockBreakListener breakListener;
     private BlockPlaceListener placeListener;
-    private YAMLHandler config;
+    private Config config;
     private JoinListener join;
     private QuitListener quit;
     private PlayerDamageListener damage;
-    private String pluginName;
+    private static String pluginName ;
     private PluginDescriptionFile pdf;
     private boolean printed = false;
-    private static int togglePages = 4;
+    private final static int togglePages = 2;
+    private final static int configPages = 2;
 
 
     @Override
     public void onEnable() {
-        config = new YAMLHandler(this);
+        config = new Config(this);
 
         checkFiles();
-        loadEnabledBlocks();
+        checkWorlds();
+        loadBroadcastedBlocksFromConfig();
 
-        adminMessagePlayers = new HashMap<Player, Boolean>();
-        join = new JoinListener(this, config);
+        join = new JoinListener(this);
         quit = new QuitListener(this);
-        breakListener = new BlockBreakListener(this, config);
+        breakListener = new BlockBreakListener(this);
         placeListener = new BlockPlaceListener(this);
         damage = new PlayerDamageListener(this);
 
-	PluginManager pm = getServer().getPluginManager();
+	    PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(this.breakListener, this);
         pm.registerEvents(this.join, this);
         pm.registerEvents(this.quit, this);
         pm.registerEvents(this.placeListener, this);
         pm.registerEvents(damage, this);
 
-	pdf = this.getDescription();
-	pluginName = pdf.getName();
+	    pdf = this.getDescription();
+	    pluginName = pdf.getName();
 
-        //Attempted fix for worlds not working for some.
-        if (getConfig().getList(config.getEnabledWorlds()).isEmpty()) {
-            addAllWorlds();
-        }
+        startMetrics();
 
         log.info(MessageFormat.format("[{0}] Enabled", pluginName));
     }
 
     @Override
     public void onDisable() {
-        log.info(MessageFormat.format("[{0}] Saving blocks to files...", pluginName));
+        broadcastedBlocks = null;
+
+        log.info(MessageFormat.format("[{0}] Saving all data...", pluginName));
         String info = "This file stores your trap block locations.";
         String info2 = "If you have any issues with traps - feel free to delete this file.";
         boolean temp = writeBlocksToFile(traps, trapBlocks, info, info2);
@@ -138,7 +151,7 @@ public class FoundDiamonds extends JavaPlugin {
         String info6 = "If you'd like to announce these placed blocks, feel free to delete this file.";
         boolean temp3 = writeBlocksToFile(placed, placedBlocks, info5, info6);
         if (temp && temp3) {
-            log.info(MessageFormat.format("[{0}] Successfully saved all blocks to files.", pluginName));
+            log.info(MessageFormat.format("[{0}] Data successfully saved.", pluginName));
         } else {
             log.warning(MessageFormat.format("[{0}] Couldn't save blocks to files!", pluginName));
             log.warning(MessageFormat.format("[{0}] You could try deleting .placed and .traplocations", pluginName));
@@ -163,101 +176,129 @@ public class FoundDiamonds extends JavaPlugin {
         }
         if (((commandLabel.equalsIgnoreCase("fd")) || commandLabel.equalsIgnoreCase("founddiamonds"))) {
             if (args.length == 0) {
-                return printMainMenu(sender);
+                Menu.printMainMenu(this, sender);
+                return true;
             } else {
                 String arg = args[0];
-                if (arg.equalsIgnoreCase("trap")) {
+                if (arg.equalsIgnoreCase("admin")) {
                     if (sender instanceof Player) {
-                        if (hasPerms(player, "fd.trap")) {
-                            return handleTrap(player, args);
+                        if (hasPerms(player, "fd.manage.admin.add") || hasPerms(player, "fd.manage.admin.remove")
+                                || hasPerms(player, "fd.manage.admin.list")) {
+                            handleAdminMenu(sender, args);
+                        } else {
+                            sendPermissionsMessage(player);
                         }
                     } else {
-                        sender.sendMessage(getPrefix() + ChatColor.DARK_RED + "Can't set a trap from the console.");
-                        return true;
+                        handleAdminMenu(sender, args);
                     }
-                } else if (arg.equalsIgnoreCase("reload")) {
+                    return true;
+                } else if (arg.equalsIgnoreCase("bc")) {
                     if (sender instanceof Player) {
-                        if (!hasPerms(player, "fd.reload")) {
-                            return false;
+                        if (hasPerms(player, "fd.manage.bc.add") || hasPerms(player, "fd.manage.bc.remove")
+                                || hasPerms(player, "fd.manage.bc.list")) {
+                            handleBcMenu(sender, args);
+                        } else {
+                            sendPermissionsMessage(player);
+                        }
+                    } else {
+                        handleBcMenu(sender, args);
+                    }
+                    return true;
+                } else if (arg.equalsIgnoreCase("config")) {
+                    if (sender instanceof Player) {
+                        if (hasPerms(player, "fd.config")) {
+                            if (args.length == 2) {
+                                if (args[1].equalsIgnoreCase("2")) {
+                                    Menu.showConfig2(this, sender);
+                                }
+                            } else {
+                                Menu.showConfig(this, sender);
+                            }
+                        } else {
+                            sendPermissionsMessage(player);
                         }
                     }
-                    reloadConfig();
-                    sender.sendMessage(getPrefix() + ChatColor.AQUA + "Configuration reloaded.");
+                } else if (arg.equalsIgnoreCase("light")) {
+                    if (sender instanceof Player) {
+                        if (hasPerms(player, "fd.manage.light.add") || hasPerms(player, "fd.manage.light.remove")
+                                || hasPerms(player, "fd.manage.light.list")) {
+                            handleLightMenu(sender, args);
+                        } else {
+                            sendPermissionsMessage(player);
+                        }
+                    } else {
+                        handleLightMenu(sender, args);
+                    }
+                    return true;
+               } else if (arg.equalsIgnoreCase("reload")) {
+                    if (sender instanceof Player) {
+                        if (hasPerms(player, "fd.reload")) {
+                            reloadConfig();
+                            saveConfig();
+                            sender.sendMessage(getPrefix() + ChatColor.AQUA + " Configuration saved and reloaded.");
+                        } else {
+                            sendPermissionsMessage(player);
+                        }
+                    } else {
+                        saveConfig();
+                        sender.sendMessage(getPrefix() + ChatColor.AQUA + " Configuration saved and reloaded.");
+                    }
+                    return true;
+                } else if (arg.equalsIgnoreCase("set")) {
+                    if (sender instanceof Player) {
+                        if (hasPerms(player, "fd.toggle")) {
+                            Menu.handleSetMenu(this, sender, args);
+                        } else {
+                            sendPermissionsMessage(player);
+                        }
+                    }
                     return true;
                 } else if (arg.equalsIgnoreCase("toggle")) {
                     if (sender instanceof Player) {
-                        if (!hasPerms(player, "fd.toggle")) {
-                            return false;
-                        }
-                    }
-                    if (args.length == 1) {
-                            Menus.showToggle(sender, getConfig().getString(config.getPercentOfLightRequired()));
-                            return true;
-                        } else  if (args.length == 2) {
-                            arg = args[1];
-                            return handleToggle(sender, arg);
-                        } else {
-                            sender.sendMessage(getPrefix() + ChatColor.RED + "Invalid number of arguments.");
-                            sender.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
-                            return false;
-                        }
-                    } else if (arg.equalsIgnoreCase("config")) {
-                        if (sender instanceof Player) {
-                            if (!hasPerms(player, "fd.config")) {
-                                return false;
-                            }
-                        }
-                        if (args.length == 2) {
-                            if (args[1].equalsIgnoreCase("2")) {
-                                showConfig2(sender);
-                            } else if (args[1].equalsIgnoreCase("3")) {
-                                showConfig3(sender);
-                            } else if (args[1].equalsIgnoreCase("4")) {
-                                showConfig4(sender);
-                            }
-                        } else {
-                            showConfig(sender);
-                        }
-                    } else if (arg.equalsIgnoreCase("admin")) {
-                        if (sender instanceof Player) {
-                            if (!hasPerms(player, "fd.messages")) {
-                                return false;
+                        if (hasPerms(player, "fd.toggle")) {
+                            if (args.length == 1) {
+                                Menu.showToggle(sender);
+                            } else  if (args.length == 2) {
+                                arg = args[1];
+                                handleToggle(sender, arg);
                             } else {
-                                reloadAdminMessageMap(player);
-                                if (adminMessagePlayers.get(player)) {
-                                    player.sendMessage(getPrefix() + ChatColor.AQUA + "Admin messages are " + ChatColor.DARK_GREEN + "ON");
-                                } else {
-                                    player.sendMessage(getPrefix() + ChatColor.AQUA + "Admin messages are " + ChatColor.RED + "OFF");
-                                }
-                                return true;
+                                sender.sendMessage(getPrefix() + ChatColor.RED + " Invalid number of arguments.");
+                                sender.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
                             }
                         } else {
-                            sender.sendMessage(getPrefix() + ChatColor.DARK_RED + "Admin messages cannot be toggled from the console.");
+                            sendPermissionsMessage(player);
                         }
-                    } else if (arg.equalsIgnoreCase("set")) {
-                        if (sender instanceof Player) {
-                            if (!hasPerms(player, "fd.toggle")) {
-                                return false;
-                            }
-                        }
-                        handleSetMenu(sender, args);
-                    } else if (arg.equalsIgnoreCase("world")) {
-                        if (sender instanceof Player) {
-                            if (!hasPerms(player, "fd.world")) {
-                                return false;
-                            }
-                        }
-                        handleWorldMenu(sender, args);
-                        return true;
-                    } else {
-                        sender.sendMessage(getPrefix() + ChatColor.DARK_RED + "Unrecognized command '"
-                                + ChatColor.WHITE + args[0] + ChatColor.DARK_RED + "'");
-                        return false;
                     }
+                    return true;
+                } else if (arg.equalsIgnoreCase("trap")) {
+                    if (sender instanceof Player) {
+                        if (hasPerms(player, "fd.trap")) {
+                            handleTrap(player, args);
+                        } else {
+                            sendPermissionsMessage(player);
+                        }
+                    } else {
+                        sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Can't set a trap from the console.");
+                    }
+                    return true;
+                } else if (arg.equalsIgnoreCase("world")) {
+                    if (sender instanceof Player) {
+                        if (hasPerms(player, "fd.world")) {
+                            handleWorldMenu(sender, args);
+                        } else {
+                            sendPermissionsMessage(player);
+                        }
+                    }
+                    return true;
+                } else {
+                        sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Unrecognized command '"
+                                + ChatColor.WHITE + args[0] + ChatColor.DARK_RED + "'");
+                    return true;
                 }
             }
-            return false;
         }
+        return false;
+    }
 
 
 
@@ -265,19 +306,20 @@ public class FoundDiamonds extends JavaPlugin {
     /*
      * World handlers
      */
-    private boolean handleWorldMenu(CommandSender sender, String[] args) {
+    private void handleWorldMenu(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            showWorldMenu(sender);
-            return true;
+            Menu.showWorldMenu(sender);
         } else if (args.length >= 2) {
             if (args[1].equalsIgnoreCase("list")) {
-                printEnabledWorlds(sender);
-                return true;
+                if (args.length == 2) {
+                    printEnabledWorlds(sender);
+                } else {
+                    sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Usage: /fd world list");
+                }
             } else if (args[1].equalsIgnoreCase("add")) {
                 if (args.length == 3) {
                     String worldName = args[2];
                     validateWorld(sender, worldName);
-                    return true;
                 } else if (args.length == 4) {
                     StringBuilder sb = new StringBuilder();
                     sb.append(args[2]);
@@ -285,29 +327,23 @@ public class FoundDiamonds extends JavaPlugin {
                     sb.append(args[3]);
                     String worldName = sb.toString();
                     validateWorld(sender, worldName);
-                    return true;
                 } else {
-                    sender.sendMessage(getPrefix() + ChatColor.DARK_RED + "Usage: /fd world add <worldname>");
-                    return true;
+                    sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Usage: /fd world add <worldname>");
                 }
             } else if (args[1].equalsIgnoreCase("remove")) {
-                if (getConfig().getStringList(config.getEnabledWorlds()).contains(args[2])) {
-                    List<?> worldList = getConfig().getList(config.getEnabledWorlds());
+                if (getConfig().getStringList(Config.enabledWorlds).contains(args[2])) {
+                    List<?> worldList = getConfig().getList(Config.enabledWorlds);
                     worldList.remove(args[2]);
-                    getConfig().set(config.getEnabledWorlds(), worldList);
-                    sender.sendMessage(getPrefix() + ChatColor.AQUA + "World '" + args[2] +"' removed.");
-                    saveYaml();
-                    return true;
+                    getConfig().set(Config.enabledWorlds, worldList);
+                    sender.sendMessage(getPrefix() + ChatColor.AQUA + " World '" + args[2] +"' removed.");
+                    saveConfig();
                 } else {
-                    sender.sendMessage(getPrefix() + ChatColor.DARK_RED + "World '" + args[2] +"' isn't an enabled world.");
-                    return true;
+                    sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " World '" + args[2] +"' isn't an enabled world.");
                 }
             } else {
-                sender.sendMessage(getPrefix() + ChatColor.DARK_RED + "Unrecognized command.  See /fd world");
-                return true;
+                sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Unrecognized command.  See /fd world");
             }
         }
-        return false;
     }
 
     private void validateWorld(CommandSender sender, String worldName) {
@@ -315,37 +351,34 @@ public class FoundDiamonds extends JavaPlugin {
         for (World w : temp) {
             if (w.getName().equals(worldName)) {
                 @SuppressWarnings("unchecked")
-                List<String> worldList = (List<String>) getConfig().getList(config.getEnabledWorlds());
+                Collection<String> worldList = (Collection<String>) getConfig().getList(Config.enabledWorlds);
                 if (!worldList.contains(worldName)) {
                     worldList.add(worldName);
-                    getConfig().set(config.getEnabledWorlds(), worldList);
-                    sender.sendMessage(getPrefix() + ChatColor.AQUA + "World '" + worldName + "' added.");
-                    saveYaml();
+                    getConfig().set(Config.enabledWorlds, worldList);
+                    sender.sendMessage(getPrefix() + ChatColor.AQUA + " World '" + worldName + "' added.");
+                    saveConfig();
                     return;
                 } else {
-                    sender.sendMessage(getPrefix() + ChatColor.DARK_RED + "That world is already enabled.");
+                    sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " That world is already enabled.");
                     return;
                 }
             }
         }
-        sender.sendMessage(getPrefix() + ChatColor.DARK_RED + "Couldn't find a world with the name '" + worldName + "'");
-
+        sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Couldn't find a world with the name '" + worldName + "'");
     }
 
     private void printEnabledWorlds(CommandSender sender) {
-        sender.sendMessage(getPrefix() + ChatColor.AQUA + "[Enabled Worlds]");
-        for (Iterator<String> it = getConfig().getStringList(config.getEnabledWorlds()).iterator(); it.hasNext();) {
+        sender.sendMessage(getPrefix() + ChatColor.AQUA + " [Enabled Worlds]");
+        for (Iterator<String> it = getConfig().getStringList(Config.enabledWorlds).iterator(); it.hasNext();) {
             String x = it.next();
             sender.sendMessage("    - " + x);
         }
     }
 
-    private void showWorldMenu(CommandSender sender) {
-        sender.sendMessage(getPrefix() + ChatColor.AQUA + "[Worlds 1/1]");
-        sender.sendMessage("/fd world" + ChatColor.RED + " <option>");
-        sender.sendMessage(ChatColor.RED + "    list" + ChatColor.WHITE + " - List FD enabled worlds");
-        sender.sendMessage(ChatColor.RED + "    add <world>" + ChatColor.WHITE + " - Add FD to a world.");
-        sender.sendMessage(ChatColor.RED + "    remove <world>" + ChatColor.WHITE + " - Remove FD from a world.");
+    private void checkWorlds() {
+        if (getConfig().getList(Config.enabledWorlds) == null) {
+            addAllWorlds();
+        }
     }
 
     private void addAllWorlds() {
@@ -356,9 +389,10 @@ public class FoundDiamonds extends JavaPlugin {
                 worldNames.add(w.getName());
             }
         }
-        getConfig().set(config.getEnabledWorlds(), worldNames);
-        saveYaml();
+        getConfig().set(Config.enabledWorlds, worldNames);
+        saveConfig();
     }
+
 
 
 
@@ -382,82 +416,21 @@ public class FoundDiamonds extends JavaPlugin {
 
 
 
-    /*
-     * Main Menu
-     */
-    private boolean printMainMenu(CommandSender sender) {
-        if (sender instanceof Player) {
-            Player player = (Player) sender;
-            if (hasPerms(player, "fd.trap") || hasPerms(player, "fd.messages") || hasPerms(player, "fd.config")
-                    || hasPerms(player, "fd.config") || hasPerms(player, "fd.reload") || hasPerms(player, "fd.toggle")
-                    || hasPerms(player, "fd.world")) {
-                player.sendMessage(getPrefix() + ChatColor.AQUA + "[FoundDiamonds Main Menu]");
-                player.sendMessage("/fd " + ChatColor.RED + "<option>");
-            } else {
-                return false;
-            }
-            if (hasPerms(player, "FD.messages")) {
-                player.sendMessage(ChatColor.RED + "    admin" + ChatColor.WHITE + " - Toggle your admin messages");
-            }
-            if (hasPerms(player, "FD.config")) {
-                player.sendMessage(ChatColor.RED + "    config" + ChatColor.WHITE + " - View the configuration file");
-            }
-            if (hasPerms(player, "FD.reload")) {
-                player.sendMessage(ChatColor.RED + "    reload" + ChatColor.WHITE + " - Reload the configuration file");
-            }
-            if (hasPerms(player, "FD.toggle")) {
-                player.sendMessage(ChatColor.RED + "    toggle <option>" + ChatColor.WHITE + " - Change the configuration");
-            }
-            if (hasPerms(player, "FD.trap")) {
-                player.sendMessage(ChatColor.RED + "    trap" + ChatColor.WHITE + " - Set a diamond ore trap");
-            }
-            if (hasPerms(player, "FD.trap")) {
-                player.sendMessage(ChatColor.RED + "    trap <itemname>" + ChatColor.WHITE + " - Set a trap with another block");
-            }
-            if (hasPerms(player, "FD.world")) {
-                player.sendMessage(ChatColor.RED + "    world" + ChatColor.WHITE + " - Manange FD enabled worlds");
-            }
-        } else {
-                sender.sendMessage("/fd " + ChatColor.RED + "<option>");
-                sender.sendMessage(ChatColor.RED + "    config" + ChatColor.WHITE + " - View the configuration file");
-                sender.sendMessage(ChatColor.RED + "    reload" + ChatColor.WHITE + " - Reload the configuration file");
-                sender.sendMessage(ChatColor.RED + "    toggle <option>" + ChatColor.WHITE + " - Change the configuration");
-                sender.sendMessage(ChatColor.RED + "    world" + ChatColor.WHITE + " - Manange FD enabled worlds");
-        }
-        return true;
-    }
-
-
-
 
     /*
      * Configuration File
      */
-    public void saveYaml() {
-        try {
-            getConfig().save(configFile);
-        } catch (IOException ex) {
-            log.severe(MessageFormat.format("[{0}] Unable to create save configuration file! {1}", pluginName, ex));
-        }
-    }
-
     public void loadYaml() {
         try {
             getConfig().options().copyDefaults(true);
-            getConfig().save(configFile);
             getConfig().load(configFile);
         } catch (FileNotFoundException ex) {
-            log.severe(MessageFormat.format("[{0}] Unable to load configuration file! {1}", pluginName, ex));
+            log.severe(MessageFormat.format("[{0}] Couldn't find config.yml {1}", pluginName, ex));
         } catch (IOException ex) {
-            log.severe(MessageFormat.format("[{0}] Unable to load configuration file! {1}", pluginName, ex));
+            log.severe(MessageFormat.format("[{0}] Unable to load configuration file {1}", pluginName, ex));
         } catch (InvalidConfigurationException ex) {
-            log.severe(MessageFormat.format("[{0}] Unable to load configuration file! {1}", pluginName, ex));
+            log.severe(MessageFormat.format("[{0}] Unable to load configuration file {1}", pluginName, ex));
         }
-    }
-
-    private void printSaved(CommandSender sender) {
-        saveYaml();
-        sender.sendMessage(getPrefix() + ChatColor.AQUA + "Configuration updated.");
     }
 
 
@@ -466,55 +439,58 @@ public class FoundDiamonds extends JavaPlugin {
     /*
      * Trap Blocks
      */
-    private boolean handleTrap(Player player, String[] args) {
+    private void handleTrap(Player player, String[] args) {
         Location playerLoc = player.getLocation();
         Material trap;
+        String item;
         if (args.length == 1) {
             trap = Material.DIAMOND_ORE;
+            item = "Diamond ore";
         } else if (args.length == 2) {
-            String item = args[1];
-            Material temp = Material.matchMaterial(item);
-            if (temp != null && temp.isBlock()) {
-                trap = temp;
-            } else {
-                player.sendMessage(getPrefix() + ChatColor.RED + "Unable to set a trap with '" + item + "'");
-                player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold_ore");
-                return false;
-            }
+            item = args[1];
+            trap = Material.matchMaterial(item);
+        } else if (args.length == 3) {
+            item = args[1] + "_" + args[2];
+            trap = Material.matchMaterial(item);
         } else {
-            player.sendMessage(getPrefix() + ChatColor.RED + "Invalid number of arguments");
-            player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold_ore");
-            return false;
+            player.sendMessage(getPrefix() + ChatColor.RED + " Invalid number of arguments");
+            player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold ore");
+            return;
         }
+        if (trap != null && trap.isBlock()) {
+            getTrapLocations(player, playerLoc, trap);
+        } else {
+            player.sendMessage(getPrefix() + ChatColor.RED + " Unable to set a trap with '" + item + "'");
+            player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold ore");
+        }
+    }
+
+    private void getTrapLocations(Player player, Location playerLoc, Material trap) {
         int x = playerLoc.getBlockX();
         int y = playerLoc.getBlockY();
         int maxHeight = player.getWorld().getMaxHeight();
         if ((y - 2) < 0) {
-            player.sendMessage(getPrefix() + ChatColor.RED + "I can't place a trap down there, sorry.");
-            return true;
-        } else if ((y -1) > maxHeight) {
-            player.sendMessage(getPrefix() + ChatColor.RED + "I can't place a trap this high, sorry.");
-            return true;
+            player.sendMessage(getPrefix() + ChatColor.RED + " I can't place a trap down there, sorry.");
+            return;
+        } else if ((y - 1) > maxHeight) {
+            player.sendMessage(getPrefix() + ChatColor.RED + " I can't place a trap this high, sorry.");
+            return;
         }
         int z = playerLoc.getBlockZ();
         World world = player.getWorld();
-        int randomnumber = (int)(Math.random() * 100.0D);
+        int randomnumber = (int)(Math.random() * 100);
         if ((randomnumber >= 0) && randomnumber < 50) {
             Block block1 = world.getBlockAt(x, y - 1, z);
             Block block2 = world.getBlockAt(x, y - 2, z + 1);
             Block block3 = world.getBlockAt(x - 1, y - 2, z);
             Block block4 = world.getBlockAt(x, y - 2, z);
             handleTrapBlocks(player, trap, block1, block2, block3, block4);
-            return true;
         } else if (randomnumber >= 50) {
             Block block1 = world.getBlockAt(x, y - 1, z);
             Block block2 = world.getBlockAt(x - 1, y - 2, z);
             Block block3 = world.getBlockAt(x , y - 2, z);
             Block block4 = world.getBlockAt(x -1, y - 1, z);
             handleTrapBlocks(player, trap, block1, block2, block3, block4);
-            return true;
-        } else {
-            return false;
         }
     }
 
@@ -527,7 +503,7 @@ public class FoundDiamonds extends JavaPlugin {
         block2.setType(trap);
         block3.setType(trap);
         block4.setType(trap);
-        player.sendMessage(getPrefix() + ChatColor.AQUA + "Trap set using " + trap.name().toLowerCase().replace("_", " "));
+        player.sendMessage(getPrefix() + ChatColor.AQUA + " Trap set using " + trap.name().toLowerCase().replace("_", " "));
     }
 
 
@@ -593,13 +569,13 @@ public class FoundDiamonds extends JavaPlugin {
                             Double.parseDouble(fs[2]), Double.parseDouble(fs[3]));
                         list.add(lo);
                     } catch (Exception ex) {
-                        log.severe(MessageFormat.format("[{0}] Invalid block in trapblocks.txt!  It''s recommened that you delete it!", pluginName));
+                        log.severe(MessageFormat.format("[{0}] Invalid block in file.  Please delete the FoundDiamonds folder.", pluginName));
                     }
                 }
                 strLine = b.readLine();
             }
         } catch (Exception ex) {
-            log.severe(MessageFormat.format("[{0}] Unable to read trap blocks from file! {1}", pluginName, ex));
+            log.severe(MessageFormat.format("[{0}] Unable to read blocks from file, {1}", pluginName, ex));
         } finally {
             close(b);
         }
@@ -609,17 +585,11 @@ public class FoundDiamonds extends JavaPlugin {
         if (!mainDir.exists()) {
             mainDir.mkdir();
         }
-        logs = new File(getDataFolder(), "log.txt");
-        traps = new File(getDataFolder(), ".traplocations");
-        configFile = new File(getDataFolder(), "config.yml");
-        placed = new File(getDataFolder(), ".placed");
-        cleanLog = new File(getDataFolder(), "cleanlog.txt");
-
         if (!logs.exists()) {
             try {
                 logs.createNewFile();
             } catch (IOException ex) {
-                log.severe(MessageFormat.format("[{0}] Unable to create log file! {1}", pluginName, ex));
+                log.severe(MessageFormat.format("[{0}] Unable to create log file, {1}", pluginName, ex));
        	    }
          }
          if (traps.exists()) {
@@ -634,17 +604,13 @@ public class FoundDiamonds extends JavaPlugin {
          } else {
              loadYaml();
          }
-         if (getConfig().getBoolean(config.getCleanLog())) {
+         if (getConfig().getBoolean(Config.cleanLog)) {
              try {
                  cleanLog.createNewFile();
              } catch (IOException ex) {
-                 Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Couldn't create clean log file!", ex);
+                 Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Couldn't create clean log file, ", ex);
              }
          }
-    }
-
-    public File getTrapsFile() {
-        return traps;
     }
 
     public File getLogFile() {
@@ -660,7 +626,7 @@ public class FoundDiamonds extends JavaPlugin {
             try {
                 stream.close();
             } catch (IOException ex) {
-                Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Couldn't close a stream", ex);
+                Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Couldn't close a stream, ", ex);
             }
         }
     }
@@ -671,54 +637,16 @@ public class FoundDiamonds extends JavaPlugin {
     /*
      * Enabled block handlers
      */
-    public void reloadEnabledBlocks(Boolean b, Material m) {
-        if (b) {
-            enabledBlocks.add(m);
-        } else {
-            enabledBlocks.remove(m);
-        }
+    public List<Node> getBroadcastedBlocks() {
+        return Collections.unmodifiableList(broadcastedBlocks);
     }
 
-    public void reloadEnabledBlocks(Boolean b, Material m, Material o) {
-        if (b) {
-            enabledBlocks.add(m);
-            enabledBlocks.add(o);
-        } else {
-            enabledBlocks.remove(m);
-            enabledBlocks.remove(o);
-        }
+    public List<Node> getAdminMessageBlocks() {
+        return Collections.unmodifiableList(adminMessageBlocks);
     }
 
-    private void loadEnabledBlocks() {
-        if (getConfig().getBoolean(config.getBcDiamond())) {
-            enabledBlocks.add(Material.DIAMOND_ORE);
-        }
-        if (getConfig().getBoolean(config.getBcGold())) {
-            enabledBlocks.add(Material.GOLD_ORE);
-        }
-        if (getConfig().getBoolean(config.getBcIron())) {
-            enabledBlocks.add(Material.IRON_ORE);
-        }
-        if (getConfig().getBoolean(config.getBcLapis())) {
-            enabledBlocks.add(Material.LAPIS_ORE);
-        }
-        if (getConfig().getBoolean(config.getBcMossy())) {
-            enabledBlocks.add(Material.MOSSY_COBBLESTONE);
-        }
-        if (getConfig().getBoolean(config.getBcRedstone())) {
-            enabledBlocks.add(Material.REDSTONE_ORE);
-            enabledBlocks.add(Material.GLOWING_REDSTONE_ORE);
-        }
-        if (getConfig().getBoolean(config.getBcCoal())) {
-            enabledBlocks.add(Material.COAL_ORE);
-        }
-        if (getConfig().getBoolean(config.getBcObby())) {
-            enabledBlocks.add(Material.OBSIDIAN);
-        }
-    }
-
-    public List<Material> getEnabledBlocks() {
-        return Collections.unmodifiableList(enabledBlocks);
+    public List<Node> getLightLevelBlocks() {
+        return Collections.unmodifiableList(lightLevelBlocks);
     }
 
 
@@ -729,259 +657,74 @@ public class FoundDiamonds extends JavaPlugin {
      */
     private boolean handleToggle(CommandSender sender, String arg) {
         if (arg.equalsIgnoreCase("creative")) {
-            getConfig().set(config.getDisableInCreative(), !getConfig().getBoolean(config.getDisableInCreative()));
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("darkness") || arg.equalsIgnoreCase("lightlevel") || arg.equalsIgnoreCase("light")) {
-            getConfig().set(config.getDisableMiningAtLightLevel(), !getConfig().getBoolean(config.getDisableMiningAtLightLevel()));
-            printSaved(sender);
+            getConfig().set(Config.disableInCreative, !getConfig().getBoolean(Config.disableInCreative));
+            Menu.printSaved(this, sender);
+        } else if (arg.equalsIgnoreCase("admin") || arg.equalsIgnoreCase("adminmessages")) {
+            if (sender instanceof Player) {
+                Player player = (Player) sender;
+                if (hasPerms(player, "fd.admin")) {
+                    reloadAdminMessageMap(player);
+                    if (adminMessagePlayers.get(player)) {
+                        player.sendMessage(getPrefix() + ChatColor.AQUA + " Admin messages are " + ChatColor.DARK_GREEN + "ON");
+                    } else {
+                        player.sendMessage(getPrefix() + ChatColor.AQUA + " Admin messages are " + ChatColor.RED + "OFF");
+                    }
+                } else {
+                    sendPermissionsMessage(player);
+                }
+            } else {
+                sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Admin messages cannot be toggled from the console.");
+            }
         } else if (arg.equalsIgnoreCase("ops")) {
-            getConfig().set(config.getOpsAsFDAdmin(), !getConfig().getBoolean(config.getOpsAsFDAdmin()));
-            printSaved(sender);
+            getConfig().set(Config.opsAsFDAdmin, !getConfig().getBoolean(Config.opsAsFDAdmin));
+            Menu.printSaved(this, sender);
         } else if (arg.equalsIgnoreCase("kick")) {
-            getConfig().set(config.getKickOnTrapBreak(), !getConfig().getBoolean(config.getKickOnTrapBreak()));
-            printSaved(sender);
+            getConfig().set(Config.kickOnTrapBreak, !getConfig().getBoolean(Config.kickOnTrapBreak));
+            Menu.printSaved(this, sender);
         } else if (arg.equalsIgnoreCase("ban") || arg.equalsIgnoreCase("bans")) {
-            getConfig().set(config.getBanOnTrapBreak(), !getConfig().getBoolean(config.getBanOnTrapBreak()));
-            printSaved(sender);
+            getConfig().set(Config.banOnTrapBreak, !getConfig().getBoolean(Config.banOnTrapBreak));
+            Menu.printSaved(this, sender);
         } else if (arg.equalsIgnoreCase("trapalerts")) {
-            getConfig().set(config.getAdminAlertsOnAllTrapBreaks(), !getConfig().getBoolean(config.getAdminAlertsOnAllTrapBreaks()));
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("randomitems")) {
-            getConfig().set(config.getAwardsForFindingDiamonds(), !getConfig().getBoolean(config.getAwardsForFindingDiamonds()));
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("diamond")) {
-            getConfig().set(config.getBcDiamond(), !getConfig().getBoolean(config.getBcDiamond()));
-            reloadEnabledBlocks(getConfig().getBoolean(config.getBcDiamond()), Material.DIAMOND_ORE);
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("gold")) {
-            getConfig().set(config.getBcGold(), !getConfig().getBoolean(config.getBcGold()));
-            reloadEnabledBlocks(getConfig().getBoolean(config.getBcGold()), Material.GOLD_ORE);
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("lapis")) {
-            getConfig().set(config.getBcLapis(), !getConfig().getBoolean(config.getBcLapis()));
-            reloadEnabledBlocks(getConfig().getBoolean(config.getBcLapis()), Material.LAPIS_ORE);
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("redstone")) {
-            getConfig().set(config.getBcRedstone(), !getConfig().getBoolean(config.getBcRedstone()));
-            reloadEnabledBlocks(getConfig().getBoolean(config.getBcRedstone()), Material.REDSTONE_ORE, Material.GLOWING_REDSTONE_ORE);
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("iron")) {
-            getConfig().set(config.getBcIron(), !getConfig().getBoolean(config.getBcIron()));
-            reloadEnabledBlocks(getConfig().getBoolean(config.getBcIron()), Material.IRON_ORE);
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("mossy") || arg.equalsIgnoreCase("moss")) {
-            getConfig().set(config.getBcMossy(), !getConfig().getBoolean(config.getBcMossy()));
-            reloadEnabledBlocks(getConfig().getBoolean(config.getBcMossy()), Material.MOSSY_COBBLESTONE);
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("logging")) {
-            getConfig().set(config.getLogDiamondBreaks(), !getConfig().getBoolean(config.getLogDiamondBreaks()));
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("coal")) {
-            getConfig().set(config.getBcCoal(), !getConfig().getBoolean(config.getBcCoal()));
-            reloadEnabledBlocks(getConfig().getBoolean(config.getBcIron()), Material.COAL_ORE);
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("diamondadmin")) {
-            getConfig().set(config.getDiamondAdmin(), !getConfig().getBoolean(config.getDiamondAdmin()));
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("goldadmin")) {
-            getConfig().set(config.getGoldAdmin(), !getConfig().getBoolean(config.getGoldAdmin()));
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("lapisadmin")) {
-            getConfig().set(config.getLapisAdmin(), !getConfig().getBoolean(config.getLapisAdmin()));
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("ironadmin")) {
-            getConfig().set(config.getIronAdmin(), !getConfig().getBoolean(config.getIronAdmin()));
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("redstoneadmin")) {
-            getConfig().set(config.getRedstoneAdmin(), !getConfig().getBoolean(config.getRedstoneAdmin()));
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("prefix")) {
-            getConfig().set(config.getIncludePrefix(), !getConfig().getBoolean(config.getIncludePrefix()));
-            printSaved(sender);
+            getConfig().set(Config.adminAlertsOnAllTrapBreaks, !getConfig().getBoolean(Config.adminAlertsOnAllTrapBreaks));
+            Menu.printSaved(this, sender);
         } else if (arg.equalsIgnoreCase("items")) {
-            getConfig().set(config.getAwardsForFindingDiamonds(), !getConfig().getBoolean(config.getAwardsForFindingDiamonds()));
-            printSaved(sender);
+            getConfig().set(Config.itemsForFindingDiamonds, !getConfig().getBoolean(Config.itemsForFindingDiamonds));
+            Menu.printSaved(this, sender);
+        } else if (arg.equalsIgnoreCase("logging")) {
+            getConfig().set(Config.logDiamondBreaks, !getConfig().getBoolean(Config.logDiamondBreaks));
+            Menu.printSaved(this, sender);
         } else if (arg.equalsIgnoreCase("spells")) {
-            getConfig().set(config.getPotionsForFindingDiamonds(), !getConfig().getBoolean(config.getPotionsForFindingDiamonds()));
-            printSaved(sender);
+            getConfig().set(Config.potionsForFindingDiamonds, !getConfig().getBoolean(Config.potionsForFindingDiamonds));
+            Menu.printSaved(this, sender);
         } else if (arg.equalsIgnoreCase("cleanlog")) {
-            getConfig().set(config.getCleanLog(), !getConfig().getBoolean(config.getCleanLog()));
+            getConfig().set(Config.cleanLog, !getConfig().getBoolean(Config.cleanLog));
             if (!cleanLog.exists()) {
                 try {
                     cleanLog.createNewFile();
-                    sender.sendMessage(prefix + "CleanLog.txt created.");
+                    sender.sendMessage(getPrefix() + ChatColor.DARK_GREEN +" Cleanlog created.");
                 } catch (IOException ex) {
-                    sender.sendMessage(prefix + "Uh-oh...couldn't create CleanLog.txt");
+                    sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Uh-oh...couldn't create CleanLog.txt");
                     Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Failed to create CleanLog file.", ex);
                 }
             }
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("lightadmin") || arg.equalsIgnoreCase("lightleveladmin")) {
-            getConfig().set(config.getLightLevelAdmin(), !getConfig().getBoolean(config.getLightLevelAdmin()));
-            printSaved(sender);
-        }  else if (arg.equalsIgnoreCase("usenicks") || arg.equalsIgnoreCase("nick") || arg.equalsIgnoreCase("nicks")) {
-            getConfig().set(config.getUseNick(), !getConfig().getBoolean(config.getUseNick()));
-            printSaved(sender);
+            Menu.printSaved(this, sender);
+        } else if (arg.equalsIgnoreCase("nick") || arg.equalsIgnoreCase("nicks")) {
+            getConfig().set(Config.useNick, !getConfig().getBoolean(Config.useNick));
+            Menu.printSaved(this, sender);
         } else if (arg.equalsIgnoreCase("debug")) {
-            getConfig().set(config.debug(), !getConfig().getBoolean(config.debug()));
-            printSaved(sender);
-        } else if (arg.equalsIgnoreCase("obby") || arg.equalsIgnoreCase("obsidian")) {
-            getConfig().set(config.getBcObby(), !getConfig().getBoolean(config.getBcObby()));
-            reloadEnabledBlocks(getConfig().getBoolean(config.getBcObby()), Material.OBSIDIAN);
-            printSaved(sender);
+            getConfig().set(Config.debug, !getConfig().getBoolean(Config.debug));
+            Menu.printSaved(this, sender);
+        } else if (arg.equalsIgnoreCase("prefix")) {
+            sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Prefix is now a part of the broadcast message.");
+            sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Please modify it in the config file.");
         } else if (arg.equalsIgnoreCase("2")) {
-            Menus.showToggle2(sender);
-        } else if (arg.equalsIgnoreCase("3")) {
-            Menus.showToggle3(sender);
-        } else if (arg.equalsIgnoreCase("4")) {
-            Menus.showToggle4(sender);
+            Menu.showToggle2(sender);
         } else {
-            sender.sendMessage(getPrefix() + ChatColor.RED + "Argument '" + arg + "' unrecognized.");
+            sender.sendMessage(getPrefix() + ChatColor.RED + " Argument '" + arg + "' unrecognized.");
             sender.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
             return false;
         }
         return true;
-    }
-
-
-
-
-    /*
-     * Config menus
-     */
-    private void showConfig(CommandSender sender) {
-        sender.sendMessage(getPrefix() + ChatColor.AQUA + "[Configuration 1/4]");
-        sender.sendMessage(ChatColor.RED + "    Diamond Ore: " + getConfigBoolean(getConfig().getBoolean(config.getBcDiamond())));
-        sender.sendMessage(ChatColor.RED + "    Gold Ore: " + getConfigBoolean(getConfig().getBoolean(config.getBcGold())));
-        sender.sendMessage(ChatColor.RED + "    Lapis Ore: " + getConfigBoolean(getConfig().getBoolean(config.getBcLapis())));
-        sender.sendMessage(ChatColor.RED + "    Redstone Ore: " + getConfigBoolean(getConfig().getBoolean(config.getBcRedstone())));
-        sender.sendMessage(ChatColor.RED + "    Iron Ore: " + getConfigBoolean(getConfig().getBoolean(config.getBcIron())));
-        sender.sendMessage(ChatColor.RED + "    Coal Ore: " + getConfigBoolean(getConfig().getBoolean(config.getBcCoal())));
-        sender.sendMessage(ChatColor.RED + "    Mossy Cobblestone: " + getConfigBoolean( getConfig().getBoolean(config.getBcMossy())));
-        sender.sendMessage(ChatColor.RED + "    Obsidian: " + getConfigBoolean(getConfig().getBoolean(config.getBcObby())));
-        sender.sendMessage(ChatColor.RED + "    Disable ore mining below light level of " + ChatColor.WHITE + getConfig().getString(config.getPercentOfLightRequired()) + " " +
-                getConfigBoolean(getConfig().getBoolean(config.getDisableMiningAtLightLevel())));
-        sender.sendMessage("Type /fd config 2 to read the next page");
-
-    }
-
-    private void showConfig2(CommandSender sender) {
-        sender.sendMessage(getPrefix() + ChatColor.AQUA + "[Configuration 2/4]");
-        sender.sendMessage(ChatColor.RED + "    Use Player NickNames: " + getConfigBoolean(getConfig().getBoolean(config.getUseNick())));
-        sender.sendMessage(ChatColor.RED + "    Random Item 1: " + ChatColor.WHITE + Material.getMaterial(getConfig().getInt(config.getRandomItem1())).toString().toLowerCase().replace("_", " "));
-        sender.sendMessage(ChatColor.RED + "    Random Item 2: " + ChatColor.WHITE + Material.getMaterial(getConfig().getInt(config.getRandomItem2())).toString().toLowerCase().replace("_", " "));
-        sender.sendMessage(ChatColor.RED + "    Random Item 3: " + ChatColor.WHITE + Material.getMaterial(getConfig().getInt(config.getRandomItem3())).toString().toLowerCase().replace("_", " "));
-        sender.sendMessage(ChatColor.RED + "    Give OPs all permissions: " +  getConfigBoolean(getConfig().getBoolean(config.getOpsAsFDAdmin())));
-        sender.sendMessage(ChatColor.RED + "    Kick players on trap break: " + getConfigBoolean(getConfig().getBoolean(config.getKickOnTrapBreak())));
-        sender.sendMessage(ChatColor.RED + "    Ban players on trap break: " + getConfigBoolean(getConfig().getBoolean(config.getBanOnTrapBreak())));
-        sender.sendMessage(ChatColor.RED + "    Admin alerts on all trap breaks: " + getConfigBoolean(getConfig().getBoolean(config.getAdminAlertsOnAllTrapBreaks())));
-        sender.sendMessage(ChatColor.RED + "    Random awards for finding diamonds: " + getConfigBoolean(getConfig().getBoolean(config.getAwardsForFindingDiamonds())));
-        sender.sendMessage("Type /fd config 3 to read the next page");
-    }
-
-    private void showConfig3(CommandSender sender) {
-        sender.sendMessage(getPrefix() + ChatColor.AQUA + "[Configuration 3/4]");
-        sender.sendMessage(ChatColor.RED + "    Random spells for finding diamonds: " + getConfigBoolean(getConfig().getBoolean(config.getPotionsForFindingDiamonds())));
-        if (getConfig().getBoolean(config.getPotionsForFindingDiamonds())) {
-            sender.sendMessage(ChatColor.RED + "    Spell Strength: " + ChatColor.AQUA + getConfig().getInt(config.getPotionStrength()));
-        }
-        sender.sendMessage(ChatColor.RED + "    Random awards for finding diamonds: " + getConfigBoolean(getConfig().getBoolean(config.getAwardsForFindingDiamonds())));
-        sender.sendMessage(ChatColor.RED + "    Disable in creative mode: " + getConfigBoolean(getConfig().getBoolean(config.getDisableInCreative())));
-        sender.sendMessage(ChatColor.RED + "    Logging all diamond ore breaks: " + getConfigBoolean(getConfig().getBoolean(config.getLogDiamondBreaks())));
-        sender.sendMessage(ChatColor.RED + "    Diamond Admin Messages: " + getConfigBoolean(getConfig().getBoolean(config.getDiamondAdmin())));
-        sender.sendMessage(ChatColor.RED + "    Gold Admin Messages: " + getConfigBoolean(getConfig().getBoolean(config.getGoldAdmin())));
-        sender.sendMessage(ChatColor.RED + "    Redstone Admin Messages: " + getConfigBoolean(getConfig().getBoolean(config.getRedstoneAdmin())));
-        sender.sendMessage(ChatColor.RED + "    Lapis Admin Messages: " + getConfigBoolean(getConfig().getBoolean(config.getLapisAdmin())));
-        sender.sendMessage("Type /fd config 4 to read the next page");
-    }
-
-    private void showConfig4(CommandSender sender) {
-        sender.sendMessage(getPrefix() + ChatColor.AQUA + "[Configuration 4/4]");
-        sender.sendMessage(ChatColor.RED + "    Light Level Admin Messages: " + getConfigBoolean(getConfig().getBoolean(config.getLightLevelAdmin())));
-        sender.sendMessage(ChatColor.RED + "    Iron Admin Messages: " + getConfigBoolean(getConfig().getBoolean(config.getIronAdmin())));
-        sender.sendMessage(ChatColor.RED + "    Use [FD] Prefix: " + getConfigBoolean(getConfig().getBoolean(config.getIncludePrefix())));
-        sender.sendMessage(ChatColor.RED + "    Clean Log: " + getConfigBoolean(getConfig().getBoolean(config.getCleanLog())));
-        sender.sendMessage(ChatColor.RED + "    Debug Mode: " + getConfigBoolean(getConfig().getBoolean(config.debug())));
-        //sender.sendMessage(ChatColor.RED + "    Use [FD] Prefix: " + getConfigBoolean(getConfig().getBoolean(config.getIncludePrefix())));
-        //sender.sendMessage(ChatColor.RED + "    Use [FD] Prefix: " + getConfigBoolean(getConfig().getBoolean(config.getIncludePrefix())));
-       // sender.sendMessage(ChatColor.RED + "    Use [FD] Prefix: " + getConfigBoolean(getConfig().getBoolean(config.getIncludePrefix())));
-        //sender.sendMessage(ChatColor.RED + "    Use [FD] Prefix: " + getConfigBoolean(getConfig().getBoolean(config.getIncludePrefix())));
-    }
-
-    private String getConfigBoolean(Boolean b) {
-        if(b) {
-            return ChatColor.DARK_GREEN + "[On]";
-        }
-        return ChatColor.DARK_RED + "[Off]";
-    }
-
-
-
-
-    /*
-     * Set Menu
-     */
-    private void showSetMenu(CommandSender sender) {
-        sender.sendMessage(getPrefix() + ChatColor.AQUA + "[Set]");
-        sender.sendMessage(ChatColor.RED + "    item1 <id number>");
-        sender.sendMessage(ChatColor.RED + "    item2 <id number>");
-        sender.sendMessage(ChatColor.RED + "    item3 <id number>");
-        sender.sendMessage(ChatColor.RED + "    spellpercent <percent>");
-        sender.sendMessage(ChatColor.RED + "    itempercent <percent>");
-        sender.sendMessage(ChatColor.RED + "    This is not fully implemented yet.");
-    }
-
-    private boolean handleSetMenu(CommandSender sender, String[] args) {
-        if (args.length == 1) {
-            showSetMenu(sender);
-            return true;
-        } else if (args.length == 2) {
-            if (args[1].equalsIgnoreCase("spellpercent")) {
-                System.out.println("spellpercent");
-                sender.sendMessage(getPrefix() + ChatColor.DARK_RED + "Usage: /fd set "
-                    + "spellpercent <percent>");
-                return true;
-            } else if (args[1].equalsIgnoreCase("itempercent")) {
-                sender.sendMessage(getPrefix() + ChatColor.DARK_RED + "Usage: /fd set "
-                    + "itempercent <percent>");
-            }
-        } else if (args.length == 3) {
-            if (args[1].equalsIgnoreCase("spellpercent")) {
-                int percent = getPercent(sender, args);
-                setPercent(sender, percent, config.getPercentToGetPotion());
-            } else if (args[1].equalsIgnoreCase("itempercent")) {
-                int percent = getPercent(sender, args);
-                setPercent(sender, percent, config.getPercentToGetItem());
-            }
-        }
-        return false;
-    }
-
-    private void setPercent(CommandSender sender, int percent, String configuration) {
-        if (percent != 999) {
-            getConfig().set(configuration, percent);
-            printSaved(sender);
-        } else {
-            sender.sendMessage(getPrefix() + ChatColor.DARK_RED + "Percentage "
-                + "must be between 0 and 100");
-        }
-    }
-
-    private int getPercent(CommandSender sender, String[] args) {
-        int percent;
-        try {
-            percent = Integer.parseInt(args[2].trim());
-        } catch (Exception ex) {
-            sender.sendMessage(getPrefix() + ChatColor.RED + "Invalid argument");
-            return 999;
-        }
-        if (percent >=0 && percent <=100) {
-            getConfig().set(config.getPercentToGetPotion(), percent);
-            printSaved(sender);
-            return percent;
-        } else {
-            return 999;
-        }
     }
 
 
@@ -1011,8 +754,7 @@ public class FoundDiamonds extends JavaPlugin {
     }
 
     public boolean hasPerms(Player player, String permission) {
-        return (player.hasPermission(permission) || (getConfig().getBoolean(config.getOpsAsFDAdmin()) && player.isOp())
-                || player.hasPermission("fd.*"));
+        return (player.hasPermission(permission) || (getConfig().getBoolean(Config.opsAsFDAdmin) && player.isOp()));
     }
 
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
@@ -1022,6 +764,15 @@ public class FoundDiamonds extends JavaPlugin {
 
     public static int getTogglePages() {
         return togglePages;
+    }
+
+    public static int getConfigPages() {
+        return configPages;
+    }
+
+    public static void sendPermissionsMessage(Player player) {
+        player.sendMessage(getPrefix() + ChatColor.RED + " You don't have permission to do that.");
+        log.warning( player.getName() + " was denied access to a command.");
     }
 
 
@@ -1039,5 +790,252 @@ public class FoundDiamonds extends JavaPlugin {
 
     public static String getDebugPrefix() {
         return debugPrefix;
+    }
+
+    public static String getLoggerPrefix() {
+        return loggerPrefix;
+    }
+
+
+
+
+    /*
+     * Versatile lists
+     */
+    public List<?> getVersatileList(String configLoc) {
+        return Collections.unmodifiableList(getConfig().getList(configLoc));
+    }
+
+    private void loadBroadcastedBlocksFromConfig() {
+        if (getConfig().getList(Config.broadcastedBlocks) == null) {
+            loadDefaults();
+        } else {
+            @SuppressWarnings("unchecked")
+            List<String> blocks = (List<String>) getVersatileList(Config.broadcastedBlocks);
+            log.severe(getLoggerPrefix() + " Size of block list = " + blocks.size());
+            for (Iterator<String> it = blocks.iterator(); it.hasNext();) {
+                String x = it.next();
+                String[] bi = x.split(":");
+                Material matchAttempt= null;
+                try {
+                    matchAttempt = Material.matchMaterial(bi[0]);
+                } catch (Exception ex) {
+                    log.severe(getLoggerPrefix() + " Unable to match material '" + bi[0] + "'");
+                }
+                if (matchAttempt != null) {
+                    if (matchAttempt.isBlock()) {
+                        try {
+                            String re = bi[1].replace(" ","_").toUpperCase();
+                            ChatColor color = ChatColor.valueOf(re);
+                            // TODO look at the color section here...
+                            //ChatColor color = BlockColor.getBlockColor(matchAttempt);
+                            //System.out.println("Adding " + matchAttempt.name() + " " + color.name());
+                            if (!isDuplicate(matchAttempt)) {
+                                broadcastedBlocks.add(new Node(matchAttempt,color));
+                            }
+                        } catch (Exception ex) {
+                            log.severe(getLoggerPrefix() + " Unable to match color '" + bi[1] +"'");
+                        }
+
+                    } else {
+                        log.warning(getLoggerPrefix() + " Unable to add " + x + " because it is not a block!");
+                    }
+                } else {
+                    log.warning(getLoggerPrefix() + " Unable to add " + x + ".  Unrecognized block.  See bukkit material enum for valid block names.");
+                }
+            }
+            writeListToConfig(broadcastedBlocks, Config.broadcastedBlocks);
+        }
+    }
+
+    public void writeListToConfig(List<Node> list, String configLoc) {
+        LinkedList<String> tempList = new LinkedList<String>();
+        for (Node x : list) {
+            tempList.add(x.getMaterial().name().toLowerCase().replace("_", " ") + ":" + x.getColor().name().toLowerCase().replace("_", " "));
+        }
+        getConfig().set(configLoc, tempList);
+        this.saveConfig();
+    }
+
+    public boolean isDuplicate(Material mat) {
+        for (Node x : broadcastedBlocks) {
+            if (mat == x.getMaterial()) {
+                return true;
+            }
+        }
+        return  false;
+    }
+
+    public void loadDefaults() {
+        broadcastedBlocks.add(new Node(Material.DIAMOND_ORE, ChatColor.AQUA));
+        broadcastedBlocks.add(new Node(Material.GOLD_ORE, ChatColor.GOLD));
+        broadcastedBlocks.add(new Node(Material.LAPIS_ORE, ChatColor.BLUE));
+        broadcastedBlocks.add(new Node(Material.IRON_ORE, ChatColor.GRAY));
+        broadcastedBlocks.add(new Node(Material.COAL_ORE, ChatColor.DARK_GRAY));
+        broadcastedBlocks.add(new Node(Material.REDSTONE_ORE, ChatColor.DARK_RED));
+        broadcastedBlocks.add(new Node(Material.GLOWING_REDSTONE_ORE, ChatColor.DARK_RED));
+        writeListToConfig(broadcastedBlocks, Config.broadcastedBlocks);
+    }
+
+    //TODO make this work with all 3 lists?
+    public void handleAddToList(CommandSender sender, String[] args, List<Node> list, String configString) {
+        if (args.length == 2) {
+            sender.sendMessage(getPrefix() + ChatColor.RED + " Format is: item:color");
+            sender.sendMessage(ChatColor.RED + " Color is an optional argument.");
+            sender.sendMessage(ChatColor.RED + " Ex: sugar cane block:dark green");
+        } else if (args.length >= 3) {
+            StringBuilder sb = new StringBuilder();
+            for (int i=2;i<args.length;i++) {
+                sb.append(args[i]).append(" ");
+            }
+            Node block = Node.parseConfigBlock(sb.toString().trim());
+            if (block != null) {
+                if (!isDuplicate(block.getMaterial())) {
+                    list.add(block);
+                    //TODO just save the list?
+                    //addNodeToConfig(block, configString);
+                    sender.sendMessage(getPrefix() + ChatColor.AQUA + " Added " + block.getColor()
+                            + Format.material(block.getMaterial()));
+                    writeListToConfig(list, configString);
+                } else {
+                    removeMaterialFromList(block.getMaterial(), list, configString);
+                    list.add(block);
+                    sender.sendMessage(getPrefix() + ChatColor.AQUA + " Updated " + block.getColor()
+                            + Format.material(block.getMaterial()));
+                    writeListToConfig(list, configString);
+                }
+            } else {
+                sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Unable to add block.  Please check your format.");
+            }
+        }
+    }
+
+    public void handleRemoveFromList(CommandSender sender, String[] args, List<Node> list, String configString) {
+        if (args.length == 2) {
+            sender.sendMessage(getPrefix() + ChatColor.RED + " Simply type the name of the block you want to remove");
+            sender.sendMessage(getPrefix() + ChatColor.RED + " It unfortunely must match bukkit's material enum");
+            sender.sendMessage(getPrefix() + ChatColor.RED + " If this is really buggy, please ask SeeD419 for help!");
+        } else if (args.length > 2) {
+            StringBuilder sb = new StringBuilder();
+            log.severe(getLoggerPrefix() + " Size of block list = " + list.size());
+            for (int i = 2; i < args.length; i++) {
+                sb.append(args[i] + " ");
+            }
+            Material matToRemove = Material.matchMaterial(sb.toString().trim());
+            if (matToRemove == null) {
+                sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Unrecognized material");
+            } else {
+                ChatColor color = getNodeColor(matToRemove,  list);
+                if (removeMaterialFromList(matToRemove, list, configString)) {
+                    sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Removed " + color + Format.material(matToRemove));
+                    log.severe(getLoggerPrefix() + " Size of block list = " + list.size());
+                } else {
+                    sender.sendMessage(getPrefix() + " "  + ChatColor.WHITE + Format.material(matToRemove) + ChatColor.DARK_RED + " isn't listed.");
+                }
+            }
+        }
+    }
+
+    public void handleListingList(CommandSender sender, List<Node> list) {
+        for (Node x : list) {
+            sender.sendMessage(x.getColor() + Format.capitalize(Format.material(x.getMaterial())));
+        }
+    }
+
+    public ChatColor getNodeColor(Material mat, List<Node> list) {
+        for (Node x : list) {
+            if (x.getMaterial() == mat) {
+                return x.getColor();
+            }
+        }
+        return null;
+    }
+
+    public boolean removeMaterialFromList(Material mat, List<Node> list, String configString) {
+        for (Node x : list) {
+             if (x.getMaterial() == mat) {
+                 list.remove(x);
+                 writeListToConfig(list, configString);
+                 return true;
+             }
+        }
+        return false;
+    }
+
+
+
+
+    /*
+     * Menu handlers
+     */
+    public void handleBcMenu(CommandSender sender, String[] args) {
+        if (args.length == 1) {
+            Menu.showBcMenu(sender);
+        } else if (args.length > 1) {
+            if (args[1].equalsIgnoreCase("list")) {
+                sender.sendMessage(getPrefix() + ChatColor.AQUA + " [Broadcasted Blocks]");
+                handleListingList(sender, broadcastedBlocks);
+            } else if (args[1].equalsIgnoreCase("add")) {
+                if (args.length == 2) {
+                    sender.sendMessage(getPrefix() + ChatColor.RED + " Format: /fd add bc item:color ex: coal ore:dark gray");
+                    sender.sendMessage(getPrefix() + ChatColor.RED + " Color is an optional argument.  If color is left out");
+                    sender.sendMessage(getPrefix() + ChatColor.RED + " FD will attempt to pick a color for you. ex: obsidian");
+                }
+                handleAddToList(sender, args, broadcastedBlocks, Config.broadcastedBlocks);
+            } else if (args[1].equalsIgnoreCase("remove")) {
+                handleRemoveFromList(sender, args, broadcastedBlocks, Config.broadcastedBlocks);
+            } else {
+                sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
+            }
+        }
+    }
+
+    public void handleAdminMenu(CommandSender sender, String[] args) {
+        if (args.length == 1) {
+            Menu.showAdminMenu(sender);
+        } else if (args.length > 1) {
+            if (args[1].equalsIgnoreCase("list")) {
+                sender.sendMessage(getPrefix() + ChatColor.AQUA + " [Admin Message Blocks]");
+                handleListingList(sender, adminMessageBlocks);
+            } else if (args[1].equalsIgnoreCase("add")) {
+                handleAddToList(sender, args, adminMessageBlocks, Config.adminMessageBlocks);
+            } else if (args[1].equalsIgnoreCase("remove")) {
+                handleRemoveFromList(sender, args, adminMessageBlocks, Config.adminMessageBlocks);
+            } else {
+                sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
+            }
+        }
+    }
+
+    public void handleLightMenu(CommandSender sender, String[] args) {
+        if (args.length == 1) {
+            Menu.showLightMenu(sender);
+        } else if (args.length > 1) {
+            if (args[1].equalsIgnoreCase("list")) {
+                sender.sendMessage(getPrefix() + ChatColor.AQUA + " [Light-Monitored Blocks]");
+                handleListingList(sender, lightLevelBlocks);
+            } else if (args[1].equalsIgnoreCase("add")) {
+                handleAddToList(sender, args, lightLevelBlocks, Config.lightLevelBlocks);
+            } else if (args[1].equalsIgnoreCase("remove")) {
+                handleRemoveFromList(sender, args, lightLevelBlocks, Config.lightLevelBlocks);
+            } else {
+                sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
+            }
+        }
+    }
+
+
+
+
+    /*
+     * Metrics
+     */
+    private void startMetrics() {
+        try {
+            MetricsLite metrics = new MetricsLite(this);
+            metrics.start();
+        } catch (IOException e) {
+            //couldn't start metrics :(
+        }
     }
 }

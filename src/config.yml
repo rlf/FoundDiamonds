@@ -3,8 +3,8 @@ Found Diamonds Configuration:
     Disable in creative mode: true
     Give OPs all permissions: true
   Light Level:
-    Disable ore mining below specified percent of light: true
-    Minimum amount of light required to mine ore: 10%
+    Minimum amount of light required to mine blocks: 10%
+    Monitored Blocks:
   Traps:
     Kick players on trap break: true
     Ban players on trap break: false
@@ -13,27 +13,30 @@ Found Diamonds Configuration:
   Awards:
     Items:
       Random items for finding diamonds: false
-      Percent of time awards are given: 25
+      Percent of time items are given: 25
       Random Item 1: 265
       Random Item 2: 263
-      Random Item 3: 341
+      Random Item 3: 340
     Spells:
+      Psychoactive mushrooms: true
       Random spells for finding diamonds: true
       Spell strength (1-5): 3
       Percent of time spells are casted: 100
+      Messages:
+        Jump: You feel as weightless as a feather.
+        Speed: You begin to feel as swift as the wind.
+        Resistance: You feel a force field surround you.
+        Fire Resistance: You no longer fear the flames.
+        Water Breathing: The sea calls out to you.
+        Regeneration: A regenerative force embraces you.
+        Fast Digging: You can suddenly dig fast as fuck.
+        Strength: You feel a strength rise up within you.
   Broadcasts:
-    Diamond Ore: true
-    Gold Ore: true
-    Lapis Ore: true
-    Redstone Ore: true
-    Iron Ore: true
-    Coal Ore: true
-    Mossy Cobblestone: false
-    Obsidian: false
-    Message: '@Player@ found @Number@ @BlockName@'
-    Use player nicknames: false
-    Include [FD] Prefix: true
-    Use classic ore colors for ores: true
+    Broadcasted Blocks:
+    Options:
+      Message: "@Prefix@ @Player@ found @Number@ @BlockName@"
+      Use player nicknames: false
+      Use classic ore colors for ores: true
   Logging:
     Trap breaks: true
     Light Level Violations: false
@@ -41,11 +44,6 @@ Found Diamonds Configuration:
     Clean log (all ores): false
   Enabled Worlds:
   Admin Messages:
-    Light Level: false
-    Diamond Ore: false
-    Gold Ore: false
-    Redstone Ore: false
-    Lapis Ore: false
-    Iron Ore: false
+    Admin Message Blocks:
   Debug:
     Enabled: false

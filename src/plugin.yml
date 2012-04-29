@@ -1,5 +1,5 @@
 name: FoundDiamonds
-version: 3.2.7
+version: 3.3
 main: org.seed419.FoundDiamonds.FoundDiamonds
 author: SeeD419
 website: http://dev.bukkit.org/server-mods/founddiamonds/
@@ -17,31 +17,112 @@ permissions:
     default: false
     children:
       fd.trap: true
-      fd.messages: true
-      fd.config: true
-      fd.reload: true
-      fd.toggle: true
-  fd.trap:
-    description: Allows users to set FD traps
+      fd.admin: true
+      fd.manage.*: true
+      fd.broadcast: true
+      fd.monitor: true
+
+  fd.manage.*:
+    description: Allows management of all blocks
     default: false
-  fd.messages:
-    description: Allows users to see admin and trap messages
+    children:
+      fd.manage.admin.add: true
+      fd.manage.broadcast.add: true
+      fd.manage.light.add: true
+      fd.manage.admin.remove: true
+      fd.manage.broadcast.remove: true
+      fd.manage.light.remove: true
+      fd.manage.admin.list: true
+      fd.manage.broadcast.list: true
+      fd.manage.light.list: true
+      fd.manage.toggle: true
+      fd.manage.config: true
+      fd.manage.world: true
+      fd.manage.reload: true
+
+  fd.manage.admin.*:
+    description: Allows management of all admin message blocks
     default: false
-  fd.config:
-    description: Allows users to view the FD configuration file in game
+    children:
+      fd.manage.admin.add: true
+      fd.manage.admin.remove: true
+      fd.manage.admin.list: true
+
+  fd.manage.light.*:
+    description: Allows management of all light level blocks
     default: false
-  fd.reload:
+    children:
+      fd.manage.light.add: true
+      fd.manage.light.remove: true
+      fd.manage.light.list: true
+
+  fd.manage.broadcast.*:
+    description: Allows management of all broadcast blocks
+    default: false
+    children:
+      fd.manage.broadcast.add: true
+      fd.manage.broadcast.remove: true
+      fd.manage.broadcast.list: true
+
+  fd.manage.reload:
     description: Allows users to reload the configuration file in game
     default: false
-  fd.toggle:
+
+  fd.manage.config:
+    description: Allows users to view the FD configuration file in game
+    default: false
+
+  fd.manage.toggle:
     description: Allows users to change the configuration file in game
     default: false
-  fd.world:
+
+  fd.manage.world:
     description: Allows edit FD enabled worlds in game
     default: false
-  fd.ignorelightlevel:
-    description: Lets a player mine below allowed light level
+
+  fd.manage.broadcast.add:
+    description: Allows adding of broadcasted blocks
     default: false
-  ignore.broadcasts:
-    description: Ignores all FD broadcasts
+  fd.manage.broadcast.remove:
+    description: Allows removal of broadcasted blocks
+    default: false
+  fd.manage.broadcast.list:
+    description: Allows listing of all broadcasted blocks
+    default: false
+
+  fd.manage.admin.add:
+    description: Allows adding of admin message blocks
+    default: false
+  fd.manage.admin.remove:
+    description: Allows removal of admin message blocks
+    default: false
+  fd.manage.admin.list:
+    description: Allows listing of admin message blocks
+    default: false
+
+  fd.manage.light.add:
+    description: Allows adding of light level blocks
+    default: false
+  fd.manage.light.remove:
+    description: Allows removal of light level blocks
+    default: false
+  fd.manage.light.list:
+    description: Allows listing of light level blocks
+    default: false
+
+
+  fd.broadcast:
+    description: Broadcasts to player
+    default: false
+
+  fd.trap:
+    description: Allows users to manage FD traps
+    default: false
+
+  fd.admin:
+    description: Allows users to see admin messages
+    default: false
+
+  fd.monitor:
+    description: Monitors the player's light level
     default: false
