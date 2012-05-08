@@ -19,71 +19,47 @@ public class EventInformation {
 
 
     private int total;
-    private ChatColor color;
-    private Material mat;
-    private Location loc;
+    private Node node;
+    private Location blockLoc;
     private Block block;
     private BlockBreakEvent event;
     private Player player;
-    private String formattedMatName;
 
 
-    public EventInformation(Material mat, ChatColor color) {
-        this.color = color;
-        this.mat = mat;
-        formattedMatName = mat.name().toLowerCase().replace("_", " ");
+    public EventInformation(BlockBreakEvent event, Node node) {
+        this.blockLoc = event.getBlock().getLocation();
+        this.block = event.getBlock();
+        this.node = node;
     }
 
     public ChatColor getColor() {
-        return color;
+        return node.getColor();
     }
 
+    //TODO wat...
     public int getTotal() {
         return total;
     }
 
     public Material getMaterial() {
-        return mat;
+        return node.getMaterial();
     }
 
-    public void setTotal(int total) {
-        this.total = total;
-    }
-
-    public Location getLocation() {
-        return loc;
-    }
-
-    public void setLocation(Location loc) {
-        this.loc = loc;
+    public Location getBlockLocation() {
+        return blockLoc;
     }
 
     public Block getBlock() {
         return block;
     }
 
-    public void setBlock(Block block) {
-        this.block = block;
-    }
-
+    //TODO do we need to get the event?  Or should event-related functions take place here?
     public BlockBreakEvent getEvent() {
         return event;
     }
 
-    public void setEvent(BlockBreakEvent event) {
-        this.event = event;
-    }
-
     public Player getPlayer() {
         return player;
-    }
-
-    public void setPlayer(Player player) {
-        this.player = player;
-    }
-
-    public String getMatName() {
-        return formattedMatName;
     }
 
 }

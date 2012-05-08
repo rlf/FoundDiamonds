@@ -7,7 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="bukkit-dev" level="project" />
+    <orderEntry type="library" name="bukkit-1.2.5-R1.3-20120425.045946-1" level="project" />
   </component>
 </module>
 

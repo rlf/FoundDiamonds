@@ -3,6 +3,7 @@ package org.seed419.FoundDiamonds;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -32,11 +33,11 @@ public class Node {
         return mat;
     }
 
-    public static Node parseConfigBlock(String cb) {
-        String[] bi = cb.toString().split(":");
-        for (String x : bi) {
+    public static Node parseNode(String cb) {
+        String[] bi = cb.split(":");
+/*        for (String x : bi) {
              System.out.println("bi: " + x);
-        }
+        }*/
         //Parse the material string
         Material matchAttempt = parseMaterial(bi[0]);
         if (matchAttempt == null) {
@@ -76,16 +77,39 @@ public class Node {
     public static ChatColor parseChatColor(String colorName) {
         ChatColor color;
         String re = colorName.replace(" ","_").toUpperCase();
-/*        int unneededUnderscore = re.lastIndexOf("_");
-        StringBuilder sb2 = new StringBuilder(re);
-        sb2.deleteCharAt(unneededUnderscore);
-        String colorString = sb2.toString();*/
         try {
             color = ChatColor.valueOf(re);
             return color;
         } catch (IllegalArgumentException ex) {
              return null;
         }
+    }
+
+    public static boolean containsMat(List<Node> list, Material mat) {
+        for (Node x : list) {
+            if (x.getMaterial() == mat) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean containsColor(List<Node> list, ChatColor color) {
+        for (Node x : list) {
+            if (x.getColor() == color) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static Node getNodeByMaterial(List<Node> list, Material mat) {
+        for (Node x : list) {
+            if (x.getMaterial() == mat) {
+                return x;
+            }
+        }
+        return null;
     }
 
     @Override

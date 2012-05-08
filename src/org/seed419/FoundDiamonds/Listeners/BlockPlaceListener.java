@@ -31,7 +31,6 @@ public class BlockPlaceListener implements Listener {
             if (x.getMaterial() == event.getBlockPlaced().getType()) {
                 fd.addToPlacedBlocks(event.getBlock().getLocation());
             }
-            //event.getPlayer().sendMessage("Block placed: " + event.getBlock().getType().name() + " X:"+ event.getBlock().getX() + " Y:" + event.getBlock().getY() + " Z:" + event.getBlock().getZ());
         }
     }
 }

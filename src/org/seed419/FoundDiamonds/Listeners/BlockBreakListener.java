@@ -32,7 +32,6 @@ public class BlockBreakListener implements Listener  {
     private List<Block> checkedBlocks;
     private List<Player> recievedAdminMessage = new LinkedList<Player>();
     private boolean consoleRecieved;
-    private boolean debug = false;
 
 
     public BlockBreakListener(FoundDiamonds instance) {
@@ -47,85 +46,6 @@ public class BlockBreakListener implements Listener  {
      */
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
-
-        //Check for debug mode
-        debug = fd.getConfig().getBoolean(Config.debug);
-
-        //Prevent mcMMO's superbreaker from re-announcing.
-        if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) {
-            return;
-        }
-
-        Block block = event.getBlock();
-        Material mat = block.getType();
-        Player player = event.getPlayer();
-
-        //Check for trap block first, as it can be any block
-        if (isTrapBlock(block)) {
-            handleTrapBlock(player, block, event);
-            return;
-        }
-
-        //Awesome psychoactive mushroom feature
-        if (fd.getConfig().getBoolean(Config.mushrooms)) {
-            if (mat == Material.RED_MUSHROOM || mat == Material.BROWN_MUSHROOM) {
-                int randomInt = (int) (Math.random()*100);
-                if (randomInt <= 3) {
-                    for (Player x : fd.getServer().getOnlinePlayers()) {
-                        if (x != player) {
-                            x.sendMessage(FoundDiamonds.getPrefix() + " " + player.getDisplayName() +
-                                    ChatColor.DARK_GREEN + " had a few too many shrooms.");
-                        }
-                    }
-                    log.info(FoundDiamonds.getLoggerPrefix() + " " + player.getName() + " had a few too many shrooms.");
-                    int randomSpeed = (int) (Math.random()*50);
-                    int randomJump = (int) (Math.random()*10);
-                    int randomConfusion = (int) (Math.random()*50);
-                    int randomBlindness = (int) (Math.random()*50);
-                    player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_GREEN + " That mushroom appears to" +
-                            " cause psychoactive effects.");
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 1000, randomConfusion));
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1000, randomSpeed));
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 1000, randomJump));
-                    if (randomInt == 5) {
-                        player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 1000, randomBlindness));
-                    }
-                    fd.getJumpPotion().put(player, Boolean.TRUE);
-                    return;
-                }
-            }
-        }
-
-
-        //Check to see if the block is broadcastable, and create a variable for the event;
-        EventInformation ei = null;
-        for (Node x : fd.getBroadcastedBlocks()) {
-            if (x.getMaterial() == mat) {
-                ei = new EventInformation(x.getMaterial(), x.getColor());
-                ei.setLocation(block.getLocation());
-                ei.setTotal(getTotalBlocks(block));
-                ei.setBlock(block);
-                ei.setPlayer(player);
-                ei.setEvent(event);
-            }
-        }
-
-        //If it isn't, return.
-        //TODO big problem...
-        if (ei == null) {
-            if (debug) {
-                log.info(FoundDiamonds.getDebugPrefix() + " Block not broadcasted.");
-            }
-            return;
-        }
-
-        //Prevent mcMMO's superbreaker from re-announcing.
-        if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) {
-            if (debug) {
-                log.info(FoundDiamonds.getDebugPrefix() + " Detected mcMMO superbreaker.  Cancelling.");
-            }
-            return;
-        }
 
         //Check to see if the block is a light level block.
         if (fd.getLightLevelBlocks().contains(mat))

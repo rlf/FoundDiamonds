@@ -888,7 +888,7 @@ public class FoundDiamonds extends JavaPlugin {
             for (int i=2;i<args.length;i++) {
                 sb.append(args[i]).append(" ");
             }
-            Node block = Node.parseConfigBlock(sb.toString().trim());
+            Node block = Node.parseNode(sb.toString().trim());
             if (block != null) {
                 if (!isDuplicate(block.getMaterial())) {
                     list.add(block);

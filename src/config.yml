@@ -18,7 +18,6 @@ Found Diamonds Configuration:
       Random Item 2: 263
       Random Item 3: 340
     Spells:
-      Psychoactive mushrooms: true
       Random spells for finding diamonds: true
       Spell strength (1-5): 3
       Percent of time spells are casted: 100

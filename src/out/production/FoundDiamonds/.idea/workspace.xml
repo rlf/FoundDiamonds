@@ -6,25 +6,7 @@
     </artifacts-to-build>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4eaacb0d-81ab-4179-8bd1-d8eb2c8f70bf" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/org/seed419/FoundDiamonds/Config.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/org/seed419/FoundDiamonds/EventInformation.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/org/seed419/FoundDiamonds/Format.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/org/seed419/FoundDiamonds/Menu.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/org/seed419/FoundDiamonds/Metrics/MetricsLite.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/org/seed419/FoundDiamonds/Node.java" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/org/seed419/FoundDiamonds/BlockInformation.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/org/seed419/FoundDiamonds/Menus.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/org/seed419/FoundDiamonds/YAMLHandler.java" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/org/seed419/FoundDiamonds/BlockBreakListener.java" afterPath="$PROJECT_DIR$/org/seed419/FoundDiamonds/Listeners/BlockBreakListener.java" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/org/seed419/FoundDiamonds/BlockPlaceListener.java" afterPath="$PROJECT_DIR$/org/seed419/FoundDiamonds/Listeners/BlockPlaceListener.java" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/org/seed419/FoundDiamonds/JoinListener.java" afterPath="$PROJECT_DIR$/org/seed419/FoundDiamonds/Listeners/JoinListener.java" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/org/seed419/FoundDiamonds/PlayerDamageListener.java" afterPath="$PROJECT_DIR$/org/seed419/FoundDiamonds/Listeners/PlayerDamageListener.java" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/org/seed419/FoundDiamonds/QuitListener.java" afterPath="$PROJECT_DIR$/org/seed419/FoundDiamonds/Listeners/QuitListener.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/config.yml" afterPath="$PROJECT_DIR$/config.yml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/org/seed419/FoundDiamonds/FoundDiamonds.java" afterPath="$PROJECT_DIR$/org/seed419/FoundDiamonds/FoundDiamonds.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/plugin.yml" afterPath="$PROJECT_DIR$/plugin.yml" />
-    </list>
+    <list default="true" id="4eaacb0d-81ab-4179-8bd1-d8eb2c8f70bf" name="Default" comment="" />
     <ignored path="FoundDiamonds.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -89,18 +71,10 @@
       <file leaf-file-name="FoundDiamonds.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/org/seed419/FoundDiamonds/FoundDiamonds.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="930" column="82" selection-start="39004" selection-end="39004" vertical-scroll-proportion="0.47322404">
+            <state line="875" column="51" selection-start="35769" selection-end="35769" vertical-scroll-proportion="0.21311475">
               <folding>
                 <element signature="e#3480#3486#0" expanded="true" />
                 <element signature="e#3552#3558#0" expanded="true" />
-                <element signature="e#3955#3971#0" expanded="true" />
-                <element signature="e#15431#15461#1" expanded="true" />
-                <element signature="e#17681#17732#0" expanded="true" />
-                <element signature="e#21620#21671#0" expanded="true" />
-                <element signature="e#30854#30905#0" expanded="true" />
-                <element signature="e#31022#31073#0" expanded="true" />
-                <element signature="e#31354#31405#0" expanded="true" />
-                <element signature="e#32592#32622#1" expanded="true" />
                 <element signature="e#34723#34731#0" expanded="true" />
               </folding>
             </state>
@@ -138,9 +112,7 @@
         <entry file="file://$PROJECT_DIR$/org/seed419/FoundDiamonds/Listeners/BlockBreakListener.java">
           <provider selected="true" editor-type-id="text-editor">
             <state line="90" column="50" selection-start="3597" selection-end="3597" vertical-scroll-proportion="0.0">
-              <folding>
-                <element signature="e#18873#18905#0" expanded="true" />
-              </folding>
+              <folding />
             </state>
           </provider>
         </entry>
@@ -260,6 +232,20 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="PackagesPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="FoundDiamonds" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="FoundDiamonds" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
       <pane id="Scope">
         <subPane subId="Project Files">
           <PATH>
@@ -306,38 +292,6 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="FoundDiamonds" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="FoundDiamonds" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Listeners" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-        </subPane>
-      </pane>
-      <pane id="PackagesPane">
-        <subPane>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="FoundDiamonds" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="FoundDiamonds" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
-            </PATH_ELEMENT>
-          </PATH>
         </subPane>
       </pane>
     </panes>
@@ -381,24 +335,6 @@
         <option name="Maven.BeforeRunTask" enabled="false" />
       </method>
     </configuration>
-    <configuration default="true" type="Applet" factoryName="Applet">
-      <module name="" />
-      <option name="MAIN_CLASS_NAME" />
-      <option name="HTML_FILE_NAME" />
-      <option name="HTML_USED" value="false" />
-      <option name="WIDTH" value="400" />
-      <option name="HEIGHT" value="300" />
-      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
-      <option name="VM_PARAMETERS" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <method>
-        <option name="AntTarget" enabled="false" />
-        <option name="BuildArtifacts" enabled="false" />
-        <option name="Make" enabled="true" />
-        <option name="Maven.BeforeRunTask" enabled="false" />
-      </method>
-    </configuration>
     <configuration default="true" type="TestNG" factoryName="TestNG">
       <module name="" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
@@ -424,6 +360,24 @@
       <envs />
       <properties />
       <listeners />
+      <method>
+        <option name="AntTarget" enabled="false" />
+        <option name="BuildArtifacts" enabled="false" />
+        <option name="Make" enabled="true" />
+        <option name="Maven.BeforeRunTask" enabled="false" />
+      </method>
+    </configuration>
+    <configuration default="true" type="Applet" factoryName="Applet">
+      <module name="" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="HTML_FILE_NAME" />
+      <option name="HTML_USED" value="false" />
+      <option name="WIDTH" value="400" />
+      <option name="HEIGHT" value="300" />
+      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
+      <option name="VM_PARAMETERS" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
       <method>
         <option name="AntTarget" enabled="false" />
         <option name="BuildArtifacts" enabled="false" />
@@ -512,25 +466,25 @@
     <frame x="1280" y="0" width="1920" height="1054" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Documentation" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="FLOATING" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" x="1380" y="100" width="1720" height="854" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32967034" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="JetGradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32837406" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32731137" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.025504783" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39957264" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.14635417" sideWeight="0.6726886" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.14479166" sideWeight="0.6726886" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Documentation" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="FLOATING" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" x="1380" y="100" width="1720" height="854" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32837406" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.025504783" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32969433" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.67058825" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -625,78 +579,52 @@
         <state line="3" column="5" selection-start="99" selection-end="99" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/org/seed419/FoundDiamonds/Listeners/BlockPlaceListener.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="35" column="5" selection-start="1139" selection-end="1139" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org/seed419/FoundDiamonds/Listeners/JoinListener.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="20" column="0" selection-start="466" selection-end="466" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org/seed419/FoundDiamonds/Format.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="234" column="35" selection-start="7530" selection-end="7530" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org/seed419/FoundDiamonds/Listeners/BlockBreakListener.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="90" column="50" selection-start="3597" selection-end="3597" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="e#18873#18905#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/org/seed419/FoundDiamonds/Node.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="59" column="5" selection-start="1480" selection-end="1480" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="59" column="5" selection-start="1480" selection-end="1480" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/org/seed419/FoundDiamonds/Menu.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="134" column="165" selection-start="9866" selection-end="9866" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="134" column="165" selection-start="9866" selection-end="9866" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org/seed419/FoundDiamonds/Format.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="234" column="35" selection-start="7530" selection-end="7530" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org/seed419/FoundDiamonds/Listeners/BlockBreakListener.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="90" column="50" selection-start="3597" selection-end="3597" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/org/seed419/FoundDiamonds/Config.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="53" column="97" selection-start="3097" selection-end="3097" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="53" column="97" selection-start="3097" selection-end="3097" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org/seed419/FoundDiamonds/Listeners/JoinListener.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="20" column="0" selection-start="466" selection-end="466" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org/seed419/FoundDiamonds/Listeners/BlockPlaceListener.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="35" column="5" selection-start="1139" selection-end="1139" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/config.yml">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="49" column="73" selection-start="1614" selection-end="1614" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="49" column="73" selection-start="1614" selection-end="1614" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/org/seed419/FoundDiamonds/FoundDiamonds.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="930" column="82" selection-start="39004" selection-end="39004" vertical-scroll-proportion="0.47322404">
+        <state line="875" column="51" selection-start="35769" selection-end="35769" vertical-scroll-proportion="0.21311475">
           <folding>
             <element signature="e#3480#3486#0" expanded="true" />
             <element signature="e#3552#3558#0" expanded="true" />
-            <element signature="e#3955#3971#0" expanded="true" />
-            <element signature="e#15431#15461#1" expanded="true" />
-            <element signature="e#17681#17732#0" expanded="true" />
-            <element signature="e#21620#21671#0" expanded="true" />
-            <element signature="e#30854#30905#0" expanded="true" />
-            <element signature="e#31022#31073#0" expanded="true" />
-            <element signature="e#31354#31405#0" expanded="true" />
-            <element signature="e#32592#32622#1" expanded="true" />
             <element signature="e#34723#34731#0" expanded="true" />
           </folding>
         </state>
