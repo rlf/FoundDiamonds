@@ -92,8 +92,8 @@ public class FoundDiamonds extends JavaPlugin {
     private final List<Node> adminMessageBlocks = new LinkedList<Node>();
     private final List<Node> lightLevelBlocks = new LinkedList<Node>();
     private final List<Location> trapBlocks = new LinkedList<Location>();
-    private final List<Location> announcedBlocks = new LinkedList<Location>();
-    private final List<Location> placedBlocks = new LinkedList<Location>();
+    private static final List<Location> announcedBlocks = new LinkedList<Location>();
+    private static final List<Location> placedBlocks = new LinkedList<Location>();
     private final HashMap<Player, Boolean> adminMessagePlayers = new HashMap<Player, Boolean>();
     private final HashMap<Player, Boolean> jumpPotion = new HashMap<Player,Boolean>();
     private final static Logger log = Logger.getLogger("FoundDiamonds");
@@ -733,12 +733,12 @@ public class FoundDiamonds extends JavaPlugin {
     /*
      * Placed blocks
      */
-    public void addToPlacedBlocks(Location w) {
+    public static void addToPlacedBlocks(Location w) {
         placedBlocks.add(w);
     }
 
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
-    public List<Location> getPlacedBlocks() {
+    public static List<Location> getPlacedBlocks() {
         return placedBlocks;
     }
 
@@ -749,8 +749,12 @@ public class FoundDiamonds extends JavaPlugin {
      * Misc
      */
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
-    public List<Location> getAnnouncedBlocks() {
+    public static List<Location> getAnnouncedBlocks() {
         return announcedBlocks;
+    }
+
+    public static boolean isRedstone(Block m) {
+        return (m.getType() == Material.REDSTONE_ORE || m.getType() == Material.GLOWING_REDSTONE_ORE);
     }
 
     public boolean hasPerms(Player player, String permission) {
@@ -812,6 +816,7 @@ public class FoundDiamonds extends JavaPlugin {
         } else {
             @SuppressWarnings("unchecked")
             List<String> blocks = (List<String>) getVersatileList(Config.broadcastedBlocks);
+            //TODO the logging statement
             log.severe(getLoggerPrefix() + " Size of block list = " + blocks.size());
             for (Iterator<String> it = blocks.iterator(); it.hasNext();) {
                 String x = it.next();
@@ -830,7 +835,7 @@ public class FoundDiamonds extends JavaPlugin {
                             // TODO look at the color section here...
                             //ChatColor color = BlockColor.getBlockColor(matchAttempt);
                             //System.out.println("Adding " + matchAttempt.name() + " " + color.name());
-                            if (!isDuplicate(matchAttempt)) {
+                            if (Node.containsMat(broadcastedBlocks, matchAttempt)) {
                                 broadcastedBlocks.add(new Node(matchAttempt,color));
                             }
                         } catch (Exception ex) {
@@ -857,15 +862,6 @@ public class FoundDiamonds extends JavaPlugin {
         this.saveConfig();
     }
 
-    public boolean isDuplicate(Material mat) {
-        for (Node x : broadcastedBlocks) {
-            if (mat == x.getMaterial()) {
-                return true;
-            }
-        }
-        return  false;
-    }
-
     public void loadDefaults() {
         broadcastedBlocks.add(new Node(Material.DIAMOND_ORE, ChatColor.AQUA));
         broadcastedBlocks.add(new Node(Material.GOLD_ORE, ChatColor.GOLD));
@@ -890,7 +886,7 @@ public class FoundDiamonds extends JavaPlugin {
             }
             Node block = Node.parseNode(sb.toString().trim());
             if (block != null) {
-                if (!isDuplicate(block.getMaterial())) {
+                if (!Node.containsMat(list, block.getMaterial())) {
                     list.add(block);
                     //TODO just save the list?
                     //addNodeToConfig(block, configString);
