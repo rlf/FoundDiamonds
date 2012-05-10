@@ -241,6 +241,66 @@ public class Menu {
 
 
 
+
+    /*List menu handlers*/
+    public static void handleBcMenu(FoundDiamonds fd, CommandSender sender, String[] args) {
+        if (args.length == 1) {
+            Menu.showBcMenu(sender);
+        } else if (args.length > 1) {
+            if (args[1].equalsIgnoreCase("list")) {
+                sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Broadcasted Blocks]");
+                ListHandler.handleListingList(sender, ListHandler.getBroadcastedBlocks());
+            } else if (args[1].equalsIgnoreCase("add")) {
+                if (args.length == 2) {
+                    sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Format: /fd add bc item:color ex: coal ore:dark gray");
+                    sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Color is an optional argument.  If color is left out");
+                    sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " FD will attempt to pick a color for you. ex: obsidian");
+                }
+                ListHandler.handleAddToList(sender, args, ListHandler.getBroadcastedBlocks(), Config.broadcastedBlocks);
+            } else if (args[1].equalsIgnoreCase("remove")) {
+                ListHandler.handleRemoveFromList(sender, args, ListHandler.getBroadcastedBlocks(), Config.broadcastedBlocks);
+            } else {
+                sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
+            }
+        }
+    }
+
+    public static void handleAdminMenu(FoundDiamonds fd, CommandSender sender, String[] args) {
+        if (args.length == 1) {
+            Menu.showAdminMenu(sender);
+        } else if (args.length > 1) {
+            if (args[1].equalsIgnoreCase("list")) {
+                sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Admin Message Blocks]");
+                ListHandler.handleListingList(sender, ListHandler.getAdminMessageBlocks());
+            } else if (args[1].equalsIgnoreCase("add")) {
+                ListHandler.handleAddToList(sender, args, ListHandler.getAdminMessageBlocks(), Config.adminMessageBlocks);
+            } else if (args[1].equalsIgnoreCase("remove")) {
+                ListHandler.handleRemoveFromList(sender, args, ListHandler.getAdminMessageBlocks(), Config.adminMessageBlocks);
+            } else {
+                sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
+            }
+        }
+    }
+
+    public static void handleLightMenu(FoundDiamonds fd, CommandSender sender, String[] args) {
+        if (args.length == 1) {
+            Menu.showLightMenu(sender);
+        } else if (args.length > 1) {
+            if (args[1].equalsIgnoreCase("list")) {
+                sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Light-Monitored Blocks]");
+                ListHandler.handleListingList(sender, ListHandler.getLightLevelBlocks());
+            } else if (args[1].equalsIgnoreCase("add")) {
+                ListHandler.handleAddToList(sender, args, ListHandler.getLightLevelBlocks(), Config.lightLevelBlocks);
+            } else if (args[1].equalsIgnoreCase("remove")) {
+                ListHandler.handleRemoveFromList(sender, args, ListHandler.getLightLevelBlocks(), Config.lightLevelBlocks);
+            } else {
+                sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
+            }
+        }
+    }
+
+
+
     //Menu helpers
     private static String getPrettyMenuBoolean(Boolean b) {
         return (b ? ChatColor.DARK_GREEN + "[On]" : ChatColor.DARK_RED + "[Off]");

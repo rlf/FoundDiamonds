@@ -8,6 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.seed419.FoundDiamonds.ListHandler;
 import org.seed419.FoundDiamonds.Node;
 import org.seed419.FoundDiamonds.FoundDiamonds;
 
@@ -27,7 +28,7 @@ public class BlockPlaceListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        for (Node x : fd.getBroadcastedBlocks()) {
+        for (Node x : ListHandler.getBroadcastedBlocks()) {
             if (x.getMaterial() == event.getBlockPlaced().getType()) {
                 fd.addToPlacedBlocks(event.getBlock().getLocation());
             }

@@ -1,11 +1,5 @@
 package org.seed419.FoundDiamonds;
 
-import java.io.*;
-import java.text.MessageFormat;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -20,6 +14,12 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.seed419.FoundDiamonds.Listeners.*;
 import org.seed419.FoundDiamonds.Metrics.MetricsLite;
+
+import java.io.*;
+import java.text.MessageFormat;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /* TODO
 * AdminMap memory?
@@ -88,23 +88,21 @@ public class FoundDiamonds extends JavaPlugin {
     private final static String adminPrefix = ChatColor.RED + "[FD Admin]" + ChatColor.YELLOW;
     private final static String debugPrefix = "[FD Debug] ";
     private final static String loggerPrefix = "[FoundDiamonds]";
-    private List<Node> broadcastedBlocks = new LinkedList<Node>();
-    private final List<Node> adminMessageBlocks = new LinkedList<Node>();
-    private final List<Node> lightLevelBlocks = new LinkedList<Node>();
     private final List<Location> trapBlocks = new LinkedList<Location>();
     private static final List<Location> announcedBlocks = new LinkedList<Location>();
     private static final List<Location> placedBlocks = new LinkedList<Location>();
     private final HashMap<Player, Boolean> adminMessagePlayers = new HashMap<Player, Boolean>();
     private final HashMap<Player, Boolean> jumpPotion = new HashMap<Player,Boolean>();
     private final static Logger log = Logger.getLogger("FoundDiamonds");
-    private BlockBreakListener breakListener;
-    private BlockPlaceListener placeListener;
-    private Config config;
-    private JoinListener join;
-    private QuitListener quit;
-    private PlayerDamageListener damage;
-    private static String pluginName ;
-    private PluginDescriptionFile pdf;
+    private final BlockBreakListener breakListener = new BlockBreakListener(this);
+    private final BlockPlaceListener placeListener = new BlockPlaceListener(this);
+    private final ListHandler lh = new ListHandler(this);
+    private final Config config = new Config(this);
+    private final JoinListener join = new JoinListener(this);
+    private final QuitListener quit = new QuitListener(this);
+    private final PlayerDamageListener damage = new PlayerDamageListener(this);
+    private final WorldManager wm = new WorldManager(this);
+    private String pluginName;
     private boolean printed = false;
     private final static int togglePages = 2;
     private final static int configPages = 2;
@@ -112,27 +110,28 @@ public class FoundDiamonds extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        config = new Config(this);
 
+        if (configFile.exists()) {
+            System.out.println("Config file exists!");
+        } else {
+            System.out.println("Config file doesn't exist.");
+        }
         checkFiles();
-        checkWorlds();
-        loadBroadcastedBlocksFromConfig();
+        wm.checkWorlds();
 
-        join = new JoinListener(this);
-        quit = new QuitListener(this);
-        breakListener = new BlockBreakListener(this);
-        placeListener = new BlockPlaceListener(this);
-        damage = new PlayerDamageListener(this);
+        /*Load the new lists*/
+        lh.loadAllBlocks();
 
-	    PluginManager pm = getServer().getPluginManager();
+        /*Register events*/
+        final PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(this.breakListener, this);
         pm.registerEvents(this.join, this);
         pm.registerEvents(this.quit, this);
         pm.registerEvents(this.placeListener, this);
         pm.registerEvents(damage, this);
 
-	    pdf = this.getDescription();
-	    pluginName = pdf.getName();
+	    final PluginDescriptionFile pdf = this.getDescription();
+        pluginName = pdf.getName();
 
         startMetrics();
 
@@ -141,7 +140,7 @@ public class FoundDiamonds extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        broadcastedBlocks = null;
+        saveLists();
 
         log.info(MessageFormat.format("[{0}] Saving all data...", pluginName));
         String info = "This file stores your trap block locations.";
@@ -184,24 +183,24 @@ public class FoundDiamonds extends JavaPlugin {
                     if (sender instanceof Player) {
                         if (hasPerms(player, "fd.manage.admin.add") || hasPerms(player, "fd.manage.admin.remove")
                                 || hasPerms(player, "fd.manage.admin.list")) {
-                            handleAdminMenu(sender, args);
+                            Menu.handleAdminMenu(this, sender, args);
                         } else {
                             sendPermissionsMessage(player);
                         }
                     } else {
-                        handleAdminMenu(sender, args);
+                        Menu.handleAdminMenu(this, sender, args);
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("bc")) {
                     if (sender instanceof Player) {
                         if (hasPerms(player, "fd.manage.bc.add") || hasPerms(player, "fd.manage.bc.remove")
                                 || hasPerms(player, "fd.manage.bc.list")) {
-                            handleBcMenu(sender, args);
+                            Menu.handleBcMenu(this, sender, args);
                         } else {
                             sendPermissionsMessage(player);
                         }
                     } else {
-                        handleBcMenu(sender, args);
+                        Menu.handleBcMenu(this, sender, args);
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("config")) {
@@ -222,12 +221,12 @@ public class FoundDiamonds extends JavaPlugin {
                     if (sender instanceof Player) {
                         if (hasPerms(player, "fd.manage.light.add") || hasPerms(player, "fd.manage.light.remove")
                                 || hasPerms(player, "fd.manage.light.list")) {
-                            handleLightMenu(sender, args);
+                            Menu.handleLightMenu(this, sender, args);
                         } else {
                             sendPermissionsMessage(player);
                         }
                     } else {
-                        handleLightMenu(sender, args);
+                        Menu.handleLightMenu(this, sender, args);
                     }
                     return true;
                } else if (arg.equalsIgnoreCase("reload")) {
@@ -284,7 +283,7 @@ public class FoundDiamonds extends JavaPlugin {
                 } else if (arg.equalsIgnoreCase("world")) {
                     if (sender instanceof Player) {
                         if (hasPerms(player, "fd.world")) {
-                            handleWorldMenu(sender, args);
+                            wm.handleWorldMenu(sender, args);
                         } else {
                             sendPermissionsMessage(player);
                         }
@@ -304,124 +303,12 @@ public class FoundDiamonds extends JavaPlugin {
 
 
     /*
-     * World handlers
-     */
-    private void handleWorldMenu(CommandSender sender, String[] args) {
-        if (args.length == 1) {
-            Menu.showWorldMenu(sender);
-        } else if (args.length >= 2) {
-            if (args[1].equalsIgnoreCase("list")) {
-                if (args.length == 2) {
-                    printEnabledWorlds(sender);
-                } else {
-                    sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Usage: /fd world list");
-                }
-            } else if (args[1].equalsIgnoreCase("add")) {
-                if (args.length == 3) {
-                    String worldName = args[2];
-                    validateWorld(sender, worldName);
-                } else if (args.length == 4) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(args[2]);
-                    sb.append(" ");
-                    sb.append(args[3]);
-                    String worldName = sb.toString();
-                    validateWorld(sender, worldName);
-                } else {
-                    sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Usage: /fd world add <worldname>");
-                }
-            } else if (args[1].equalsIgnoreCase("remove")) {
-                if (getConfig().getStringList(Config.enabledWorlds).contains(args[2])) {
-                    List<?> worldList = getConfig().getList(Config.enabledWorlds);
-                    worldList.remove(args[2]);
-                    getConfig().set(Config.enabledWorlds, worldList);
-                    sender.sendMessage(getPrefix() + ChatColor.AQUA + " World '" + args[2] +"' removed.");
-                    saveConfig();
-                } else {
-                    sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " World '" + args[2] +"' isn't an enabled world.");
-                }
-            } else {
-                sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Unrecognized command.  See /fd world");
-            }
-        }
-    }
-
-    private void validateWorld(CommandSender sender, String worldName) {
-        List<World> temp = getServer().getWorlds();
-        for (World w : temp) {
-            if (w.getName().equals(worldName)) {
-                @SuppressWarnings("unchecked")
-                Collection<String> worldList = (Collection<String>) getConfig().getList(Config.enabledWorlds);
-                if (!worldList.contains(worldName)) {
-                    worldList.add(worldName);
-                    getConfig().set(Config.enabledWorlds, worldList);
-                    sender.sendMessage(getPrefix() + ChatColor.AQUA + " World '" + worldName + "' added.");
-                    saveConfig();
-                    return;
-                } else {
-                    sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " That world is already enabled.");
-                    return;
-                }
-            }
-        }
-        sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Couldn't find a world with the name '" + worldName + "'");
-    }
-
-    private void printEnabledWorlds(CommandSender sender) {
-        sender.sendMessage(getPrefix() + ChatColor.AQUA + " [Enabled Worlds]");
-        for (Iterator<String> it = getConfig().getStringList(Config.enabledWorlds).iterator(); it.hasNext();) {
-            String x = it.next();
-            sender.sendMessage("    - " + x);
-        }
-    }
-
-    private void checkWorlds() {
-        if (getConfig().getList(Config.enabledWorlds) == null) {
-            addAllWorlds();
-        }
-    }
-
-    private void addAllWorlds() {
-        List<World> worldList = getServer().getWorlds();
-        List<String> worldNames = new LinkedList<String>();
-        for (World w : worldList) {
-            if (!w.getName().equalsIgnoreCase("world_nether") && !w.getName().equalsIgnoreCase("world_the_end")) {
-                worldNames.add(w.getName());
-            }
-        }
-        getConfig().set(Config.enabledWorlds, worldNames);
-        saveConfig();
-    }
-
-
-
-
-    /*
-     * Admin Messages
-     */
-    private void reloadAdminMessageMap(Player player) {
-        if ((adminMessagePlayers.containsKey(player)) && adminMessagePlayers.get(player)) {
-            adminMessagePlayers.put(player, false);
-        } else if ((adminMessagePlayers.containsKey(player)) && (!adminMessagePlayers.get(player))) {
-            adminMessagePlayers.put(player, true);
-        } else {
-            adminMessagePlayers.put(player, true);
-        }
-    }
-
-    @SuppressWarnings("ReturnOfCollectionOrArrayField")
-    public HashMap<Player,Boolean> getAdminMessageMap() {
-        return adminMessagePlayers;
-    }
-
-
-
-
-    /*
      * Configuration File
      */
     public void loadYaml() {
         try {
+            System.out.println("printing path now.");
+            System.out.println("path: " + getConfig().getCurrentPath());
             getConfig().options().copyDefaults(true);
             getConfig().load(configFile);
         } catch (FileNotFoundException ex) {
@@ -599,9 +486,11 @@ public class FoundDiamonds extends JavaPlugin {
              readBlocksFromFile(placed, placedBlocks);
          }
          if (!configFile.exists()) {
+             System.out.println("doesn't exist");
              config.load();
-             addAllWorlds();
+             wm.addAllWorlds();
          } else {
+             System.out.println("loading yaml");
              loadYaml();
          }
          if (getConfig().getBoolean(Config.cleanLog)) {
@@ -611,6 +500,10 @@ public class FoundDiamonds extends JavaPlugin {
                  Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Couldn't create clean log file, ", ex);
              }
          }
+    }
+
+    private void saveLists() {
+
     }
 
     public File getLogFile() {
@@ -629,24 +522,6 @@ public class FoundDiamonds extends JavaPlugin {
                 Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Couldn't close a stream, ", ex);
             }
         }
-    }
-
-
-
-
-    /*
-     * Enabled block handlers
-     */
-    public List<Node> getBroadcastedBlocks() {
-        return Collections.unmodifiableList(broadcastedBlocks);
-    }
-
-    public List<Node> getAdminMessageBlocks() {
-        return Collections.unmodifiableList(adminMessageBlocks);
-    }
-
-    public List<Node> getLightLevelBlocks() {
-        return Collections.unmodifiableList(lightLevelBlocks);
     }
 
 
@@ -700,9 +575,9 @@ public class FoundDiamonds extends JavaPlugin {
             getConfig().set(Config.cleanLog, !getConfig().getBoolean(Config.cleanLog));
             if (!cleanLog.exists()) {
                 try {
-                    cleanLog.createNewFile();
-                    sender.sendMessage(getPrefix() + ChatColor.DARK_GREEN +" Cleanlog created.");
-                } catch (IOException ex) {
+                    boolean successful = cleanLog.createNewFile();
+                    if (successful) {sender.sendMessage(getPrefix() + ChatColor.DARK_GREEN +" Cleanlog created.");}
+                    } catch (IOException ex) {
                     sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Uh-oh...couldn't create CleanLog.txt");
                     Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Failed to create CleanLog file.", ex);
                 }
@@ -779,6 +654,10 @@ public class FoundDiamonds extends JavaPlugin {
         log.warning( player.getName() + " was denied access to a command.");
     }
 
+    public Logger getLog() {
+        return log;
+    }
+
 
 
     /*
@@ -801,228 +680,6 @@ public class FoundDiamonds extends JavaPlugin {
     }
 
 
-
-
-    /*
-     * Versatile lists
-     */
-    public List<?> getVersatileList(String configLoc) {
-        return Collections.unmodifiableList(getConfig().getList(configLoc));
-    }
-
-    private void loadBroadcastedBlocksFromConfig() {
-        if (getConfig().getList(Config.broadcastedBlocks) == null) {
-            loadDefaults();
-        } else {
-            @SuppressWarnings("unchecked")
-            List<String> blocks = (List<String>) getVersatileList(Config.broadcastedBlocks);
-            //TODO the logging statement
-            log.severe(getLoggerPrefix() + " Size of block list = " + blocks.size());
-            for (Iterator<String> it = blocks.iterator(); it.hasNext();) {
-                String x = it.next();
-                String[] bi = x.split(":");
-                Material matchAttempt= null;
-                try {
-                    matchAttempt = Material.matchMaterial(bi[0]);
-                } catch (Exception ex) {
-                    log.severe(getLoggerPrefix() + " Unable to match material '" + bi[0] + "'");
-                }
-                if (matchAttempt != null) {
-                    if (matchAttempt.isBlock()) {
-                        try {
-                            String re = bi[1].replace(" ","_").toUpperCase();
-                            ChatColor color = ChatColor.valueOf(re);
-                            // TODO look at the color section here...
-                            //ChatColor color = BlockColor.getBlockColor(matchAttempt);
-                            //System.out.println("Adding " + matchAttempt.name() + " " + color.name());
-                            if (Node.containsMat(broadcastedBlocks, matchAttempt)) {
-                                broadcastedBlocks.add(new Node(matchAttempt,color));
-                            }
-                        } catch (Exception ex) {
-                            log.severe(getLoggerPrefix() + " Unable to match color '" + bi[1] +"'");
-                        }
-
-                    } else {
-                        log.warning(getLoggerPrefix() + " Unable to add " + x + " because it is not a block!");
-                    }
-                } else {
-                    log.warning(getLoggerPrefix() + " Unable to add " + x + ".  Unrecognized block.  See bukkit material enum for valid block names.");
-                }
-            }
-            writeListToConfig(broadcastedBlocks, Config.broadcastedBlocks);
-        }
-    }
-
-    public void writeListToConfig(List<Node> list, String configLoc) {
-        LinkedList<String> tempList = new LinkedList<String>();
-        for (Node x : list) {
-            tempList.add(x.getMaterial().name().toLowerCase().replace("_", " ") + ":" + x.getColor().name().toLowerCase().replace("_", " "));
-        }
-        getConfig().set(configLoc, tempList);
-        this.saveConfig();
-    }
-
-    public void loadDefaults() {
-        broadcastedBlocks.add(new Node(Material.DIAMOND_ORE, ChatColor.AQUA));
-        broadcastedBlocks.add(new Node(Material.GOLD_ORE, ChatColor.GOLD));
-        broadcastedBlocks.add(new Node(Material.LAPIS_ORE, ChatColor.BLUE));
-        broadcastedBlocks.add(new Node(Material.IRON_ORE, ChatColor.GRAY));
-        broadcastedBlocks.add(new Node(Material.COAL_ORE, ChatColor.DARK_GRAY));
-        broadcastedBlocks.add(new Node(Material.REDSTONE_ORE, ChatColor.DARK_RED));
-        broadcastedBlocks.add(new Node(Material.GLOWING_REDSTONE_ORE, ChatColor.DARK_RED));
-        writeListToConfig(broadcastedBlocks, Config.broadcastedBlocks);
-    }
-
-    //TODO make this work with all 3 lists?
-    public void handleAddToList(CommandSender sender, String[] args, List<Node> list, String configString) {
-        if (args.length == 2) {
-            sender.sendMessage(getPrefix() + ChatColor.RED + " Format is: item:color");
-            sender.sendMessage(ChatColor.RED + " Color is an optional argument.");
-            sender.sendMessage(ChatColor.RED + " Ex: sugar cane block:dark green");
-        } else if (args.length >= 3) {
-            StringBuilder sb = new StringBuilder();
-            for (int i=2;i<args.length;i++) {
-                sb.append(args[i]).append(" ");
-            }
-            Node block = Node.parseNode(sb.toString().trim());
-            if (block != null) {
-                if (!Node.containsMat(list, block.getMaterial())) {
-                    list.add(block);
-                    //TODO just save the list?
-                    //addNodeToConfig(block, configString);
-                    sender.sendMessage(getPrefix() + ChatColor.AQUA + " Added " + block.getColor()
-                            + Format.material(block.getMaterial()));
-                    writeListToConfig(list, configString);
-                } else {
-                    removeMaterialFromList(block.getMaterial(), list, configString);
-                    list.add(block);
-                    sender.sendMessage(getPrefix() + ChatColor.AQUA + " Updated " + block.getColor()
-                            + Format.material(block.getMaterial()));
-                    writeListToConfig(list, configString);
-                }
-            } else {
-                sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Unable to add block.  Please check your format.");
-            }
-        }
-    }
-
-    public void handleRemoveFromList(CommandSender sender, String[] args, List<Node> list, String configString) {
-        if (args.length == 2) {
-            sender.sendMessage(getPrefix() + ChatColor.RED + " Simply type the name of the block you want to remove");
-            sender.sendMessage(getPrefix() + ChatColor.RED + " It unfortunely must match bukkit's material enum");
-            sender.sendMessage(getPrefix() + ChatColor.RED + " If this is really buggy, please ask SeeD419 for help!");
-        } else if (args.length > 2) {
-            StringBuilder sb = new StringBuilder();
-            log.severe(getLoggerPrefix() + " Size of block list = " + list.size());
-            for (int i = 2; i < args.length; i++) {
-                sb.append(args[i] + " ");
-            }
-            Material matToRemove = Material.matchMaterial(sb.toString().trim());
-            if (matToRemove == null) {
-                sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Unrecognized material");
-            } else {
-                ChatColor color = getNodeColor(matToRemove,  list);
-                if (removeMaterialFromList(matToRemove, list, configString)) {
-                    sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Removed " + color + Format.material(matToRemove));
-                    log.severe(getLoggerPrefix() + " Size of block list = " + list.size());
-                } else {
-                    sender.sendMessage(getPrefix() + " "  + ChatColor.WHITE + Format.material(matToRemove) + ChatColor.DARK_RED + " isn't listed.");
-                }
-            }
-        }
-    }
-
-    public void handleListingList(CommandSender sender, List<Node> list) {
-        for (Node x : list) {
-            sender.sendMessage(x.getColor() + Format.capitalize(Format.material(x.getMaterial())));
-        }
-    }
-
-    public ChatColor getNodeColor(Material mat, List<Node> list) {
-        for (Node x : list) {
-            if (x.getMaterial() == mat) {
-                return x.getColor();
-            }
-        }
-        return null;
-    }
-
-    public boolean removeMaterialFromList(Material mat, List<Node> list, String configString) {
-        for (Node x : list) {
-             if (x.getMaterial() == mat) {
-                 list.remove(x);
-                 writeListToConfig(list, configString);
-                 return true;
-             }
-        }
-        return false;
-    }
-
-
-
-
-    /*
-     * Menu handlers
-     */
-    public void handleBcMenu(CommandSender sender, String[] args) {
-        if (args.length == 1) {
-            Menu.showBcMenu(sender);
-        } else if (args.length > 1) {
-            if (args[1].equalsIgnoreCase("list")) {
-                sender.sendMessage(getPrefix() + ChatColor.AQUA + " [Broadcasted Blocks]");
-                handleListingList(sender, broadcastedBlocks);
-            } else if (args[1].equalsIgnoreCase("add")) {
-                if (args.length == 2) {
-                    sender.sendMessage(getPrefix() + ChatColor.RED + " Format: /fd add bc item:color ex: coal ore:dark gray");
-                    sender.sendMessage(getPrefix() + ChatColor.RED + " Color is an optional argument.  If color is left out");
-                    sender.sendMessage(getPrefix() + ChatColor.RED + " FD will attempt to pick a color for you. ex: obsidian");
-                }
-                handleAddToList(sender, args, broadcastedBlocks, Config.broadcastedBlocks);
-            } else if (args[1].equalsIgnoreCase("remove")) {
-                handleRemoveFromList(sender, args, broadcastedBlocks, Config.broadcastedBlocks);
-            } else {
-                sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
-            }
-        }
-    }
-
-    public void handleAdminMenu(CommandSender sender, String[] args) {
-        if (args.length == 1) {
-            Menu.showAdminMenu(sender);
-        } else if (args.length > 1) {
-            if (args[1].equalsIgnoreCase("list")) {
-                sender.sendMessage(getPrefix() + ChatColor.AQUA + " [Admin Message Blocks]");
-                handleListingList(sender, adminMessageBlocks);
-            } else if (args[1].equalsIgnoreCase("add")) {
-                handleAddToList(sender, args, adminMessageBlocks, Config.adminMessageBlocks);
-            } else if (args[1].equalsIgnoreCase("remove")) {
-                handleRemoveFromList(sender, args, adminMessageBlocks, Config.adminMessageBlocks);
-            } else {
-                sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
-            }
-        }
-    }
-
-    public void handleLightMenu(CommandSender sender, String[] args) {
-        if (args.length == 1) {
-            Menu.showLightMenu(sender);
-        } else if (args.length > 1) {
-            if (args[1].equalsIgnoreCase("list")) {
-                sender.sendMessage(getPrefix() + ChatColor.AQUA + " [Light-Monitored Blocks]");
-                handleListingList(sender, lightLevelBlocks);
-            } else if (args[1].equalsIgnoreCase("add")) {
-                handleAddToList(sender, args, lightLevelBlocks, Config.lightLevelBlocks);
-            } else if (args[1].equalsIgnoreCase("remove")) {
-                handleRemoveFromList(sender, args, lightLevelBlocks, Config.lightLevelBlocks);
-            } else {
-                sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
-            }
-        }
-    }
-
-
-
-
     /*
      * Metrics
      */
@@ -1034,4 +691,26 @@ public class FoundDiamonds extends JavaPlugin {
             //couldn't start metrics :(
         }
     }
+
+
+
+
+    /*
+    * Admin Message Hashmap
+    */
+    private void reloadAdminMessageMap(Player player) {
+        if ((adminMessagePlayers.containsKey(player)) && adminMessagePlayers.get(player)) {
+            adminMessagePlayers.put(player, false);
+        } else if ((adminMessagePlayers.containsKey(player)) && (!adminMessagePlayers.get(player))) {
+            adminMessagePlayers.put(player, true);
+        } else {
+            adminMessagePlayers.put(player, true);
+        }
+    }
+
+    @SuppressWarnings("ReturnOfCollectionOrArrayField")
+    public HashMap<Player,Boolean> getAdminMessageMap() {
+        return adminMessagePlayers;
+    }
+
 }

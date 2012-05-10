@@ -1,16 +1,5 @@
 package org.seed419.FoundDiamonds.Listeners;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.text.DecimalFormat;
-import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -23,6 +12,20 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.seed419.FoundDiamonds.*;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.DecimalFormat;
+import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class BlockBreakListener implements Listener  {
 
@@ -86,7 +89,7 @@ public class BlockBreakListener implements Listener  {
         }
 
         //Check to see if the block's lightlevel is being monitored.  Comes before others to prevent loopholes.
-        Node lightNode = Node.getNodeByMaterial(fd.getLightLevelBlocks(), mat);
+        Node lightNode = Node.getNodeByMaterial(ListHandler.getLightLevelBlocks(), mat);
         if (lightNode != null) {
             EventInformation lightEvent = new EventInformation(event, lightNode);
             if(!isValidLightLevel(lightEvent)) {
@@ -103,14 +106,14 @@ public class BlockBreakListener implements Listener  {
         }
 
         //Check if block is broadcastable
-        Node broadcastNode = Node.getNodeByMaterial(fd.getBroadcastedBlocks(), mat);
+        Node broadcastNode = Node.getNodeByMaterial(ListHandler.getBroadcastedBlocks(), mat);
         if (broadcastNode != null) {
             EventInformation broadcastEvent = new EventInformation(event, broadcastNode);
             handleBroadcast(broadcastEvent);
         }
 
         //Check if block is admin message material
-        Node adminNode = Node.getNodeByMaterial(fd.getAdminMessageBlocks(), mat);
+        Node adminNode = Node.getNodeByMaterial(ListHandler.getAdminMessageBlocks(), mat);
         if (adminNode != null) {
             EventInformation adminEvent = new EventInformation(event, adminNode);
             System.out.println("I would be sending an admin message here.");
@@ -162,7 +165,6 @@ public class BlockBreakListener implements Listener  {
     //TODO needs a new list
     private void isEnabledAdminMessageMaterial(Player player, Material mat, Block block) {
         if (!alreadyAnnounced(block.getLocation())) {
-            if (fd.getAdminMessageBlocks().contains(mat)) {
 //            if ((mat == Material.DIAMOND_ORE && fd.getConfig().getBoolean(config.getDiamondAdmin())) ||
 //                (mat == Material.GOLD_ORE && fd.getConfig().getBoolean(config.getGoldAdmin())) ||
 //                (mat == Material.LAPIS_ORE && fd.getConfig().getBoolean(config.getLapisAdmin())) ||
@@ -172,7 +174,7 @@ public class BlockBreakListener implements Listener  {
                 //sendAdminMessage(player, block);
             }
         }
-    }
+
 
     //Maybe instead of ignoring those with permission fd.messages, use a separate permission for ignoring?
 /*    private void sendAdminMessage(Player player, Block block) {

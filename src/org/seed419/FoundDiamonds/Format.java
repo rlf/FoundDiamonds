@@ -202,6 +202,12 @@ public class Format {
             }
         } else if (mat == Material.COBBLESTONE) {
             matName = "cobblestone";
+        } else if (mat == Material.NETHER_BRICK_STAIRS) {
+            if (total > 1) {
+                matName = "nether brick stairs";
+            } else {
+                matName = "nether brick stair";
+            }
         } else if (mat == Material.SANDSTONE) {
             matName = "sandstone";
         } else {
