@@ -1,6 +1,6 @@
 name: FoundDiamonds
 version: 3.3A
-main: org.seed419.FoundDiamonds.FoundDiamonds
+main: org.seed419.founddiamonds.FoundDiamonds
 author: SeeD419
 website: http://dev.bukkit.org/server-mods/founddiamonds/
 database: false
