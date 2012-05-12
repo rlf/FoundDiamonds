@@ -8,6 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -20,34 +21,50 @@ import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class BlockBreakListener implements Listener  {
+public class BlockListener implements Listener  {
+
 
     private FoundDiamonds fd;
-    private static final Logger log = Logger.getLogger("founddiamonds");
-    private List<Block> blockList;
-    private List<Block> checkedBlocks;
+    private static final Logger log = Logger.getLogger("FoundDiamonds");
+    private final HashSet<Location> cantAnnounce = new HashSet<Location>();
     private List<Player> recievedAdminMessage = new LinkedList<Player>();
-    private boolean consoleRecieved;
+    private boolean consoleReceived;
     private boolean debug;
 
 
-    public BlockBreakListener(FoundDiamonds instance) {
+    public BlockListener(FoundDiamonds instance) {
         fd = instance;
     }
 
+    /*Placed block listener*/
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onBlockPlace(BlockPlaceEvent event) {
+/*        for (Node x : ListHandler.getBroadcastedBlocks()) {
+            if (x.getMaterial() == event.getBlockPlaced().getType()) {
+                //fd.addToPlacedBlocks(event.getBlock().getLocation());
+                cantAnnounce.add(event.getBlock().getLocation());
+                //TODO Consolidate placed blocks and already announced blocks into one list of "don't announce these"
+            }
+        }*/
+    }
 
-
-
+    /*Block break event*/
     /*
-     * BlockBreakEvent
-     */
+    * Method structure:
+    * Valid world - returnable
+    * Is trap block - cancellable/returnable
+    * Valid gamemode - returnable
+    * Already broadcasted - returnable
+    * Has permissions.
+    * Valid lightlevel- cancellable
+    * Admin message block
+    * Broadcastable block.
+    * Logging
+    */
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
 
@@ -63,6 +80,12 @@ public class BlockBreakListener implements Listener  {
             return;
         }
 
+        //Check to see if the block is a trap block
+        if (isTrapBlock(event.getBlock())) {
+            handleTrapBlock(event.getPlayer(), event.getBlock(), event);
+            return;
+        }
+
         //Make sure the player is in a valid gamemode
         if (!isValidGameMode(event.getPlayer())) {
             if (debug) {
@@ -72,18 +95,10 @@ public class BlockBreakListener implements Listener  {
         }
 
         //Check if the block was already announced
-        if (alreadyAnnounced(event.getBlock().getLocation())) {
-            fd.getAnnouncedBlocks().remove(event.getBlock().getLocation());
+        if (!isAnnounceable(event.getBlock().getLocation())) {
+            cantAnnounce.remove(event.getBlock().getLocation());
             if (debug) {
-                log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: Block already announced.");
-            }
-            return;
-        }
-
-        //See if block was placed by a player
-        if (wasPlacedRemove(event.getBlock().getLocation())) {
-            if (debug) {
-                log.info(FoundDiamonds.getDebugPrefix() + " That block was placed by a player");
+                log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: Block already announced or placed.");
             }
             return;
         }
@@ -91,7 +106,7 @@ public class BlockBreakListener implements Listener  {
         //Check to see if the block's lightlevel is being monitored.  Comes before others to prevent loopholes.
         Node lightNode = Node.getNodeByMaterial(ListHandler.getLightLevelBlocks(), mat);
         if (lightNode != null) {
-            EventInformation lightEvent = new EventInformation(event, lightNode);
+            EventInformation lightEvent = new EventInformation(this, event, lightNode);
             if(!isValidLightLevel(lightEvent)) {
                 return;
             }
@@ -108,14 +123,14 @@ public class BlockBreakListener implements Listener  {
         //Check if block is broadcastable
         Node broadcastNode = Node.getNodeByMaterial(ListHandler.getBroadcastedBlocks(), mat);
         if (broadcastNode != null) {
-            EventInformation broadcastEvent = new EventInformation(event, broadcastNode);
+            EventInformation broadcastEvent = new EventInformation(this, event, broadcastNode);
             handleBroadcast(broadcastEvent);
         }
 
         //Check if block is admin message material
         Node adminNode = Node.getNodeByMaterial(ListHandler.getAdminMessageBlocks(), mat);
         if (adminNode != null) {
-            EventInformation adminEvent = new EventInformation(event, adminNode);
+            EventInformation adminEvent = new EventInformation(this, event, adminNode);
             System.out.println("I would be sending an admin message here.");
         }
 
@@ -127,44 +142,13 @@ public class BlockBreakListener implements Listener  {
         }
     }
 
-    /*
-     * Main checks:
-     * Valid world - returnable
-     * Valid gamemode - returnable
-     * Already broadcasted - returnable
-     * Has permissions.
-     * Valid lightlevel- cancellable
-     * Admin message block
-     * Broadcastable block.
-     */
 
 
 
-    /*
-     * Placed block methods
-     */
-    private boolean wasPlacedRemove(Location loc) {
-        if (fd.getPlacedBlocks().contains(loc)) {
-            fd.getPlacedBlocks().remove(loc);
-            return true;
-        }
-        return false;
-    }
-
-/*    private boolean wasPlaced(Block block) {
-        return (fd.getPlacedBlocks().contains(block.getLocation()));
-    }*/
-
-
-
-
-    /*
-     * Admin Message Handlers
-     */
-
-    //TODO needs a new list
+    /*Admin messages*/
+    //TODO needs reimplemented
     private void isEnabledAdminMessageMaterial(Player player, Material mat, Block block) {
-        if (!alreadyAnnounced(block.getLocation())) {
+        if (isAnnounceable(block.getLocation())) {
 //            if ((mat == Material.DIAMOND_ORE && fd.getConfig().getBoolean(config.getDiamondAdmin())) ||
 //                (mat == Material.GOLD_ORE && fd.getConfig().getBoolean(config.getGoldAdmin())) ||
 //                (mat == Material.LAPIS_ORE && fd.getConfig().getBoolean(config.getLapisAdmin())) ||
@@ -260,7 +244,7 @@ public class BlockBreakListener implements Listener  {
     private void handleTrapBlock(Player player, Block block, BlockBreakEvent event) {
         if(fd.getConfig().getBoolean(Config.adminAlertsOnAllTrapBreaks)) {
             for (Player x: fd.getServer().getOnlinePlayers()) {
-                if(fd.hasPerms(x, "FD.admin") && (x != player)) {
+                if(fd.hasPerms(x, "fd.admin") && (x != player)) {
                     x.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " " + player.getName()
                             + " just broke a trap block");
                 }
@@ -310,11 +294,11 @@ public class BlockBreakListener implements Listener  {
             if (trapBlock) {
                 pw.print("[" + getFormattedDate() + "]" + " [ACTION TAKEN] ");
                 if (kicked && !banned) {
-                    pw.println(player.getName() + " was kicked from the sever.");
+                    pw.println(player.getName() + " was kicked from the sever per the configuration.");
                 } else if (banned && !kicked) {
-                    pw.println(player.getName() + " was banned from the sever.");
+                    pw.println(player.getName() + " was banned from the sever per the configuration.");
                 } else if (banned && kicked) {
-                    pw.println(player.getName() + " was kicked and banned from the sever.");
+                    pw.println(player.getName() + " was kicked and banned from the sever per the configuration.");
                 } else if (!banned && !kicked) {
                     pw.println(player.getName() + " was neither kicked nor banned per the configuration.");
                 }
@@ -371,7 +355,7 @@ public class BlockBreakListener implements Listener  {
             pw.flush();
             fd.close(pw);
         } catch (IOException ex) {
-            Logger.getLogger(BlockBreakListener.class.getName()).log(Level.SEVERE, "Couldn't write to clean log!", ex);
+            Logger.getLogger(BlockListener.class.getName()).log(Level.SEVERE, "Couldn't write to clean log!", ex);
         }
     }
 
@@ -422,11 +406,7 @@ public class BlockBreakListener implements Listener  {
 
 
 
-
-    /*
-     * Spells
-     */
-
+    /*Spells*/
     private void handleRandomPotions(int randomNumber) {
         PotionEffect potion;
         String potionMessage;
@@ -493,13 +473,7 @@ public class BlockBreakListener implements Listener  {
 
     }
 
-
-
-
-    /*
-     * Broadcasting
-     */
-
+    /*Broadcasts*/
     private void handleBroadcast(EventInformation ei) {
         if (ei.getMaterial() == Material.DIAMOND_ORE) {
             if (fd.getConfig().getBoolean(Config.itemsForFindingDiamonds)) {
@@ -533,7 +507,7 @@ public class BlockBreakListener implements Listener  {
         String formatted = customTranslateAlternateColorCodes('&', message);
 
         //Prevent redunant output to the console if an admin message was already sent.
-        if (!consoleRecieved) {
+        if (!consoleReceived) {
             fd.getServer().getConsoleSender().sendMessage(formatted);
         }
 
@@ -561,7 +535,7 @@ public class BlockBreakListener implements Listener  {
 
         //reset message checks after successful broadcast
         recievedAdminMessage.clear();
-        consoleRecieved = false;
+        consoleReceived = false;
 
         //write to log if cleanlogging.
         if (fd.getConfig().getBoolean(Config.cleanLog)) {
@@ -591,8 +565,8 @@ public class BlockBreakListener implements Listener  {
         return !((player.getGameMode() == GameMode.CREATIVE) && (fd.getConfig().getBoolean(Config.disableInCreative)));
     }
 
-    private boolean alreadyAnnounced(Location loc) {
-        return (fd.getAnnouncedBlocks().contains(loc));
+    public boolean isAnnounceable(Location loc) {
+        return !cantAnnounce.contains(loc);
     }
 
     public static String customTranslateAlternateColorCodes(char altColorChar, String textToTranslate) {
@@ -604,6 +578,10 @@ public class BlockBreakListener implements Listener  {
             }
         }
         return new String(charArray);
+    }
+
+    public HashSet<Location> getCantAnnounce() {
+        return cantAnnounce;
     }
 
 

@@ -29,7 +29,7 @@ public class Menu {
                     || fd.hasPerms(player, "fd.manage.broadcast.add") || fd.hasPerms(player, "fd.manage.broadcast.remove")
                     || fd.hasPerms(player, "fd.manage.broadcast.list") || fd.hasPerms(player, "fd.manage.light.add")
                     || fd.hasPerms(player, "fd.manage.light.list") || fd.hasPerms(player, "fd.manage.light.remove")) {
-                player.sendMessage(fd.getPrefix() + ChatColor.AQUA + " [founddiamonds Main Menu]");
+                player.sendMessage(fd.getPrefix() + ChatColor.AQUA + " [FoundDiamonds Main Menu]");
                 player.sendMessage("/fd " + ChatColor.RED + "<option>");
             } else {
                 return false;

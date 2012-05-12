@@ -5,13 +5,15 @@
 package org.seed419.founddiamonds;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.seed419.founddiamonds.listeners.BlockListener;
 
-import java.util.LinkedList;
+import java.util.HashSet;
 
 /**
  *
@@ -20,23 +22,22 @@ import java.util.LinkedList;
 public class EventInformation {
 
 
+    private BlockListener bl;
     private int total;
-    private LinkedList<Block> blockList;
-    private LinkedList<Block> checkedBlocks;
+    private HashSet<Location> checkedLocations;
     private Node node;
-/*    private Location blockLoc;*/
     private Block block;
     private BlockBreakEvent event;
     private Player player;
 
 
-    public EventInformation(BlockBreakEvent event, Node node) {
-        //this.blockLoc = event.getBlock().getLocation();
+    public EventInformation(BlockListener bl, BlockBreakEvent event, Node node) {
         this.total =  getTotalBlocks(event.getBlock());
         this.block = event.getBlock();
         this.node = node;
         this.player = event.getPlayer();
         this.event = event;
+        this.bl = bl;
     }
 
     public ChatColor getColor() {
@@ -51,10 +52,6 @@ public class EventInformation {
         return node.getMaterial();
     }
 
-/*    public Location getBlockLocation() {
-        return blockLoc;
-    }*/
-
     public Block getBlock() {
         return block;
     }
@@ -68,40 +65,36 @@ public class EventInformation {
     }
 
     private int getTotalBlocks(Block origBlock) {
-        blockList = new LinkedList<Block>();
-        checkedBlocks = new LinkedList<Block>();
-        blockList.add(origBlock);
+        this.total = 0;
+        checkedLocations = new HashSet<Location>();
+        checkedLocations.add(origBlock.getLocation());
         for (BlockFace y : BlockFace.values()) {
-            Block cycle = origBlock.getRelative(y);
-            if ((cycle.getType() == origBlock.getType() && !blockList.contains(cycle)
-                    && !checkedBlocks.contains(cycle) && !wasPlaced(cycle)) ||
-                    ((FoundDiamonds.isRedstone(origBlock) && FoundDiamonds.isRedstone(cycle)) &&
-                            !blockList.contains(cycle) && !checkedBlocks.contains(cycle) && !wasPlaced(cycle))) {
-                FoundDiamonds.getAnnouncedBlocks().add(cycle.getLocation());
-                //System.out.println("Total+=" + cycle.getType().name() + " X: "+ cycle.getX()
-                // + " Y:" + cycle.getY() + " Z:" + cycle.getZ());
-                blockList.add(cycle);
-                checkCyclesRelative(origBlock, cycle);
-                if (blockList.size() >= 1000) {
+            Block check = origBlock.getRelative(y);
+            Location checkLoc = check.getLocation();
+            if ((check.getType() == origBlock.getType() && !checkedLocations.contains(checkLoc) && bl.isAnnounceable(checkLoc)) ||
+                    ((FoundDiamonds.isRedstone(origBlock) && FoundDiamonds.isRedstone(check)) && !checkedLocations.contains(checkLoc) && bl.isAnnounceable(checkLoc))) {
+                bl.getCantAnnounce().add(checkLoc);
+                total++;
+                checkedLocations.add(checkLoc);
+                //findLikeBlocks(origBlock, check);
+                if (total >= 1000) {
                     return 1000;
                 }
             } else {
-                if (!checkedBlocks.contains(cycle)) {
-                    checkedBlocks.add(cycle);
+                if (!checkedLocations.contains(checkLoc)) {
+                    checkedLocations.add(checkLoc);
                 }
             }
         }
-        return blockList.size();
+        return total;
     }
 
-    private void checkCyclesRelative(Block origBlock, Block cycle) {
+/*    private void findLikeBlocks(Block origBlock, Block cycle) {
         for (BlockFace y : BlockFace.values()) {
-            Block secondCycle = cycle.getRelative(y);
-            if ((secondCycle.getType() == origBlock.getType() && !blockList.contains(secondCycle)
-                    && !checkedBlocks.contains(secondCycle) && !wasPlaced(secondCycle)) ||
-                    (FoundDiamonds.isRedstone(origBlock) && FoundDiamonds.isRedstone(secondCycle)
-                            && (!blockList.contains(secondCycle) && !checkedBlocks.contains(secondCycle)
-                            && !wasPlaced(secondCycle)))) {
+            Block nextCycle = cycle.getRelative(y);
+            Location nextLoc = nextCycle.getLocation();
+            if  ((nextCycle.getType() == origBlock.getType() && !checkedLocations.contains(nextLoc) && !totalBlocks.contains(nextLoc) && bl.isAnnounceable(nextLoc)) ||
+                    ((FoundDiamonds.isRedstone(origBlock) && FoundDiamonds.isRedstone(nextCycle)) && !checkedLocations.contains(nextCycle) && !totalBlocks.contains(nextCycle) && bl.isAnnounceable(nextCycle))) {
                 blockList.add(secondCycle);
                 FoundDiamonds.getAnnouncedBlocks().add(secondCycle.getLocation());
                 //System.out.println("Total+=" + secondCycle.getType().name() + " X: "+ secondCycle.getX()
@@ -109,17 +102,13 @@ public class EventInformation {
                 if (blockList.size() >= 1000) {
                     return;
                 }
-                checkCyclesRelative(origBlock, secondCycle);
+                findLikeBlocks(origBlock, secondCycle);
             } else {
                 if (!checkedBlocks.contains(secondCycle)) {
                     checkedBlocks.add(secondCycle);
                 }
             }
         }
-    }
-
-    private boolean wasPlaced(Block block) {
-        return (FoundDiamonds.getPlacedBlocks().contains(block.getLocation()));
-    }
+    }*/
 
 }

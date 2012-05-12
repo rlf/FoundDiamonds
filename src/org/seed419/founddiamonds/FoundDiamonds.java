@@ -78,7 +78,7 @@ import java.util.logging.Logger;
 
 public class FoundDiamonds extends JavaPlugin {
 
-    private final File mainDir = new File("plugins/founddiamonds/");
+    private final File mainDir = new File("plugins/FoundDiamonds/");
     private final File logs = new File(getDataFolder(), "log.txt");
     private final File traps = new File(getDataFolder(), ".traplocations");
     private final File cleanLog = new File(getDataFolder(), "cleanlog.txt");
@@ -87,15 +87,12 @@ public class FoundDiamonds extends JavaPlugin {
     private final static String prefix = "[FD]";
     private final static String adminPrefix = ChatColor.RED + "[FD Admin]" + ChatColor.YELLOW;
     private final static String debugPrefix = "[FD Debug] ";
-    private final static String loggerPrefix = "[founddiamonds]";
+    private final static String loggerPrefix = "[FoundDiamonds]";
     private final List<Location> trapBlocks = new LinkedList<Location>();
-    private static final List<Location> announcedBlocks = new LinkedList<Location>();
-    private static final List<Location> placedBlocks = new LinkedList<Location>();
     private final HashMap<Player, Boolean> adminMessagePlayers = new HashMap<Player, Boolean>();
     private final HashMap<Player, Boolean> jumpPotion = new HashMap<Player,Boolean>();
-    private final static Logger log = Logger.getLogger("founddiamonds");
-    private final BlockBreakListener breakListener = new BlockBreakListener(this);
-    private final BlockPlaceListener placeListener = new BlockPlaceListener(this);
+    private final static Logger log = Logger.getLogger("FoundDiamonds");
+    private final BlockListener breakListener = new BlockListener(this);
     private final ListHandler lh = new ListHandler(this);
     private final Config config = new Config(this);
     private final JoinListener join = new JoinListener(this);
@@ -127,7 +124,6 @@ public class FoundDiamonds extends JavaPlugin {
         pm.registerEvents(this.breakListener, this);
         pm.registerEvents(this.join, this);
         pm.registerEvents(this.quit, this);
-        pm.registerEvents(this.placeListener, this);
         pm.registerEvents(damage, this);
 
 	    final PluginDescriptionFile pdf = this.getDescription();
@@ -148,7 +144,7 @@ public class FoundDiamonds extends JavaPlugin {
         boolean temp = writeBlocksToFile(traps, trapBlocks, info, info2);
         String info5 = "This file stores blocks that would be announced that players placed";
         String info6 = "If you'd like to announce these placed blocks, feel free to delete this file.";
-        boolean temp3 = writeBlocksToFile(placed, placedBlocks, info5, info6);
+        boolean temp3 = writeBlocksToFile(placed, breakListener.getCantAnnounce(), info5, info6);
         if (temp && temp3) {
             log.info(MessageFormat.format("[{0}] Data successfully saved.", pluginName));
         } else {
@@ -158,6 +154,8 @@ public class FoundDiamonds extends JavaPlugin {
         log.info(MessageFormat.format("[{0}] Disabled", pluginName));
     }
 
+
+    //TODO fd version, fd debug
     @Override
     public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
         Player player = null;
@@ -405,19 +403,22 @@ public class FoundDiamonds extends JavaPlugin {
     /*
      * File handlers
      */
-    private boolean writeBlocksToFile(File file, List<Location> blockList, String info, String info2) {
+    private boolean writeBlocksToFile(File file, Collection<Location> blockList, String info, String info2) {
         if (blockList.size() > 0) {
             if (this.getDataFolder().exists()) {
                 PrintWriter out = null;
                 try {
-                    file.createNewFile();
+                    boolean success = file.createNewFile();
+                    if (!success) {
+                        log.severe(MessageFormat.format("[{0}] Couldn't create file to store blocks in", pluginName, file.getName()));
+                        return false;
+                    }
                     out =  new PrintWriter(new BufferedWriter(new FileWriter(file, false)));
                     out.write("# " + info);
                     out.println();
                     out.write("# " + info2);
                     out.println();
-                    for (Iterator<Location> it = blockList.iterator(); it.hasNext();) {
-                        Location m = it.next();
+                    for (Location m : blockList) {
                         out.write(m.getWorld().getName() + ";" + m.getX() + ";" + m.getY() + ";" + m.getZ());
                         out.println();
                     }
@@ -431,7 +432,6 @@ public class FoundDiamonds extends JavaPlugin {
                 if (!printed) {
                     log.warning(MessageFormat.format("[{0}] Plugin folder not found.  Did you delete it?", pluginName));
                     printed = true;
-                    return false;
                 }
                 return false;
             }
@@ -443,7 +443,7 @@ public class FoundDiamonds extends JavaPlugin {
         }
     }
 
-    private void readBlocksFromFile(File file, List<Location> list) {
+    private void readBlocksFromFile(File file, Collection<Location> list) {
         BufferedReader b = null;
         try {
             b = new BufferedReader(new FileReader(file));
@@ -456,7 +456,7 @@ public class FoundDiamonds extends JavaPlugin {
                             Double.parseDouble(fs[2]), Double.parseDouble(fs[3]));
                         list.add(lo);
                     } catch (Exception ex) {
-                        log.severe(MessageFormat.format("[{0}] Invalid block in file.  Please delete the founddiamonds folder.", pluginName));
+                        log.severe(MessageFormat.format("[{0}] Invalid block in file.  Please delete the FoundDiamonds folder.", pluginName));
                     }
                 }
                 strLine = b.readLine();
@@ -470,7 +470,11 @@ public class FoundDiamonds extends JavaPlugin {
 
     private void checkFiles() {
         if (!mainDir.exists()) {
-            mainDir.mkdir();
+            boolean success = mainDir.mkdir();
+            if (!success) {
+                log.severe(MessageFormat.format("[{0}] Couldn't create plugins/FoundDiamonds folder", pluginName));
+                return;
+            }
         }
         if (!logs.exists()) {
             try {
@@ -483,7 +487,7 @@ public class FoundDiamonds extends JavaPlugin {
              readBlocksFromFile(traps, trapBlocks);
          }
          if (placed.exists()) {
-             readBlocksFromFile(placed, placedBlocks);
+             readBlocksFromFile(placed, breakListener.getCantAnnounce());
          }
          if (!configFile.exists()) {
              System.out.println("doesn't exist");
@@ -606,28 +610,8 @@ public class FoundDiamonds extends JavaPlugin {
 
 
     /*
-     * Placed blocks
-     */
-    public static void addToPlacedBlocks(Location w) {
-        placedBlocks.add(w);
-    }
-
-    @SuppressWarnings("ReturnOfCollectionOrArrayField")
-    public static List<Location> getPlacedBlocks() {
-        return placedBlocks;
-    }
-
-
-
-
-    /*
      * Misc
      */
-    @SuppressWarnings("ReturnOfCollectionOrArrayField")
-    public static List<Location> getAnnouncedBlocks() {
-        return announcedBlocks;
-    }
-
     public static boolean isRedstone(Block m) {
         return (m.getType() == Material.REDSTONE_ORE || m.getType() == Material.GLOWING_REDSTONE_ORE);
     }
