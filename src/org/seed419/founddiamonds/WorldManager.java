@@ -105,9 +105,7 @@ public class WorldManager {
         List<World> worldList = fd.getServer().getWorlds();
         List<String> worldNames = new LinkedList<String>();
         for (World w : worldList) {
-            if (!w.getName().equalsIgnoreCase("world_nether") && !w.getName().equalsIgnoreCase("world_the_end")) {
-                worldNames.add(w.getName());
-            }
+            worldNames.add(w.getName());
         }
         fd.getConfig().set(Config.enabledWorlds, worldNames);
         fd.saveConfig();

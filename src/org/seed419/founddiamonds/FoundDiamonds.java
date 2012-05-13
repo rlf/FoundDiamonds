@@ -7,17 +7,21 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.seed419.founddiamonds.listeners.*;
+import org.seed419.founddiamonds.listeners.BlockListener;
+import org.seed419.founddiamonds.listeners.JoinListener;
+import org.seed419.founddiamonds.listeners.PlayerDamageListener;
+import org.seed419.founddiamonds.listeners.QuitListener;
 import org.seed419.founddiamonds.metrics.MetricsLite;
 
-import java.io.*;
+import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,7 +40,7 @@ import java.util.logging.Logger;
 * Changelog:
 * Implemented versatile lists that can be edited to whatever you want!
 * Made fd log player commands to the console, including failed command attempts.
-* Fixed a terrible admin message bug :C
+* Fixed a terrible admin message bug that I never saw before
 * Moved prefix to broadcast message as @Prefix@ instead of having a separate option for it.
 * Fixed color bug when using nicknames in broadcast (now looks way better imo)
 * Fixed a bug with random items not even working -.-
@@ -46,9 +50,10 @@ import java.util.logging.Logger;
 * Traps can now be set without using '_' characters, and just spaces (/fd trap gold ore)
 * Fixed a bug with /fd reload   (The fuck was the bug?)
 * Refactored a TON of code.
-
+* Improved total block detection - Diagonal blocks no longer fool the plugin!
+* Implemented trap DEPTH setting -snoepje0
 *
-  */
+*/
 
 /*  Attribute Only (Public) License
         Version 0.a3, July 11, 2011
@@ -78,12 +83,7 @@ import java.util.logging.Logger;
 
 public class FoundDiamonds extends JavaPlugin {
 
-    private final File mainDir = new File("plugins/FoundDiamonds/");
-    private final File logs = new File(getDataFolder(), "log.txt");
-    private final File traps = new File(getDataFolder(), ".traplocations");
-    private final File cleanLog = new File(getDataFolder(), "cleanlog.txt");
-    private final File configFile = new File(getDataFolder(), "config.yml");
-    private final File placed = new File(getDataFolder(), ".placed");
+
     private final static String prefix = "[FD]";
     private final static String adminPrefix = ChatColor.RED + "[FD Admin]" + ChatColor.YELLOW;
     private final static String debugPrefix = "[FD Debug] ";
@@ -92,28 +92,26 @@ public class FoundDiamonds extends JavaPlugin {
     private final HashMap<Player, Boolean> adminMessagePlayers = new HashMap<Player, Boolean>();
     private final HashMap<Player, Boolean> jumpPotion = new HashMap<Player,Boolean>();
     private final static Logger log = Logger.getLogger("FoundDiamonds");
-    private final BlockListener breakListener = new BlockListener(this);
+    private final BlockListener bl = new BlockListener(this);
     private final ListHandler lh = new ListHandler(this);
-    private final Config config = new Config(this);
     private final JoinListener join = new JoinListener(this);
     private final QuitListener quit = new QuitListener(this);
     private final PlayerDamageListener damage = new PlayerDamageListener(this);
     private final WorldManager wm = new WorldManager(this);
+    private final FileHandler fh = new FileHandler(this, wm, bl);
+    private static PluginDescriptionFile pdf;
     private String pluginName;
-    private boolean printed = false;
     private final static int togglePages = 2;
     private final static int configPages = 2;
 
 
     @Override
     public void onEnable() {
+        pdf = this.getDescription();
+        pluginName = pdf.getName();
 
-        if (configFile.exists()) {
-            System.out.println("Config file exists!");
-        } else {
-            System.out.println("Config file doesn't exist.");
-        }
-        checkFiles();
+        fh.initFileVariables();
+        fh.checkFiles();
         wm.checkWorlds();
 
         /*Load the new lists*/
@@ -121,13 +119,10 @@ public class FoundDiamonds extends JavaPlugin {
 
         /*Register events*/
         final PluginManager pm = getServer().getPluginManager();
-        pm.registerEvents(this.breakListener, this);
+        pm.registerEvents(this.bl, this);
         pm.registerEvents(this.join, this);
         pm.registerEvents(this.quit, this);
         pm.registerEvents(damage, this);
-
-	    final PluginDescriptionFile pdf = this.getDescription();
-        pluginName = pdf.getName();
 
         startMetrics();
 
@@ -136,15 +131,14 @@ public class FoundDiamonds extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        saveLists();
 
         log.info(MessageFormat.format("[{0}] Saving all data...", pluginName));
         String info = "This file stores your trap block locations.";
         String info2 = "If you have any issues with traps - feel free to delete this file.";
-        boolean temp = writeBlocksToFile(traps, trapBlocks, info, info2);
+        boolean temp = fh.writeBlocksToFile(fh.getTrapsFile(), trapBlocks, info, info2);
         String info5 = "This file stores blocks that would be announced that players placed";
         String info6 = "If you'd like to announce these placed blocks, feel free to delete this file.";
-        boolean temp3 = writeBlocksToFile(placed, breakListener.getCantAnnounce(), info5, info6);
+        boolean temp3 = fh.writeBlocksToFile(fh.getPlacedFile(), bl.getCantAnnounce(), info5, info6);
         if (temp && temp3) {
             log.info(MessageFormat.format("[{0}] Data successfully saved.", pluginName));
         } else {
@@ -287,6 +281,9 @@ public class FoundDiamonds extends JavaPlugin {
                         }
                     }
                     return true;
+                } else if (arg.equalsIgnoreCase("version")) {
+                    Menu.showVersion(sender);
+                    return true;
                 } else {
                         sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Unrecognized command '"
                                 + ChatColor.WHITE + args[0] + ChatColor.DARK_RED + "'");
@@ -295,27 +292,6 @@ public class FoundDiamonds extends JavaPlugin {
             }
         }
         return false;
-    }
-
-
-
-
-    /*
-     * Configuration File
-     */
-    public void loadYaml() {
-        try {
-            System.out.println("printing path now.");
-            System.out.println("path: " + getConfig().getCurrentPath());
-            getConfig().options().copyDefaults(true);
-            getConfig().load(configFile);
-        } catch (FileNotFoundException ex) {
-            log.severe(MessageFormat.format("[{0}] Couldn't find config.yml {1}", pluginName, ex));
-        } catch (IOException ex) {
-            log.severe(MessageFormat.format("[{0}] Unable to load configuration file {1}", pluginName, ex));
-        } catch (InvalidConfigurationException ex) {
-            log.severe(MessageFormat.format("[{0}] Unable to load configuration file {1}", pluginName, ex));
-        }
     }
 
 
@@ -353,7 +329,7 @@ public class FoundDiamonds extends JavaPlugin {
             		depth = Integer.parseInt(args[2]);
             	}catch(NumberFormatException ex) {
                		player.sendMessage(ChatColor.RED + "Please specifiy a valid number as depth");
-            		return;	
+            		return;
             	}
             	item = args[1];
             	trap = Material.matchMaterial(item);
@@ -365,7 +341,7 @@ public class FoundDiamonds extends JavaPlugin {
         		depth = Integer.parseInt(args[3]);
         	}catch(NumberFormatException ex) {
            		player.sendMessage(ChatColor.RED + "Please specifiy a valid number as depth");
-        		return;	
+        		return;
         	}
         }
         	else {
@@ -434,130 +410,6 @@ public class FoundDiamonds extends JavaPlugin {
     /*
      * File handlers
      */
-    private boolean writeBlocksToFile(File file, Collection<Location> blockList, String info, String info2) {
-        if (blockList.size() > 0) {
-            if (this.getDataFolder().exists()) {
-                PrintWriter out = null;
-                try {
-                    boolean success = file.createNewFile();
-                    if (!success) {
-                        log.severe(MessageFormat.format("[{0}] Couldn't create file to store blocks in", pluginName, file.getName()));
-                        return false;
-                    }
-                    out =  new PrintWriter(new BufferedWriter(new FileWriter(file, false)));
-                    out.write("# " + info);
-                    out.println();
-                    out.write("# " + info2);
-                    out.println();
-                    for (Location m : blockList) {
-                        out.write(m.getWorld().getName() + ";" + m.getX() + ";" + m.getY() + ";" + m.getZ());
-                        out.println();
-                    }
-                } catch (IOException ex) {
-                    log.severe(MessageFormat.format("[{0}] Error writing blocks to file!", pluginName, file.getName()));
-                } finally {
-                    close(out);
-                }
-                return true;
-            } else {
-                if (!printed) {
-                    log.warning(MessageFormat.format("[{0}] Plugin folder not found.  Did you delete it?", pluginName));
-                    printed = true;
-                }
-                return false;
-            }
-        } else {
-            if (file.exists()) {
-                file.delete();
-            }
-            return true;
-        }
-    }
-
-    private void readBlocksFromFile(File file, Collection<Location> list) {
-        BufferedReader b = null;
-        try {
-            b = new BufferedReader(new FileReader(file));
-            String strLine = b.readLine();
-            while (strLine != null) {
-                if (!strLine.startsWith("#")) {
-                    try {
-                        String[] fs = strLine.split(";");
-                        Location lo = new Location(getServer().getWorld(fs[0]), Double.parseDouble(fs[1]),
-                            Double.parseDouble(fs[2]), Double.parseDouble(fs[3]));
-                        list.add(lo);
-                    } catch (Exception ex) {
-                        log.severe(MessageFormat.format("[{0}] Invalid block in file.  Please delete the FoundDiamonds folder.", pluginName));
-                    }
-                }
-                strLine = b.readLine();
-            }
-        } catch (Exception ex) {
-            log.severe(MessageFormat.format("[{0}] Unable to read blocks from file, {1}", pluginName, ex));
-        } finally {
-            close(b);
-        }
-    }
-
-    private void checkFiles() {
-        if (!mainDir.exists()) {
-            boolean success = mainDir.mkdir();
-            if (!success) {
-                log.severe(MessageFormat.format("[{0}] Couldn't create plugins/FoundDiamonds folder", pluginName));
-                return;
-            }
-        }
-        if (!logs.exists()) {
-            try {
-                logs.createNewFile();
-            } catch (IOException ex) {
-                log.severe(MessageFormat.format("[{0}] Unable to create log file, {1}", pluginName, ex));
-       	    }
-         }
-         if (traps.exists()) {
-             readBlocksFromFile(traps, trapBlocks);
-         }
-         if (placed.exists()) {
-             readBlocksFromFile(placed, breakListener.getCantAnnounce());
-         }
-         if (!configFile.exists()) {
-             System.out.println("doesn't exist");
-             config.load();
-             wm.addAllWorlds();
-         } else {
-             System.out.println("loading yaml");
-             loadYaml();
-         }
-         if (getConfig().getBoolean(Config.cleanLog)) {
-             try {
-                 cleanLog.createNewFile();
-             } catch (IOException ex) {
-                 Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Couldn't create clean log file, ", ex);
-             }
-         }
-    }
-
-    private void saveLists() {
-
-    }
-
-    public File getLogFile() {
-        return logs;
-    }
-
-    public File getCleanLog() {
-        return cleanLog;
-    }
-
-    public void close(Closeable stream) {
-        if (stream != null) {
-            try {
-                stream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Couldn't close a stream, ", ex);
-            }
-        }
-    }
 
 
 
@@ -608,9 +460,9 @@ public class FoundDiamonds extends JavaPlugin {
             Menu.printSaved(this, sender);
         } else if (arg.equalsIgnoreCase("cleanlog")) {
             getConfig().set(Config.cleanLog, !getConfig().getBoolean(Config.cleanLog));
-            if (!cleanLog.exists()) {
+            if (!fh.getCleanLog().exists()) {
                 try {
-                    boolean successful = cleanLog.createNewFile();
+                    boolean successful = fh.getCleanLog().createNewFile();
                     if (successful) {sender.sendMessage(getPrefix() + ChatColor.DARK_GREEN +" Cleanlog created.");}
                     } catch (IOException ex) {
                     sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Uh-oh...couldn't create CleanLog.txt");
@@ -671,6 +523,14 @@ public class FoundDiamonds extends JavaPlugin {
 
     public Logger getLog() {
         return log;
+    }
+
+    public String getPluginName() {
+        return pluginName;
+    }
+
+    public static PluginDescriptionFile getPdf() {
+        return pdf;
     }
 
 

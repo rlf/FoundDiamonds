@@ -30,7 +30,7 @@ public class BlockListener implements Listener  {
 
     private FoundDiamonds fd;
     private static final Logger log = Logger.getLogger("FoundDiamonds");
-    private final HashSet<Location> cantAnnounce = new HashSet<Location>();
+    private HashSet<Location> cantAnnounce = new HashSet<Location>();
     private List<Player> recievedAdminMessage = new LinkedList<Player>();
     private boolean consoleReceived;
     private boolean debug;
@@ -47,7 +47,6 @@ public class BlockListener implements Listener  {
             if (x.getMaterial() == event.getBlockPlaced().getType()) {
                 //fd.addToPlacedBlocks(event.getBlock().getLocation());
                 cantAnnounce.add(event.getBlock().getLocation());
-                //TODO Consolidate placed blocks and already announced blocks into one list of "don't announce these"
             }
         }*/
     }
@@ -88,9 +87,7 @@ public class BlockListener implements Listener  {
 
         //Make sure the player is in a valid gamemode
         if (!isValidGameMode(event.getPlayer())) {
-            if (debug) {
-                log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: User is in creative mode.");
-            }
+            if (debug) { log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: User is in creative mode."); }
             return;
         }
 
@@ -98,7 +95,7 @@ public class BlockListener implements Listener  {
         if (!isAnnounceable(event.getBlock().getLocation())) {
             cantAnnounce.remove(event.getBlock().getLocation());
             if (debug) {
-                log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: Block already announced or placed.");
+                log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: Block already announced or placed.  Removing broken block from memory.");
             }
             return;
         }
@@ -113,12 +110,7 @@ public class BlockListener implements Listener  {
         }
 
         //Prevent mcMMO's superbreaker from re-announcing.
-        if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) {
-            if (debug) {
-                log.info(FoundDiamonds.getDebugPrefix() + " Mcmmo's super breaker detected.  Not taking action.");
-            }
-            return;
-        }
+        if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) { return; }
 
         //Check if block is broadcastable
         Node broadcastNode = Node.getNodeByMaterial(ListHandler.getBroadcastedBlocks(), mat);
@@ -283,7 +275,7 @@ public class BlockListener implements Listener  {
      */
     private void handleLogging(Player player, Block block, boolean trapBlock, boolean kicked, boolean banned) {
         try {
-            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fd.getLogFile(), true)));
+            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(FileHandler.getLogFile(), true)));
             pw.print("[" + getFormattedDate() + "]");
             if (trapBlock) {
                 pw.print(" [TRAP BLOCK]");
@@ -304,7 +296,7 @@ public class BlockListener implements Listener  {
                 }
             }
             pw.flush();
-            fd.close(pw);
+            FileHandler.close(pw);
         } catch (IOException ex) {
             log.severe(MessageFormat.format("[{0}] Unable to write to log file {1}", FoundDiamonds.getPrefix(), ex));
         }
@@ -314,10 +306,10 @@ public class BlockListener implements Listener  {
         String lightLogMsg = "[" + getFormattedDate() + "]" + " " + ei.getPlayer().getName() + " was denied mining "
                 + Format.getFormattedName(ei.getMaterial(), 1) + " at" + " light level " +  lightLevel;
         try {
-            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fd.getLogFile(), true)));
+            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(FileHandler.getLogFile(), true)));
             pw.println(lightLogMsg);
             pw.flush();
-            fd.close(pw);
+            FileHandler.close(pw);
         } catch (IOException ex) {
             log.severe(MessageFormat.format("[{0}] Unable to write to log file {1}", FoundDiamonds.getPrefix(), ex));
         }
@@ -350,10 +342,10 @@ public class BlockListener implements Listener  {
             }
         }
         try {
-            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fd.getCleanLog(), true)));
+            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(FileHandler.getCleanLog(), true)));
             pw.println("[" + formattedDate + "] " + message);
             pw.flush();
-            fd.close(pw);
+            FileHandler.close(pw);
         } catch (IOException ex) {
             Logger.getLogger(BlockListener.class.getName()).log(Level.SEVERE, "Couldn't write to clean log!", ex);
         }
@@ -503,7 +495,7 @@ public class BlockListener implements Listener  {
         String matName = Format.getFormattedName(ei.getMaterial(), ei.getTotal());
         String message = fd.getConfig().getString(Config.bcMessage).replace("@Prefix@", FoundDiamonds.getPrefix() + ei.getColor()).replace("@Player@",
                 playerName +  (fd.getConfig().getBoolean(Config.useOreColors) ? ei.getColor() : "")).replace("@Number@",
-                (ei.getTotal() == 1000 ? "a lot of" :String.valueOf(ei.getTotal()))).replace("@BlockName@", matName);
+                (ei.getTotal() == 500 ? "a lot of" :String.valueOf(ei.getTotal()))).replace("@BlockName@", matName);
         String formatted = customTranslateAlternateColorCodes('&', message);
 
         //Prevent redunant output to the console if an admin message was already sent.

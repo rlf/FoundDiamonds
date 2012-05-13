@@ -74,8 +74,4 @@ public class Config {
         this.fd = fd;
     }
 
-    public void load() {
-        fd.getConfig().options().copyDefaults(true);
-        fd.saveConfig();
-    }
 }

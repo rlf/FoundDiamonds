@@ -4,16 +4,15 @@
  */
 package org.seed419.founddiamonds;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.seed419.founddiamonds.listeners.BlockListener;
-
-import java.util.HashSet;
 
 /**
  *
@@ -22,9 +21,11 @@ import java.util.HashSet;
 public class EventInformation {
 
 
+    private final BlockFace[] horizFaces = {BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH,
+            BlockFace.SOUTH_EAST, BlockFace.SOUTH_WEST, BlockFace.NORTH_EAST, BlockFace.NORTH_WEST, BlockFace.DOWN,
+            BlockFace.UP};
     private BlockListener bl;
     private int total;
-    private HashSet<Location> checkedLocations;
     private Node node;
     private Block block;
     private BlockBreakEvent event;
@@ -32,12 +33,12 @@ public class EventInformation {
 
 
     public EventInformation(BlockListener bl, BlockBreakEvent event, Node node) {
-        this.total =  getTotalBlocks(event.getBlock());
+        this.bl = bl;
         this.block = event.getBlock();
+        this.total =  getTotalBlocks(this.block);
         this.node = node;
         this.player = event.getPlayer();
         this.event = event;
-        this.bl = bl;
     }
 
     public ChatColor getColor() {
@@ -64,51 +65,38 @@ public class EventInformation {
         return player;
     }
 
-    private int getTotalBlocks(Block origBlock) {
-        this.total = 0;
-        checkedLocations = new HashSet<Location>();
-        checkedLocations.add(origBlock.getLocation());
-        for (BlockFace y : BlockFace.values()) {
-            Block check = origBlock.getRelative(y);
-            Location checkLoc = check.getLocation();
-            if ((check.getType() == origBlock.getType() && !checkedLocations.contains(checkLoc) && bl.isAnnounceable(checkLoc)) ||
-                    ((FoundDiamonds.isRedstone(origBlock) && FoundDiamonds.isRedstone(check)) && !checkedLocations.contains(checkLoc) && bl.isAnnounceable(checkLoc))) {
-                bl.getCantAnnounce().add(checkLoc);
-                total++;
-                checkedLocations.add(checkLoc);
-                //findLikeBlocks(origBlock, check);
-                if (total >= 1000) {
-                    return 1000;
-                }
-            } else {
-                if (!checkedLocations.contains(checkLoc)) {
-                    checkedLocations.add(checkLoc);
-                }
-            }
-        }
-        return total;
+    private int getTotalBlocks(Block original) {
+        HashSet<Block> blocks = new HashSet<Block>();
+        blocks.add(original);
+        cycleHorizontalFaces(original.getType(), original, blocks);
+        return blocks.size() >= 500 ? 500 : blocks.size();
     }
 
-/*    private void findLikeBlocks(Block origBlock, Block cycle) {
-        for (BlockFace y : BlockFace.values()) {
-            Block nextCycle = cycle.getRelative(y);
-            Location nextLoc = nextCycle.getLocation();
-            if  ((nextCycle.getType() == origBlock.getType() && !checkedLocations.contains(nextLoc) && !totalBlocks.contains(nextLoc) && bl.isAnnounceable(nextLoc)) ||
-                    ((FoundDiamonds.isRedstone(origBlock) && FoundDiamonds.isRedstone(nextCycle)) && !checkedLocations.contains(nextCycle) && !totalBlocks.contains(nextCycle) && bl.isAnnounceable(nextCycle))) {
-                blockList.add(secondCycle);
-                FoundDiamonds.getAnnouncedBlocks().add(secondCycle.getLocation());
-                //System.out.println("Total+=" + secondCycle.getType().name() + " X: "+ secondCycle.getX()
-                // + " Y:" + secondCycle.getY() + " Z:" + secondCycle.getZ());
-                if (blockList.size() >= 1000) {
-                    return;
-                }
-                findLikeBlocks(origBlock, secondCycle);
-            } else {
-                if (!checkedBlocks.contains(secondCycle)) {
-                    checkedBlocks.add(secondCycle);
-                }
+    private void cycleHorizontalFaces(Material mat, Block original, Set<Block> list) {
+        if (list.size() >= 500) { return; }
+        findLikeBlocks(horizFaces, original, mat, list);
+        if (list.size() >= 500) { return; }
+        Block upper = original.getRelative(BlockFace.UP);
+        //System.out.println("CHECKING UPPER BLOCKS");
+        findLikeBlocks(horizFaces, upper, mat, list);
+        if (list.size() >= 500) { return; }
+        Block lower = original.getRelative(BlockFace.DOWN);
+        //System.out.println("CHECKING LOWER BLOCKS");
+        findLikeBlocks(horizFaces, lower, mat, list);
+    }
+
+    private void findLikeBlocks(BlockFace[] faces, Block passed, Material mat, Set<Block> alreadyAdded) {
+        //System.out.println("Passed Block @ X:" + passed.getX() + " Y:" + passed.getY() + " Z:" + passed.getZ());
+        for (BlockFace y : faces) {
+            Block var = passed.getRelative(y);
+            //System.out.println("X:" + var.getX() + " Y:" + var.getY() + " Z:" + var.getZ() + " Type: " + Format.material(var.getType()) + " Face: " + y.name());
+            if (var.getType() == mat && bl.isAnnounceable(var.getLocation()) && !alreadyAdded.contains(var)) {
+                bl.getCantAnnounce().add(var.getLocation());
+                alreadyAdded.add(var);
+                //System.out.println("Cycling another block.");
+                if (alreadyAdded.size() >= 500) { return; }
+                cycleHorizontalFaces(mat, var, alreadyAdded);
             }
         }
-    }*/
-
+    }
 }
