@@ -1,10 +1,12 @@
 package org.seed419.founddiamonds;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
-
-import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,9 +19,9 @@ public class ListHandler {
 
 
     private static FoundDiamonds fd;
-    private static final List<Node> broadcastedBlocks = new LinkedList<Node>();
-    private static final List<Node> adminMessageBlocks = new LinkedList<Node>();
-    private static final List<Node> lightLevelBlocks = new LinkedList<Node>();
+    private static final List<Node> broadcastedBlocks = new ArrayList<Node>();
+    private static final List<Node> adminMessageBlocks = new ArrayList<Node>();
+    private static final List<Node> lightLevelBlocks = new ArrayList<Node>();
 
 
     public ListHandler(FoundDiamonds instance) {
@@ -43,13 +45,11 @@ public class ListHandler {
             } else {
                 fd.getConfig().set(configLoc, new HashSet<String>());
             }
+            updateListInConfig(list, configLoc);
         } else {
-            //TODO the logging statement
-            fd.getLog().severe(FoundDiamonds.getLoggerPrefix() + " Size of block list = " + list.size());
-            Set<String> temp = new HashSet<String>();
-            for (Node x : list) {
-                String node = x.toString();
-                String[] bi = node.split(":");
+            List<String> thelist = fd.getConfig().getStringList(configLoc);
+            for (String x : thelist) {
+                String[] bi = x.split(":");
                 Material matchAttempt= null;
                 try {
                     matchAttempt = Material.matchMaterial(bi[0]);
@@ -65,9 +65,8 @@ public class ListHandler {
                                 color = BlockColor.getBlockColor(matchAttempt);
                             }
                             if (!Node.containsMat(list, matchAttempt)) {
-                                System.out.println("Adding node..");
                                 list.add(new Node(matchAttempt,color));
-                                temp.add(node);
+                                 System.out.println("Added new node to in-game list");
                             }
                         } catch (Exception ex) {
                             fd.getLog().severe(FoundDiamonds.getLoggerPrefix() + " Unable to match color '" + bi[1] + "'");
@@ -81,12 +80,12 @@ public class ListHandler {
                             + ".  Unrecognized block.  See bukkit material enum for valid block names.");
                 }
             }
-            updateListInConfig(list, configLoc);
         }
     }
 
 
     public static void loadDefaults() {
+        fd.getLog().info(FoundDiamonds.getLoggerPrefix() + " Adding broadcast defaults...");
         broadcastedBlocks.add(new Node(Material.DIAMOND_ORE, ChatColor.AQUA));
         broadcastedBlocks.add(new Node(Material.GOLD_ORE, ChatColor.GOLD));
         broadcastedBlocks.add(new Node(Material.LAPIS_ORE, ChatColor.BLUE));
@@ -97,11 +96,13 @@ public class ListHandler {
     }
 
     public static void updateListInConfig(Collection<Node> list, String configLoc) {
-        Set<String> temp = new HashSet<String>();
+        List<String> temp = new ArrayList<String>();
         for (Node x : list) {
             temp.add(x.toString());
+            System.out.println(x.toString());
         }
-        fd.getConfig().set(configLoc, list);
+        fd.getConfig().set(configLoc, temp);
+        fd.saveConfig();
     }
 
     //TODO make this work with all 3 lists?
@@ -119,8 +120,6 @@ public class ListHandler {
             if (block != null) {
                 if (!Node.containsMat(list, block.getMaterial())) {
                     list.add(block);
-                    //TODO just save the list?
-                    //addNodeToConfig(block, configString);
                     sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " Added " + block.getColor()
                             + Format.material(block.getMaterial()));
                 } else {
@@ -129,6 +128,7 @@ public class ListHandler {
                     sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " Updated " + block.getColor()
                             + Format.material(block.getMaterial()));
                 }
+                updateListInConfig(list, configString);
             } else {
                 sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Unable to add block.  Please check your format.");
             }
@@ -154,6 +154,7 @@ public class ListHandler {
                 if (removeMaterialFromList(matToRemove, list, configString)) {
                     sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Removed " + color + Format.material(matToRemove));
                     fd.getLog().severe(FoundDiamonds.getLoggerPrefix() + " Size of block list = " + list.size());
+                    updateListInConfig(list, configString);
                 } else {
                     sender.sendMessage(FoundDiamonds.getPrefix() + " "  + ChatColor.WHITE + Format.material(matToRemove) + ChatColor.DARK_RED + " isn't listed.");
                 }

@@ -1,9 +1,8 @@
 package org.seed419.founddiamonds;
 
+import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-
-import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.

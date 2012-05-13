@@ -13,8 +13,8 @@ import org.bukkit.Material;
  */
 public class Format {
 
-    FoundDiamonds fd;
-    Config config;
+    private FoundDiamonds fd;
+    private Config config;
 
 
     public Format(FoundDiamonds fd, Config config) {
@@ -235,7 +235,6 @@ public class Format {
         StringBuilder sb = new StringBuilder();
         for (String x : words) {
             String capped = WordUtils.capitalize(x);
-            System.out.println(WordUtils.capitalize(x));
             sb.append(capped + " ");
         }
         return sb.toString().trim();

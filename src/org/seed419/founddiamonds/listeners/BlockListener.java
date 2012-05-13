@@ -71,6 +71,9 @@ public class BlockListener implements Listener  {
         debug = fd.getConfig().getBoolean(Config.debug);
         Material mat = event.getBlock().getType();
 
+        //Prevent mcMMO's superbreaker from re-announcing.
+        if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) { return; }
+
         //Check if the world is a world we're listening to
         if (!isValidWorld(event.getPlayer())) {
             if (debug) {
@@ -108,9 +111,6 @@ public class BlockListener implements Listener  {
                 return;
             }
         }
-
-        //Prevent mcMMO's superbreaker from re-announcing.
-        if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) { return; }
 
         //Check if block is broadcastable
         Node broadcastNode = Node.getNodeByMaterial(ListHandler.getBroadcastedBlocks(), mat);

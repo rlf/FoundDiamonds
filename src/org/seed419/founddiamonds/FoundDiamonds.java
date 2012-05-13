@@ -209,6 +209,20 @@ public class FoundDiamonds extends JavaPlugin {
                             sendPermissionsMessage(player);
                         }
                     }
+                } else if (arg.equalsIgnoreCase("debug")) {
+                    if (sender instanceof Player) {
+                        if (hasPerms(player, "fd.toggle")) {
+                            if (args.length == 2) {
+                                if (args[1].equalsIgnoreCase("2")) {
+                                    Menu.showConfig2(this, sender);
+                                }
+                            } else {
+                                Menu.showConfig(this, sender);
+                            }
+                        } else {
+                            sendPermissionsMessage(player);
+                        }
+                    }
                 } else if (arg.equalsIgnoreCase("light")) {
                     if (sender instanceof Player) {
                         if (hasPerms(player, "fd.manage.light.add") || hasPerms(player, "fd.manage.light.remove")

@@ -316,6 +316,14 @@ public class Menu {
     }
 
 
+    /*Debug toggle*/
+    public static void toggleDebug(FoundDiamonds fd, CommandSender sender) {
+        boolean current = !fd.getConfig().getBoolean(Config.debug);
+        fd.getConfig().set(Config.debug, current);
+        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Debug mode is " + getPrettyMenuBoolean(current));
+    }
+
+
 
     //Menu helpers
     private static String getPrettyMenuBoolean(Boolean b) {
