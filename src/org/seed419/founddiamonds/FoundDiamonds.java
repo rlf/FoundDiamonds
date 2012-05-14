@@ -12,16 +12,14 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.seed419.founddiamonds.listeners.BlockListener;
-import org.seed419.founddiamonds.listeners.JoinListener;
 import org.seed419.founddiamonds.listeners.PlayerDamageListener;
-import org.seed419.founddiamonds.listeners.QuitListener;
 import org.seed419.founddiamonds.metrics.MetricsLite;
 
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -85,17 +83,14 @@ public class FoundDiamonds extends JavaPlugin {
 
 
     private final static String prefix = "[FD]";
-    private final static String adminPrefix = ChatColor.RED + "[FD Admin]" + ChatColor.YELLOW;
+    private final static String adminPrefix = ChatColor.RED + "[FD]";
     private final static String debugPrefix = "[FD Debug] ";
     private final static String loggerPrefix = "[FoundDiamonds]";
-    private final List<Location> trapBlocks = new LinkedList<Location>();
-    private final HashMap<Player, Boolean> adminMessagePlayers = new HashMap<Player, Boolean>();
+    private final Set<Location> trapBlocks = new HashSet<Location>();
     private final HashMap<Player, Boolean> jumpPotion = new HashMap<Player,Boolean>();
     private final static Logger log = Logger.getLogger("FoundDiamonds");
     private final BlockListener bl = new BlockListener(this);
     private final ListHandler lh = new ListHandler(this);
-    private final JoinListener join = new JoinListener(this);
-    private final QuitListener quit = new QuitListener(this);
     private final PlayerDamageListener damage = new PlayerDamageListener(this);
     private final WorldManager wm = new WorldManager(this);
     private final FileHandler fh = new FileHandler(this, wm, bl);
@@ -120,8 +115,6 @@ public class FoundDiamonds extends JavaPlugin {
         /*Register events*/
         final PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(this.bl, this);
-        pm.registerEvents(this.join, this);
-        pm.registerEvents(this.quit, this);
         pm.registerEvents(damage, this);
 
         startMetrics();
@@ -132,6 +125,7 @@ public class FoundDiamonds extends JavaPlugin {
     @Override
     public void onDisable() {
 
+        /*File I/O*/
         log.info(MessageFormat.format("[{0}] Saving all data...", pluginName));
         String info = "This file stores your trap block locations.";
         String info2 = "If you have any issues with traps - feel free to delete this file.";
@@ -143,7 +137,7 @@ public class FoundDiamonds extends JavaPlugin {
             log.info(MessageFormat.format("[{0}] Data successfully saved.", pluginName));
         } else {
             log.warning(MessageFormat.format("[{0}] Couldn't save blocks to files!", pluginName));
-            log.warning(MessageFormat.format("[{0}] You could try deleting .placed and .traplocations", pluginName));
+            log.warning(MessageFormat.format("[{0}] You could try deleting .placed and .traps if they exist", pluginName));
         }
         log.info(MessageFormat.format("[{0}] Disabled", pluginName));
     }
@@ -245,6 +239,7 @@ public class FoundDiamonds extends JavaPlugin {
                             sendPermissionsMessage(player);
                         }
                     } else {
+                        reloadConfig();
                         saveConfig();
                         sender.sendMessage(getPrefix() + ChatColor.AQUA + " Configuration saved and reloaded.");
                     }
@@ -259,19 +254,17 @@ public class FoundDiamonds extends JavaPlugin {
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("toggle")) {
-                    if (sender instanceof Player) {
-                        if (hasPerms(player, "fd.toggle")) {
-                            if (args.length == 1) {
-                                Menu.showToggle(sender);
-                            } else  if (args.length == 2) {
-                                arg = args[1];
-                                handleToggle(sender, arg);
-                            } else {
-                                sender.sendMessage(getPrefix() + ChatColor.RED + " Invalid number of arguments.");
-                                sender.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
-                            }
+                    if (!hasPerms(sender, "fd.toggle")) {
+                        sendPermissionsMessage(sender);
+                    } else {
+                        if (args.length == 1) {
+                            Menu.showToggle(sender);
+                        } else  if (args.length == 2) {
+                            arg = args[1];
+                            handleToggle(sender, arg);
                         } else {
-                            sendPermissionsMessage(player);
+                            sender.sendMessage(getPrefix() + ChatColor.RED + " Invalid number of arguments.");
+                            sender.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
                         }
                     }
                     return true;
@@ -414,7 +407,7 @@ public class FoundDiamonds extends JavaPlugin {
 
 
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
-    public List<Location> getTrapBlocks() {
+    public Set<Location> getTrapBlocks() {
         return trapBlocks;
     }
 
@@ -435,22 +428,6 @@ public class FoundDiamonds extends JavaPlugin {
         if (arg.equalsIgnoreCase("creative")) {
             getConfig().set(Config.disableInCreative, !getConfig().getBoolean(Config.disableInCreative));
             Menu.printSaved(this, sender);
-        } else if (arg.equalsIgnoreCase("admin") || arg.equalsIgnoreCase("adminmessages")) {
-            if (sender instanceof Player) {
-                Player player = (Player) sender;
-                if (hasPerms(player, "fd.admin")) {
-                    reloadAdminMessageMap(player);
-                    if (adminMessagePlayers.get(player)) {
-                        player.sendMessage(getPrefix() + ChatColor.AQUA + " Admin messages are " + ChatColor.DARK_GREEN + "ON");
-                    } else {
-                        player.sendMessage(getPrefix() + ChatColor.AQUA + " Admin messages are " + ChatColor.RED + "OFF");
-                    }
-                } else {
-                    sendPermissionsMessage(player);
-                }
-            } else {
-                sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Admin messages cannot be toggled from the console.");
-            }
         } else if (arg.equalsIgnoreCase("ops")) {
             getConfig().set(Config.opsAsFDAdmin, !getConfig().getBoolean(Config.opsAsFDAdmin));
             Menu.printSaved(this, sender);
@@ -474,9 +451,9 @@ public class FoundDiamonds extends JavaPlugin {
             Menu.printSaved(this, sender);
         } else if (arg.equalsIgnoreCase("cleanlog")) {
             getConfig().set(Config.cleanLog, !getConfig().getBoolean(Config.cleanLog));
-            if (!fh.getCleanLog().exists()) {
+            if (!FileHandler.getCleanLog().exists()) {
                 try {
-                    boolean successful = fh.getCleanLog().createNewFile();
+                    boolean successful = FileHandler.getCleanLog().createNewFile();
                     if (successful) {sender.sendMessage(getPrefix() + ChatColor.DARK_GREEN +" Cleanlog created.");}
                     } catch (IOException ex) {
                     sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Uh-oh...couldn't create CleanLog.txt");
@@ -513,8 +490,8 @@ public class FoundDiamonds extends JavaPlugin {
         return (m.getType() == Material.REDSTONE_ORE || m.getType() == Material.GLOWING_REDSTONE_ORE);
     }
 
-    public boolean hasPerms(Player player, String permission) {
-        return (player.hasPermission(permission) || (getConfig().getBoolean(Config.opsAsFDAdmin) && player.isOp()));
+    public boolean hasPerms(CommandSender sender, String permission) {
+        return (sender.hasPermission(permission) || (getConfig().getBoolean(Config.opsAsFDAdmin) && sender.isOp()));
     }
 
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
@@ -530,9 +507,9 @@ public class FoundDiamonds extends JavaPlugin {
         return configPages;
     }
 
-    public static void sendPermissionsMessage(Player player) {
-        player.sendMessage(getPrefix() + ChatColor.RED + " You don't have permission to do that.");
-        log.warning( player.getName() + " was denied access to a command.");
+    public static void sendPermissionsMessage(CommandSender sender) {
+        sender.sendMessage(getPrefix() + ChatColor.RED + " You don't have permission to do that.");
+        log.warning(sender.getName() + " was denied access to a command.");
     }
 
     public Logger getLog() {
@@ -579,27 +556,6 @@ public class FoundDiamonds extends JavaPlugin {
         } catch (IOException e) {
             //couldn't start metrics :(
         }
-    }
-
-
-
-
-    /*
-    * Admin Message Hashmap
-    */
-    private void reloadAdminMessageMap(Player player) {
-        if ((adminMessagePlayers.containsKey(player)) && adminMessagePlayers.get(player)) {
-            adminMessagePlayers.put(player, false);
-        } else if ((adminMessagePlayers.containsKey(player)) && (!adminMessagePlayers.get(player))) {
-            adminMessagePlayers.put(player, true);
-        } else {
-            adminMessagePlayers.put(player, true);
-        }
-    }
-
-    @SuppressWarnings("ReturnOfCollectionOrArrayField")
-    public HashMap<Player,Boolean> getAdminMessageMap() {
-        return adminMessagePlayers;
     }
 
 }

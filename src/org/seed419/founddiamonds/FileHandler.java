@@ -97,26 +97,32 @@ public class FileHandler {
             if (fd.getDataFolder().exists()) {
                 PrintWriter out = null;
                 try {
-                    boolean success = file.createNewFile();
-                    if (!success) {
-                        fd.getLog().severe(MessageFormat.format("[{0}] Couldn't create file to store blocks in", fd.getPluginName(), file.getName()));
-                        return false;
+                    if (!file.exists()) {
+                        boolean success = file.createNewFile();
+                        if (!success) {
+                            fd.getLog().severe(MessageFormat.format("[{0}] Couldn't create file to store blocks in", fd.getPluginName()));
+                        }
                     }
-                    out =  new PrintWriter(new BufferedWriter(new FileWriter(file, false)));
-                    out.write("# " + info);
-                    out.println();
-                    out.write("# " + info2);
-                    out.println();
-                    for (Location m : blockList) {
-                        out.write(m.getWorld().getName() + ";" + m.getX() + ";" + m.getY() + ";" + m.getZ());
+                    try {
+                        out =  new PrintWriter(new BufferedWriter(new FileWriter(file, false)));
+                        out.write("# " + info);
                         out.println();
+                        out.write("# " + info2);
+                        out.println();
+                        for (Location m : blockList) {
+                            out.write(m.getWorld().getName() + ";" + m.getX() + ";" + m.getY() + ";" + m.getZ());
+                            out.println();
+                        }
+                    } catch (IOException ex) {
+                        fd.getLog().severe(MessageFormat.format("[{0}] Error writing blocks to file!", fd.getPluginName(), file.getName()));
+                    } finally {
+                        close(out);
                     }
+                    return true;
                 } catch (IOException ex) {
-                    fd.getLog().severe(MessageFormat.format("[{0}] Error writing blocks to file!", fd.getPluginName(), file.getName()));
-                } finally {
-                    close(out);
+                    ex.printStackTrace();
+                    return false;
                 }
-                return true;
             } else {
                 if (!printed) {
                     fd.getLog().warning(MessageFormat.format("[{0}] Plugin folder not found.  Did you delete it?", fd.getPluginName()));

@@ -43,12 +43,11 @@ public class BlockListener implements Listener  {
     /*Placed block listener*/
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-/*        for (Node x : ListHandler.getBroadcastedBlocks()) {
+        for (Node x : ListHandler.getBroadcastedBlocks()) {
             if (x.getMaterial() == event.getBlockPlaced().getType()) {
-                //fd.addToPlacedBlocks(event.getBlock().getLocation());
                 cantAnnounce.add(event.getBlock().getLocation());
             }
-        }*/
+        }
     }
 
     /*Block break event*/
@@ -94,6 +93,15 @@ public class BlockListener implements Listener  {
             return;
         }
 
+        //Check to see if the block's lightlevel is being monitored.  Comes before others to prevent loopholes.
+        Node lightNode = Node.getNodeByMaterial(ListHandler.getLightLevelBlocks(), mat);
+        if (lightNode != null) {
+            EventInformation lightEvent = new EventInformation(this, event, lightNode, false);
+            if(!isValidLightLevel(lightEvent)) {
+                return;
+            }
+        }
+
         //Check if the block was already announced
         if (!isAnnounceable(event.getBlock().getLocation())) {
             cantAnnounce.remove(event.getBlock().getLocation());
@@ -103,27 +111,19 @@ public class BlockListener implements Listener  {
             return;
         }
 
-        //Check to see if the block's lightlevel is being monitored.  Comes before others to prevent loopholes.
-        Node lightNode = Node.getNodeByMaterial(ListHandler.getLightLevelBlocks(), mat);
-        if (lightNode != null) {
-            EventInformation lightEvent = new EventInformation(this, event, lightNode);
-            if(!isValidLightLevel(lightEvent)) {
-                return;
-            }
-        }
-
-        //Check if block is broadcastable
+        //Check if block is broadcast
         Node broadcastNode = Node.getNodeByMaterial(ListHandler.getBroadcastedBlocks(), mat);
+        EventInformation broadcastEvent;
         if (broadcastNode != null) {
-            EventInformation broadcastEvent = new EventInformation(this, event, broadcastNode);
-            handleBroadcast(broadcastEvent);
+                broadcastEvent = new EventInformation(this, event, broadcastNode, true);
+                handleBroadcast(broadcastEvent);
         }
 
         //Check if block is admin message material
         Node adminNode = Node.getNodeByMaterial(ListHandler.getAdminMessageBlocks(), mat);
         if (adminNode != null) {
-            EventInformation adminEvent = new EventInformation(this, event, adminNode);
-            System.out.println("I would be sending an admin message here.");
+                EventInformation adminEvent = new EventInformation(this, event, adminNode, true);
+                sendAdminMessage(adminEvent);
         }
 
         // Worry about logging here.  Right now this only logs diamond ore
@@ -132,89 +132,65 @@ public class BlockListener implements Listener  {
                 handleLogging(event.getPlayer(), event.getBlock(), false, false, false);
             }
         }
+
+        //reset message checks after successful event
+        recievedAdminMessage.clear();
+        consoleReceived = false;
     }
 
 
 
 
     /*Admin messages*/
-    //TODO needs reimplemented
-    private void isEnabledAdminMessageMaterial(Player player, Material mat, Block block) {
-        if (isAnnounceable(block.getLocation())) {
-//            if ((mat == Material.DIAMOND_ORE && fd.getConfig().getBoolean(config.getDiamondAdmin())) ||
-//                (mat == Material.GOLD_ORE && fd.getConfig().getBoolean(config.getGoldAdmin())) ||
-//                (mat == Material.LAPIS_ORE && fd.getConfig().getBoolean(config.getLapisAdmin())) ||
-//                (mat == Material.IRON_ORE && fd.getConfig().getBoolean(config.getIronAdmin())) ||
-//                (mat == Material.GLOWING_REDSTONE_ORE && fd.getConfig().getBoolean(config.getRedstoneAdmin())) ||
-//                (mat == Material.REDSTONE_ORE && fd.getConfig().getBoolean(config.getRedstoneAdmin()))) {
-                //sendAdminMessage(player, block);
-            }
-        }
-
-
-    //Maybe instead of ignoring those with permission fd.messages, use a separate permission for ignoring?
-/*    private void sendAdminMessage(Player player, Block block) {
-        //EventInformation b = getBlockInformation(block);
-        String playerName = player.getName();
-        String message = Format.formatMessage(fd, config, founddiamonds.getAdminPrefix(), b.getMaterial(), b.getColor(), b.getTotal(), playerName);
-        //This is incredibly confusing, but must be done.
-        String formatted = customTranslateAlternateColorCodes('&', message);
-        fd.getServer().getConsoleSender().sendMessage(formatted);
-        consoleRecieved = true;
+    private void sendAdminMessage(EventInformation adminEvent) {
+        String adminMessage = FoundDiamonds.getAdminPrefix() + " " + ChatColor.YELLOW + adminEvent.getPlayer().getName() +
+                ChatColor.DARK_RED + " just found " + adminEvent.getColor() +
+                (adminEvent.getTotal() == 500 ? "a lot of " :String.valueOf(adminEvent.getTotal())) + " " +
+                Format.getFormattedName(adminEvent.getMaterial(), adminEvent.getTotal());
+        fd.getServer().getConsoleSender().sendMessage(adminMessage);
+        consoleReceived = true;
         for (Player y : fd.getServer().getOnlinePlayers()) {
-            if (fd.getAdminMessageMap().containsKey(y)) {
-                if (fd.getAdminMessageMap().get(y)) {
-                    y.sendMessage(formatted);
-                    recievedAdminMessage.add(y);
-                    if (debug) {
-                        log.info(founddiamonds.getDebugPrefix() + "Sent admin message to " + y.getName());
-                    }
-                } else {
-                    if (debug) {
-                        log.info(founddiamonds.getDebugPrefix() + y.getName() + "'s admin messages are toggled off.");
-                    }
+            if (fd.hasPerms(y, "fd.admin")) {
+                y.sendMessage(adminMessage);
+                recievedAdminMessage.add(y);
+                if (debug) {
+                    log.info(FoundDiamonds.getDebugPrefix() + "Sent admin message to " + y.getName());
                 }
             } else {
                 if (debug) {
-                    log.info(founddiamonds.getDebugPrefix() + y.getName() + " doesn't have permission fd.messages");
-                }
-            }
-        }
-    }*/
-
-    private void sendLightAdminMessage(EventInformation ei, int lightLevel) {
-        String lightAdminMessage = FoundDiamonds.getAdminPrefix() + ChatColor.YELLOW + ei.getPlayer().getName() +
-                ChatColor.GRAY +" was denied mining " + ChatColor.YELLOW +
-                Format.getFormattedName(ei.getMaterial(), 1) + ChatColor.GRAY + " at" + " light level "
-                + ChatColor.WHITE +  lightLevel;
-        fd.getServer().getConsoleSender().sendMessage(lightAdminMessage);
-        for (Player y : fd.getServer().getOnlinePlayers()) {
-            if (fd.getAdminMessageMap().containsKey(y)) {
-                if (fd.getAdminMessageMap().get(y)) {
-                    if (y != ei.getPlayer()) {
-                        y.sendMessage(lightAdminMessage);
-                        if (debug) {
-                            log.info(FoundDiamonds.getDebugPrefix() + "Sent admin message to " + y.getName());
-                        }
-                    } else {
-                        if (debug) {
-                            log.info(FoundDiamonds.getDebugPrefix() +y.getName()
-                                    + " was not sent an admin message because it was them who was denied mining.");
-                        }
-                    }
-                } else {
-                    if (debug) {
-                        log.info(FoundDiamonds.getDebugPrefix() + y.getName() + "'s admin messages are toggled off");
-                    }
-                }
-            } else {
-                if (debug) {
-                    log.info(FoundDiamonds.getDebugPrefix() + y.getName()
-                            + " either doesn't have permission 'fd.admin' or needs to turn them on with /fd toggle admin");
+                    log.info(FoundDiamonds.getDebugPrefix() + y.getName() + " doesn't have the permission fd.admin");
                 }
             }
         }
     }
+
+    private void sendLightAdminMessage(EventInformation ei, int lightLevel) {
+        String lightAdminMessage = FoundDiamonds.getAdminPrefix() + " " + ChatColor.YELLOW + ei.getPlayer().getName() +
+                ChatColor.GRAY +" was denied mining " + ei.getColor() +
+                Format.getFormattedName(ei.getMaterial(), 1) + ChatColor.GRAY + " at" + " light level "
+                + ChatColor.WHITE +  lightLevel;
+        fd.getServer().getConsoleSender().sendMessage(lightAdminMessage);
+        for (Player y : fd.getServer().getOnlinePlayers()) {
+            if (fd.hasPerms(y, "fd.admin")) {
+                if (y != ei.getPlayer()) {
+                    y.sendMessage(lightAdminMessage);
+                    if (debug) {
+                        log.info(FoundDiamonds.getDebugPrefix() + "Sent admin message to " + y.getName());
+                    }
+                } else {
+                    if (debug) {
+                        log.info(FoundDiamonds.getDebugPrefix() +y.getName()
+                                + " was not sent an admin message because it was them who was denied mining.");
+                    }
+                }
+            } else {
+                if (debug) {
+                    log.info(FoundDiamonds.getDebugPrefix() + y.getName() + " doesn't have the permission fd.admin");
+                }
+            }
+        }
+    }
+
 
 
 
@@ -525,10 +501,6 @@ public class BlockListener implements Listener  {
             }
         }
 
-        //reset message checks after successful broadcast
-        recievedAdminMessage.clear();
-        consoleReceived = false;
-
         //write to log if cleanlogging.
         if (fd.getConfig().getBoolean(Config.cleanLog)) {
             writeToCleanLog(ei, playerName);
@@ -596,7 +568,7 @@ public class BlockListener implements Listener  {
             }
             if (lightLevel > levelToDisableAt) {
                 if (debug) {
-                    log.info(FoundDiamonds.getDebugPrefix() + ei.getPlayer().getName() + " just mined "
+                    log.info(FoundDiamonds.getDebugPrefix() + " " + ei.getPlayer().getName() + " just mined "
                             + Format.getFormattedName(ei.getMaterial(), 1) + " at light level " + highestLevel
                             + ".  We are disabling ore mining at light level " + formattedLightLevel + " or "
                             + percentage + "%");

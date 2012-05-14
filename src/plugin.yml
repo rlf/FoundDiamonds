@@ -1,5 +1,5 @@
 name: FoundDiamonds
-version: 3.3-Alpha
+version: 3.3-Beta
 main: org.seed419.founddiamonds.FoundDiamonds
 author: SeeD419
 website: http://dev.bukkit.org/server-mods/founddiamonds/
@@ -21,6 +21,7 @@ permissions:
       fd.manage.*: true
       fd.broadcast: true
       fd.monitor: true
+      fd.admin: true
 
   fd.manage.*:
     description: Allows management of all blocks

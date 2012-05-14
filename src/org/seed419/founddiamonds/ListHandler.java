@@ -1,12 +1,13 @@
 package org.seed419.founddiamonds;
 
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.command.CommandSender;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.command.CommandSender;
 
 /**
  * Created with IntelliJ IDEA.
@@ -66,7 +67,6 @@ public class ListHandler {
                             }
                             if (!Node.containsMat(list, matchAttempt)) {
                                 list.add(new Node(matchAttempt,color));
-                                 System.out.println("Added new node to in-game list");
                             }
                         } catch (Exception ex) {
                             fd.getLog().severe(FoundDiamonds.getLoggerPrefix() + " Unable to match color '" + bi[1] + "'");
@@ -105,7 +105,6 @@ public class ListHandler {
         fd.saveConfig();
     }
 
-    //TODO make this work with all 3 lists?
     public static void handleAddToList(CommandSender sender, String[] args, List<Node> list, String configString) {
         if (args.length == 2) {
             sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Format is: item:color");

@@ -19,7 +19,7 @@ public class Config {
 
 
     /*Light Level*/
-    public static String percentOfLightRequired = "Found Diamonds Configuration.Light Level.Minimum amount of light required to mine ore";
+    public static String percentOfLightRequired = "Found Diamonds Configuration.Light Level.Minimum amount of light required to mine blocks";
     public static String lightLevelBlocks = "Found Diamonds Configuration.Light Level.Monitored Blocks";
 
     /*Traps*/

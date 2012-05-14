@@ -305,11 +305,6 @@ public class Menu {
     /*Version*/
     public static void showVersion(CommandSender sender) {
         sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Version]");
-        sender.sendMessage(ChatColor.AQUA + "     _____ ");
-        sender.sendMessage(ChatColor.AQUA + " _ /_|___|_\\ _");
-        sender.sendMessage(ChatColor.AQUA + "   \\      / .'");
-        sender.sendMessage(ChatColor.AQUA + "    \\    /.'");
-        sender.sendMessage(ChatColor.AQUA + "      '.'");
         sender.sendMessage(ChatColor.DARK_GREEN + " @version:  " + ChatColor.GOLD + FoundDiamonds.getPdf().getVersion());
         sender.sendMessage(ChatColor.DARK_GREEN + " @author:   " + ChatColor.GOLD + "seed419");
         sender.sendMessage(ChatColor.DARK_GREEN + " @website:  " + ChatColor.GOLD + "http://dev.bukkit.org/server-mods/founddiamonds/");
