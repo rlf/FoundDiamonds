@@ -1,5 +1,5 @@
 name: FoundDiamonds
-version: 3.3-Beta
+version: 3.3.2-Beta
 main: org.seed419.founddiamonds.FoundDiamonds
 author: SeeD419
 website: http://dev.bukkit.org/server-mods/founddiamonds/
@@ -118,10 +118,6 @@ permissions:
 
   fd.trap:
     description: Allows users to manage FD traps
-    default: false
-
-  fd.admin:
-    description: Allows users to see admin messages
     default: false
 
   fd.monitor:

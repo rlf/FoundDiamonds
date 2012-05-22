@@ -1,8 +1,9 @@
 package org.seed419.founddiamonds;
 
-import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -33,9 +34,7 @@ public class Node {
 
     public static Node parseNode(String cb) {
         String[] bi = cb.split(":");
-/*        for (String x : bi) {
-             System.out.println("bi: " + x);
-        }*/
+//TODO Parse item IDs as well!
         //Parse the material string
         Material matchAttempt = parseMaterial(bi[0]);
         if (matchAttempt == null) {

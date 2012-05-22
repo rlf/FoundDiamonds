@@ -24,32 +24,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /* TODO
-* AdminMap memory?
-* VERSITALE LISTS - in progress
-* Smarter trap blocks - remember material.
+* Smarter trap blocks - remember material NOT just the location!  Prevents pistons and physics from tricking them.
+* Implement Item IDs as an acceptable form of entering blocks
 * Finish set menu, integrate with main menu
 * Look into pulling stats from MC client?  Or MySQL?
-* Finish config and toggle
 * /fd top ?
-* Re-implement admin messages
-* implement light level block list
+* /
 
 /*
 * Changelog:
-* Implemented versatile lists that can be edited to whatever you want!
-* Made fd log player commands to the console, including failed command attempts.
-* Fixed a terrible admin message bug that I never saw before
-* Moved prefix to broadcast message as @Prefix@ instead of having a separate option for it.
-* Fixed color bug when using nicknames in broadcast (now looks way better imo)
-* Fixed a bug with random items not even working -.-
-* Added 3 new potions.
-* Made potion messages more descriptive, and configurable.
-* Fixed bugs with menus and made other improvements to them.
-* Traps can now be set without using '_' characters, and just spaces (/fd trap gold ore)
-* Fixed a bug with /fd reload   (The fuck was the bug?)
-* Refactored a TON of code.
-* Improved total block detection - Diagonal blocks no longer fool the plugin!
-* Implemented trap DEPTH setting -snoepje0
+* Fixed an old total block counting bug that I accidentally re-introduced.
+* Fixed a bug with admin messages firing on blocks players placed.
+* Fixed admin messages sending message to the person who broke the block.
 *
 */
 
@@ -177,7 +163,7 @@ public class FoundDiamonds extends JavaPlugin {
                         Menu.handleAdminMenu(this, sender, args);
                     }
                     return true;
-                } else if (arg.equalsIgnoreCase("bc")) {
+                } else if (arg.equalsIgnoreCase("bc") || arg.equalsIgnoreCase("broadcast")) {
                     if (sender instanceof Player) {
                         if (hasPerms(player, "fd.manage.bc.add") || hasPerms(player, "fd.manage.bc.remove")
                                 || hasPerms(player, "fd.manage.bc.list")) {
@@ -488,6 +474,10 @@ public class FoundDiamonds extends JavaPlugin {
      */
     public static boolean isRedstone(Block m) {
         return (m.getType() == Material.REDSTONE_ORE || m.getType() == Material.GLOWING_REDSTONE_ORE);
+    }
+
+    public static boolean isRedstone(Material m) {
+        return (m == Material.REDSTONE_ORE || m == Material.GLOWING_REDSTONE_ORE);
     }
 
     public boolean hasPerms(CommandSender sender, String permission) {

@@ -99,7 +99,7 @@ public class ListHandler {
         List<String> temp = new ArrayList<String>();
         for (Node x : list) {
             temp.add(x.toString());
-            System.out.println(x.toString());
+            if (fd.getConfig().getBoolean(Config.debug)) {fd.getLog().info(FoundDiamonds.getDebugPrefix() + x.toString());}
         }
         fd.getConfig().set(configLoc, temp);
         fd.saveConfig();
@@ -141,7 +141,7 @@ public class ListHandler {
             sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " If this is really buggy, please ask SeeD419 for help!");
         } else if (args.length > 2) {
             StringBuilder sb = new StringBuilder();
-            fd.getLog().severe(FoundDiamonds.getLoggerPrefix() + " Size of block list = " + list.size());
+            if (fd.getConfig().getBoolean(Config.debug)) {fd.getLog().info(FoundDiamonds.getDebugPrefix() + " Size of block list = " + list.size());}
             for (int i = 2; i < args.length; i++) {
                 sb.append(args[i] + " ");
             }
@@ -152,7 +152,7 @@ public class ListHandler {
                 ChatColor color = getNodeColor(matToRemove,  list);
                 if (removeMaterialFromList(matToRemove, list, configString)) {
                     sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Removed " + color + Format.material(matToRemove));
-                    fd.getLog().severe(FoundDiamonds.getLoggerPrefix() + " Size of block list = " + list.size());
+                    if (fd.getConfig().getBoolean(Config.debug)) {fd.getLog().info(FoundDiamonds.getDebugPrefix() + " Size of block list = " + list.size());}
                     updateListInConfig(list, configString);
                 } else {
                     sender.sendMessage(FoundDiamonds.getPrefix() + " "  + ChatColor.WHITE + Format.material(matToRemove) + ChatColor.DARK_RED + " isn't listed.");

@@ -48,6 +48,11 @@ public class BlockListener implements Listener  {
                 cantAnnounce.add(event.getBlock().getLocation());
             }
         }
+        for (Node x : ListHandler.getAdminMessageBlocks()) {
+            if (x.getMaterial() == event.getBlockPlaced().getType()) {
+                cantAnnounce.add(event.getBlock().getLocation());
+            }
+        }
     }
 
     /*Block break event*/
@@ -75,9 +80,7 @@ public class BlockListener implements Listener  {
 
         //Check if the world is a world we're listening to
         if (!isValidWorld(event.getPlayer())) {
-            if (debug) {
-                log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: User is not in a FD enabled world.");
-            }
+            if (debug) {log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: User is not in a FD enabled world.");}
             return;
         }
 
@@ -105,9 +108,7 @@ public class BlockListener implements Listener  {
         //Check if the block was already announced
         if (!isAnnounceable(event.getBlock().getLocation())) {
             cantAnnounce.remove(event.getBlock().getLocation());
-            if (debug) {
-                log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: Block already announced or placed.  Removing broken block from memory.");
-            }
+            if (debug) {log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: Block already announced or placed.  Removing broken block from memory.");}
             return;
         }
 
@@ -150,16 +151,12 @@ public class BlockListener implements Listener  {
         fd.getServer().getConsoleSender().sendMessage(adminMessage);
         consoleReceived = true;
         for (Player y : fd.getServer().getOnlinePlayers()) {
-            if (fd.hasPerms(y, "fd.admin")) {
+            if (fd.hasPerms(y, "fd.admin") && y != adminEvent.getPlayer()) {
                 y.sendMessage(adminMessage);
                 recievedAdminMessage.add(y);
-                if (debug) {
-                    log.info(FoundDiamonds.getDebugPrefix() + "Sent admin message to " + y.getName());
-                }
+                if (debug) {log.info(FoundDiamonds.getDebugPrefix() + "Sent admin message to " + y.getName());}
             } else {
-                if (debug) {
-                    log.info(FoundDiamonds.getDebugPrefix() + y.getName() + " doesn't have the permission fd.admin");
-                }
+                if (debug) {log.info(FoundDiamonds.getDebugPrefix() + y.getName() + " doesn't have the permission fd.admin");}
             }
         }
     }
@@ -174,19 +171,12 @@ public class BlockListener implements Listener  {
             if (fd.hasPerms(y, "fd.admin")) {
                 if (y != ei.getPlayer()) {
                     y.sendMessage(lightAdminMessage);
-                    if (debug) {
-                        log.info(FoundDiamonds.getDebugPrefix() + "Sent admin message to " + y.getName());
-                    }
+                    if (debug) {log.info(FoundDiamonds.getDebugPrefix() + "Sent admin message to " + y.getName());}
                 } else {
-                    if (debug) {
-                        log.info(FoundDiamonds.getDebugPrefix() +y.getName()
-                                + " was not sent an admin message because it was them who was denied mining.");
-                    }
+                    if (debug) {log.info(FoundDiamonds.getDebugPrefix() +y.getName() + " was not sent an admin message because it was them who was denied mining.");}
                 }
             } else {
-                if (debug) {
-                    log.info(FoundDiamonds.getDebugPrefix() + y.getName() + " doesn't have the permission fd.admin");
-                }
+                if (debug) {log.info(FoundDiamonds.getDebugPrefix() + y.getName() + " doesn't have the permission fd.admin");}
             }
         }
     }
@@ -483,9 +473,7 @@ public class BlockListener implements Listener  {
             if (x.hasPermission("fd.broadcast") && isValidWorld(x)) {
                 if (!recievedAdminMessage.contains(x)) {
                     x.sendMessage(formatted);
-                    if (debug) {
-                        log.info(FoundDiamonds.getDebugPrefix() + "Sent broadcast to " + x.getName());
-                    }
+                    if (debug) {log.info(FoundDiamonds.getDebugPrefix() + "Sent broadcast to " + x.getName());}
                 } else if (debug) {
                     log.info(FoundDiamonds.getDebugPrefix() + x.getName() + "recieved an admin message already, so not broadcasting to " + x.getName());
                 }

@@ -92,7 +92,7 @@ public class EventInformation {
             Block var = passed.getRelative(y);
             //System.out.println("X:" + var.getX() + " Y:" + var.getY() + " Z:" + var.getZ() + " Type: " + Format.material(var.getType()) + " Face: " + y.name());
             if (var.getType() == mat && bl.isAnnounceable(var.getLocation()) && !alreadyAdded.contains(var)
-                    || FoundDiamonds.isRedstone(var) && FoundDiamonds.isRedstone(passed) && bl.isAnnounceable(var.getLocation())
+                    || FoundDiamonds.isRedstone(var) && FoundDiamonds.isRedstone(mat) && bl.isAnnounceable(var.getLocation())
                     && !alreadyAdded.contains(var)) {
                 bl.getCantAnnounce().add(var.getLocation());
                 alreadyAdded.add(var);
