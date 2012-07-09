@@ -438,7 +438,7 @@ public class BlockListener implements Listener  {
     /*Broadcasts*/
     // This looks sloppy but it needs to be in this order for the output.  Whatever.
     private void handleBroadcast(EventInformation ei) {
-        if (isOre(ei.getMaterial())) {
+        if (isOre(ei.getMaterial()) && mysqlEnabled) {
             mysql.updateUser(ei);
         }
         if (ei.getMaterial() == Material.DIAMOND_ORE) {
