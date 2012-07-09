@@ -44,5 +44,13 @@ Found Diamonds Configuration:
   Enabled Worlds:
   Admin Messages:
     Admin Message Blocks:
+  MySQL:
+    Enabled: false
+    Username: root
+    Password: bacon
+    DatabaseName: minecraft
+    URL: localhost
+    Port: 3306
+    Prefix: fd
   Debug:
     Enabled: false
