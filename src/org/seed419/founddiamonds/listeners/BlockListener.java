@@ -24,11 +24,14 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.seed419.founddiamonds.sql.MySQL;
 
 public class BlockListener implements Listener  {
 
 
     private FoundDiamonds fd;
+    private MySQL mysql;
+    private boolean mysqlEnabled;
     private static final Logger log = Logger.getLogger("FoundDiamonds");
     private HashSet<Location> cantAnnounce = new HashSet<Location>();
     private List<Player> recievedAdminMessage = new LinkedList<Player>();
@@ -36,8 +39,9 @@ public class BlockListener implements Listener  {
     private boolean debug;
 
 
-    public BlockListener(FoundDiamonds instance) {
-        fd = instance;
+    public BlockListener(FoundDiamonds instance, MySQL mysql) {
+        this.mysql = mysql;
+        this.fd = instance;
     }
 
     /*Placed block listener*/
@@ -344,7 +348,7 @@ public class BlockListener implements Listener  {
     }
 
     private void broadcastRandomItem(int item, int amount) {
-        fd.getServer().broadcastMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " Everyone else got " + amount +
+        fd.getServer().broadcastMessage(FoundDiamonds.getPrefix() + ChatColor.GRAY + " Everyone else got " + amount +
         " " + Format.getFormattedName(Material.getMaterial(item), amount));
     }
 
@@ -358,7 +362,7 @@ public class BlockListener implements Listener  {
 
     private int getRandomAmount(){
         Random rand = new Random();
-        int amount = rand.nextInt(3);
+        int amount = rand.nextInt(3) + 1;
         return amount;
     }
 
@@ -432,17 +436,12 @@ public class BlockListener implements Listener  {
     }
 
     /*Broadcasts*/
+    // This looks sloppy but it needs to be in this order for the output.  Whatever.
     private void handleBroadcast(EventInformation ei) {
+        if (isOre(ei.getMaterial()) && mysqlEnabled) {
+            mysql.updateUser(ei);
+        }
         if (ei.getMaterial() == Material.DIAMOND_ORE) {
-            if (fd.getConfig().getBoolean(Config.itemsForFindingDiamonds)) {
-                int randomInt = (int) (Math.random()*100);
-                if (randomInt <= fd.getConfig().getInt(Config.chanceToGetItem)) {
-                    int randomNumber = (int)(Math.random()*150);
-                    if (randomNumber >= 0 && randomNumber <= 150) {
-                        handleRandomItems(randomNumber);
-                    }
-                }
-            }
             if (fd.getConfig().getBoolean(Config.potionsForFindingDiamonds)) {
                 int randomInt = (int) (Math.random()*100);
                 if (randomInt <= fd.getConfig().getInt(Config.chanceToGetPotion)) {
@@ -454,6 +453,17 @@ public class BlockListener implements Listener  {
             }
         }
         broadcastFoundBlock(ei);
+        if (ei.getMaterial() == Material.DIAMOND_ORE) {
+            if (fd.getConfig().getBoolean(Config.itemsForFindingDiamonds)) {
+                int randomInt = (int) (Math.random()*100);
+                if (randomInt <= fd.getConfig().getInt(Config.chanceToGetItem)) {
+                    int randomNumber = (int)(Math.random()*150);
+                    if (randomNumber >= 0 && randomNumber <= 150) {
+                        handleRandomItems(randomNumber);
+                    }
+                }
+            }
+        }
     }
 
     private void broadcastFoundBlock(EventInformation ei) {
@@ -470,7 +480,7 @@ public class BlockListener implements Listener  {
         }
 
         for (Player x : fd.getServer().getOnlinePlayers()) {
-            if (x.hasPermission("fd.broadcast") && isValidWorld(x)) {
+            if (fd.hasPerms(x,"fd.broadcast") && isValidWorld(x)) {
                 if (!recievedAdminMessage.contains(x)) {
                     x.sendMessage(formatted);
                     if (debug) {log.info(FoundDiamonds.getDebugPrefix() + "Sent broadcast to " + x.getName());}
@@ -503,8 +513,7 @@ public class BlockListener implements Listener  {
         }
     }
 
-
-
+    
 
     /*
      * Other Methods
@@ -586,6 +595,16 @@ public class BlockListener implements Listener  {
             }
         }
         return true;
+    }
+    
+    public void setMySQLEnabled(boolean b) {
+        mysqlEnabled = b;
+    }
+    
+    public boolean isOre(Material mat) {
+        return mat == Material.IRON_ORE || mat == Material.GOLD_ORE || mat == Material.COAL_ORE 
+                || mat == Material.LAPIS_ORE || mat == Material.DIAMOND_ORE || mat == Material.REDSTONE_ORE
+                || mat == Material.GLOWING_REDSTONE_ORE;
     }
 
 }

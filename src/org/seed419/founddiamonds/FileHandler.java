@@ -1,22 +1,15 @@
 package org.seed419.founddiamonds;
 
-import org.bukkit.Location;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.seed419.founddiamonds.listeners.BlockListener;
-
 import java.io.*;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bukkit.Location;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.seed419.founddiamonds.listeners.BlockListener;
 
-/**
- * Created with IntelliJ IDEA.
- * User: seed419
- * Date: 5/12/12
- * Time: 7:59 AM
- * To change this template use File | Settings | File Templates.
- */
+
 public class FileHandler {
 
 
@@ -170,6 +163,7 @@ public class FileHandler {
         try {
             fd.getConfig().options().copyDefaults(true);
             fd.getConfig().load(configFile);
+            fd.saveConfig();
         } catch (FileNotFoundException ex) {
             fd.getLog().severe(MessageFormat.format("[{0}] Couldn't find config.yml {1}", fd.getPluginName(), ex));
         } catch (IOException ex) {
@@ -177,11 +171,6 @@ public class FileHandler {
         } catch (InvalidConfigurationException ex) {
             fd.getLog().severe(MessageFormat.format("[{0}] Unable to load configuration file {1}", fd.getPluginName(), ex));
         }
-    }
-
-    //TODO
-    public void saveLists() {
-
     }
 
     public static File getLogFile() {

@@ -22,6 +22,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.seed419.founddiamonds.listeners.PlayerJoinListener;
+import org.seed419.founddiamonds.listeners.PlayerQuitListener;
+import org.seed419.founddiamonds.sql.MySQL;
 
 /* TODO
 * Smarter trap blocks - remember material NOT just the location!  Prevents pistons and physics from tricking them.
@@ -75,7 +78,10 @@ public class FoundDiamonds extends JavaPlugin {
     private final Set<Location> trapBlocks = new HashSet<Location>();
     private final HashMap<Player, Boolean> jumpPotion = new HashMap<Player,Boolean>();
     private final static Logger log = Logger.getLogger("FoundDiamonds");
-    private final BlockListener bl = new BlockListener(this);
+    private final MySQL mysql = new MySQL(this);
+    private final BlockListener bl = new BlockListener(this, mysql);
+    private final PlayerJoinListener pjl = new PlayerJoinListener(this);
+    private final PlayerQuitListener pql = new PlayerQuitListener(this);
     private final ListHandler lh = new ListHandler(this);
     private final PlayerDamageListener damage = new PlayerDamageListener(this);
     private final WorldManager wm = new WorldManager(this);
@@ -84,6 +90,13 @@ public class FoundDiamonds extends JavaPlugin {
     private String pluginName;
     private final static int togglePages = 2;
     private final static int configPages = 2;
+    
+    /*
+     * Changelog:
+     * Implemented MySQL logging of total ores
+     * Fixed bug with OPs
+     * Merged item ID pull request, now need a comma, not a colon.
+     */
 
 
     @Override
@@ -97,13 +110,19 @@ public class FoundDiamonds extends JavaPlugin {
 
         /*Load the new lists*/
         lh.loadAllBlocks();
+        
+        bl.setMySQLEnabled(getConfig().getBoolean(Config.mysqlEnabled));
 
         /*Register events*/
         final PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(this.bl, this);
         pm.registerEvents(damage, this);
+        pm.registerEvents(pjl, this);
+        pm.registerEvents(pql, this);
 
         startMetrics();
+        
+        mysql.getConnection();
 
         log.info(MessageFormat.format("[{0}] Enabled", pluginName));
     }
@@ -239,6 +258,11 @@ public class FoundDiamonds extends JavaPlugin {
                         }
                     }
                     return true;
+                } else if (arg.equalsIgnoreCase("stats")) {
+                    if (sender instanceof Player) {
+                        mysql.printStats(player);
+                    }
+                    return true;
                 } else if (arg.equalsIgnoreCase("toggle")) {
                     if (!hasPerms(sender, "fd.toggle")) {
                         sendPermissionsMessage(sender);
@@ -276,6 +300,15 @@ public class FoundDiamonds extends JavaPlugin {
                     return true;
                 } else if (arg.equalsIgnoreCase("version")) {
                     Menu.showVersion(sender);
+                    return true;
+                } else if (arg.equalsIgnoreCase("top")) {
+                    if (this.getConfig().getBoolean(Config.mysqlEnabled)) {
+                        if (args.length == 1) {
+                            mysql.handleTop(sender);
+                        } else {
+                            
+                        }    
+                    }    
                     return true;
                 } else {
                         sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Unrecognized command '"
@@ -350,7 +383,6 @@ public class FoundDiamonds extends JavaPlugin {
         }
     }
 
-
     private void getTrapLocations(Player player, Location playerLoc, Material trap, int depth) {
         int x = playerLoc.getBlockX();
         int y = playerLoc.getBlockY() - depth;
@@ -379,6 +411,7 @@ public class FoundDiamonds extends JavaPlugin {
             handleTrapBlocks(player, trap, block1, block2, block3, block4);
         }
     }
+    
     public void handleTrapBlocks(Player player, Material trap, Block block1, Block block2, Block block3, Block block4) {
         trapBlocks.add(block1.getLocation());
         trapBlocks.add(block2.getLocation());
@@ -391,22 +424,14 @@ public class FoundDiamonds extends JavaPlugin {
         player.sendMessage(getPrefix() + ChatColor.AQUA + " Trap set using " + trap.name().toLowerCase().replace("_", " "));
     }
 
-
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
     public Set<Location> getTrapBlocks() {
         return trapBlocks;
     }
 
-
-
-
-    /*
-     * File handlers
-     */
-
-
-
-
+    
+    
+    
     /*
      * Toggle handler
      */
@@ -537,7 +562,7 @@ public class FoundDiamonds extends JavaPlugin {
 
 
     /*
-     * metrics
+     * Metrics
      */
     private void startMetrics() {
         try {

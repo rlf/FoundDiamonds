@@ -65,7 +65,16 @@ public class Config {
 
     /*Admin Messages*/
     public static String adminMessageBlocks = "Found Diamonds Configuration.Admin Messages.Admin Message Blocks";
-
+    
+    /*MySQL*/
+    public static String mysqlEnabled = "Found Diamonds Configuration.MySQL.Enabled";
+    public static String mysqlUsername = "Found Diamonds Configuration.MySQL.Username";
+    public static String mysqlPassword = "Found Diamonds Configuration.MySQL.Password";    
+    public static String mysqlDatabase = "Found Diamonds Configuration.MySQL.DatabaseName";
+    public static String mysqlUrl = "Found Diamonds Configuration.MySQL.URL";
+    public static String mysqlPort = "Found Diamonds Configuration.MySQL.Port";
+    public static String mysqlPrefix = "Found Diamonds Configuration.MySQL.Prefix";
+    
     /*Debug*/
     public static String debug = "Found Diamonds Configuration.Debug.Enabled";
 
