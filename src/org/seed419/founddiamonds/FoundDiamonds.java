@@ -13,7 +13,10 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.seed419.founddiamonds.listeners.BlockListener;
 import org.seed419.founddiamonds.listeners.PlayerDamageListener;
+import org.seed419.founddiamonds.listeners.PlayerJoinListener;
+import org.seed419.founddiamonds.listeners.PlayerQuitListener;
 import org.seed419.founddiamonds.metrics.MetricsLite;
+import org.seed419.founddiamonds.sql.MySQL;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -22,9 +25,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.seed419.founddiamonds.listeners.PlayerJoinListener;
-import org.seed419.founddiamonds.listeners.PlayerQuitListener;
-import org.seed419.founddiamonds.sql.MySQL;
 
 /* TODO
 * Smarter trap blocks - remember material NOT just the location!  Prevents pistons and physics from tricking them.
@@ -33,14 +33,6 @@ import org.seed419.founddiamonds.sql.MySQL;
 * Look into pulling stats from MC client?  Or MySQL?
 * /fd top ?
 * /
-
-/*
-* Changelog:
-* Fixed an old total block counting bug that I accidentally re-introduced.
-* Fixed a bug with admin messages firing on blocks players placed.
-* Fixed admin messages sending message to the person who broke the block.
-*
-*/
 
 /*  Attribute Only (Public) License
         Version 0.a3, July 11, 2011
@@ -90,12 +82,10 @@ public class FoundDiamonds extends JavaPlugin {
     private String pluginName;
     private final static int togglePages = 2;
     private final static int configPages = 2;
-    
+
     /*
      * Changelog:
-     * Implemented MySQL logging of total ores
-     * Fixed bug with OPs
-     * Merged item ID pull request, now need a comma, not a colon.
+     * 
      */
 
 
@@ -110,7 +100,7 @@ public class FoundDiamonds extends JavaPlugin {
 
         /*Load the new lists*/
         lh.loadAllBlocks();
-        
+
         bl.setMySQLEnabled(getConfig().getBoolean(Config.mysqlEnabled));
 
         /*Register events*/
@@ -121,7 +111,7 @@ public class FoundDiamonds extends JavaPlugin {
         pm.registerEvents(pql, this);
 
         startMetrics();
-        
+
         mysql.getConnection();
 
         log.info(MessageFormat.format("[{0}] Enabled", pluginName));
@@ -129,7 +119,6 @@ public class FoundDiamonds extends JavaPlugin {
 
     @Override
     public void onDisable() {
-
         /*File I/O*/
         log.info(MessageFormat.format("[{0}] Saving all data...", pluginName));
         String info = "This file stores your trap block locations.";
@@ -147,8 +136,6 @@ public class FoundDiamonds extends JavaPlugin {
         log.info(MessageFormat.format("[{0}] Disabled", pluginName));
     }
 
-
-    //TODO fd version, fd debug
     @Override
     public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
         Player player = null;
@@ -301,14 +288,24 @@ public class FoundDiamonds extends JavaPlugin {
                 } else if (arg.equalsIgnoreCase("version")) {
                     Menu.showVersion(sender);
                     return true;
-                } else if (arg.equalsIgnoreCase("top")) {
+                } else if (arg.equalsIgnoreCase("diamond") || arg.equalsIgnoreCase("gold")
+                        || arg.equalsIgnoreCase("lapis") || arg.equalsIgnoreCase("iron")
+                        || arg.equalsIgnoreCase("redstone") || arg.equalsIgnoreCase("coal")) {
                     if (this.getConfig().getBoolean(Config.mysqlEnabled)) {
-                        if (args.length == 1) {
-                            mysql.handleTop(sender);
-                        } else {
-                            
-                        }    
-                    }    
+                        if (args[0].equalsIgnoreCase("diamond")) {
+                            mysql.handleTop(sender, "diamond");
+                        } else if (args[0].equalsIgnoreCase("gold")) {
+                            mysql.handleTop(sender, "gold");
+                        } else if (args[0].equalsIgnoreCase("lapis")) {
+                            mysql.handleTop(sender, "lapis");
+                        } else if (args[0].equalsIgnoreCase("iron")) {
+                            mysql.handleTop(sender, "iron");
+                        } else if (args[0].equalsIgnoreCase("coal")) {
+                            mysql.handleTop(sender, "coal");
+                        } else if (args[0].equalsIgnoreCase("redstone")) {
+                            mysql.handleTop(sender, "redstone");
+                        }
+                    }
                     return true;
                 } else {
                         sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Unrecognized command '"
@@ -411,7 +408,7 @@ public class FoundDiamonds extends JavaPlugin {
             handleTrapBlocks(player, trap, block1, block2, block3, block4);
         }
     }
-    
+
     public void handleTrapBlocks(Player player, Material trap, Block block1, Block block2, Block block3, Block block4) {
         trapBlocks.add(block1.getLocation());
         trapBlocks.add(block2.getLocation());
@@ -429,9 +426,9 @@ public class FoundDiamonds extends JavaPlugin {
         return trapBlocks;
     }
 
-    
-    
-    
+
+
+
     /*
      * Toggle handler
      */
@@ -568,9 +565,7 @@ public class FoundDiamonds extends JavaPlugin {
         try {
             MetricsLite metrics = new MetricsLite(this);
             metrics.start();
-        } catch (IOException e) {
-            //couldn't start metrics :(
-        }
+        } catch (IOException e) {}
     }
 
 }

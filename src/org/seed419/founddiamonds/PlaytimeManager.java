@@ -15,22 +15,25 @@ import org.bukkit.entity.Player;
  * @author proxa
  */
 public class PlaytimeManager {
-    
-    
+
+
     private static DecimalFormat dForm = new DecimalFormat("#.###");
     private static HashMap<Player,Date> playtime = new HashMap<Player,Date>();
-    
-    
+
+
     public static void insertEntry(Player player, Date date) {
-        System.out.println("PlaytimeManager Entry added: " + player.getName() + ", " + date);
+        //System.out.println("PlaytimeManager Entry added: " + player.getName() + ", " + date);
         playtime.put(player, date);
     }
 
     public static void calculatePlaytime(Player player, Date date) {
-        BigDecimal test = new BigDecimal((date.getTime() - playtime.get(player).getTime()) / 1000.0 / 60.0 / 60.0);
-        String testForm = dForm.format(test);
-        System.out.println("Total hours of playtime: " + test);
-        System.out.println("TestFormat: " + testForm);
+        //TODO implement method to get them on reload
+        if (playtime.containsKey(player)) {
+            BigDecimal test = new BigDecimal((date.getTime() - playtime.get(player).getTime()) / 1000.0 / 60.0 / 60.0);
+            String testForm = dForm.format(test);
+            //System.out.println("Total hours of playtime: " + test);
+            //System.out.println("TestFormat: " + testForm);
+        }
     }
-    
+
 }

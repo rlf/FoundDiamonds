@@ -1,9 +1,8 @@
 name: FoundDiamonds
-version: 3.3.2-Beta
+version: 3.4
 main: org.seed419.founddiamonds.FoundDiamonds
 author: SeeD419
 website: http://dev.bukkit.org/server-mods/founddiamonds/
-database: false
 
 commands:
    fd:

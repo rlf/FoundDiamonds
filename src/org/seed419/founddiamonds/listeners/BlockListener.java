@@ -1,5 +1,15 @@
 package org.seed419.founddiamonds.listeners;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.DecimalFormat;
+import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -13,17 +23,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.seed419.founddiamonds.*;
-
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.text.DecimalFormat;
-import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.seed419.founddiamonds.sql.MySQL;
 
 public class BlockListener implements Listener  {
@@ -105,6 +104,7 @@ public class BlockListener implements Listener  {
         if (lightNode != null) {
             EventInformation lightEvent = new EventInformation(this, event, lightNode, false);
             if(!isValidLightLevel(lightEvent)) {
+                event.setCancelled(true);
                 return;
             }
         }
@@ -355,8 +355,10 @@ public class BlockListener implements Listener  {
     @SuppressWarnings("deprecation")
     private void giveItems(int item, int amount) {
         for(Player p: fd.getServer().getOnlinePlayers()) {
-            p.getInventory().addItem(new ItemStack(item, amount));
-            p.updateInventory();
+            if (isValidWorld(p)) {
+                p.getInventory().addItem(new ItemStack(item, amount));
+                p.updateInventory();
+            }
         }
     }
 
@@ -403,7 +405,7 @@ public class BlockListener implements Listener  {
 
     private void givePotions(PotionEffect potion, String potionMsg) {
         for (Player p : fd.getServer().getOnlinePlayers()) {
-            if (!p.hasPotionEffect(potion.getType()) && fd.getConfig().getList(Config.enabledWorlds).contains(p.getWorld().getName())) {
+            if (!p.hasPotionEffect(potion.getType()) && isValidWorld(p)) {
                 p.addPotionEffect(potion);
                 if (potion.getType() == PotionEffectType.JUMP) {
                     fd.getJumpPotion().put(p, Boolean.TRUE);
@@ -438,6 +440,7 @@ public class BlockListener implements Listener  {
     /*Broadcasts*/
     // This looks sloppy but it needs to be in this order for the output.  Whatever.
     private void handleBroadcast(EventInformation ei) {
+        /*Handle mysql*/
         if (isOre(ei.getMaterial()) && mysqlEnabled) {
             mysql.updateUser(ei);
         }
@@ -513,7 +516,7 @@ public class BlockListener implements Listener  {
         }
     }
 
-    
+
 
     /*
      * Other Methods
@@ -596,13 +599,13 @@ public class BlockListener implements Listener  {
         }
         return true;
     }
-    
+
     public void setMySQLEnabled(boolean b) {
         mysqlEnabled = b;
     }
-    
+
     public boolean isOre(Material mat) {
-        return mat == Material.IRON_ORE || mat == Material.GOLD_ORE || mat == Material.COAL_ORE 
+        return mat == Material.IRON_ORE || mat == Material.GOLD_ORE || mat == Material.COAL_ORE
                 || mat == Material.LAPIS_ORE || mat == Material.DIAMOND_ORE || mat == Material.REDSTONE_ORE
                 || mat == Material.GLOWING_REDSTONE_ORE;
     }

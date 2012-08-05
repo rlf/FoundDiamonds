@@ -17,21 +17,20 @@ import org.seed419.founddiamonds.PlaytimeManager;
  * @author proxa
  */
 public class PlayerQuitListener implements Listener {
-    
-    
+
+
     private FoundDiamonds fd;
-    
-    
+
+
     public PlayerQuitListener(FoundDiamonds fd) {
         this.fd = fd;
     }
-    
+
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         if (fd.getConfig().getBoolean(Config.mysqlEnabled)) {
-            System.out.println("Player logged out at: " + new Date());
             PlaytimeManager.calculatePlaytime(event.getPlayer(), new Date());
         }
     }
-    
+
 }

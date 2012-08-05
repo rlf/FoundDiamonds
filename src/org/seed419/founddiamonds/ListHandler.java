@@ -93,6 +93,7 @@ public class ListHandler {
         broadcastedBlocks.add(new Node(Material.COAL_ORE, ChatColor.DARK_GRAY));
         broadcastedBlocks.add(new Node(Material.REDSTONE_ORE, ChatColor.DARK_RED));
         broadcastedBlocks.add(new Node(Material.GLOWING_REDSTONE_ORE, ChatColor.DARK_RED));
+        broadcastedBlocks.add(new Node(Material.EMERALD_ORE, ChatColor.GREEN));
     }
 
     public static void updateListInConfig(Collection<Node> list, String configLoc) {

@@ -85,6 +85,8 @@ public class BlockColor {
             case CACTUS:
             case GRASS:
             case SAPLING:
+            case EMERALD_BLOCK:
+            case EMERALD_ORE:
                 return ChatColor.GREEN;
 
             case BRICK:
