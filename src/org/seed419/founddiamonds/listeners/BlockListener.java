@@ -82,7 +82,7 @@ public class BlockListener implements Listener  {
         if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) { return; }
 
         //Check if the world is a world we're listening to
-        if (!isValidWorld(event.getPlayer())) {
+        if (!isEnabledWorld(event.getPlayer())) {
             if (debug) {log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: User is not in a FD enabled world.");}
             return;
         }
@@ -343,7 +343,6 @@ public class BlockListener implements Listener  {
             randomItem = fd.getConfig().getInt(Config.randomItem3);
         }
         int amount = getRandomAmount();
-        broadcastRandomItem(randomItem, amount);
         giveItems(randomItem, amount);
     }
 
@@ -355,7 +354,8 @@ public class BlockListener implements Listener  {
     @SuppressWarnings("deprecation")
     private void giveItems(int item, int amount) {
         for(Player p: fd.getServer().getOnlinePlayers()) {
-            if (isValidWorld(p)) {
+            if (isEnabledWorld(p)) {
+                broadcastRandomItem(item, amount);
                 p.getInventory().addItem(new ItemStack(item, amount));
                 p.updateInventory();
             }
@@ -364,7 +364,7 @@ public class BlockListener implements Listener  {
 
     private int getRandomAmount(){
         Random rand = new Random();
-        int amount = rand.nextInt(3) + 1;
+        int amount = rand.nextInt(fd.getConfig().getInt(Config.maxItems)) + 1;
         return amount;
     }
 
@@ -405,7 +405,7 @@ public class BlockListener implements Listener  {
 
     private void givePotions(PotionEffect potion, String potionMsg) {
         for (Player p : fd.getServer().getOnlinePlayers()) {
-            if (!p.hasPotionEffect(potion.getType()) && isValidWorld(p)) {
+            if (!p.hasPotionEffect(potion.getType()) && isEnabledWorld(p)) {
                 p.addPotionEffect(potion);
                 if (potion.getType() == PotionEffectType.JUMP) {
                     fd.getJumpPotion().put(p, Boolean.TRUE);
@@ -483,7 +483,7 @@ public class BlockListener implements Listener  {
         }
 
         for (Player x : fd.getServer().getOnlinePlayers()) {
-            if (fd.hasPerms(x,"fd.broadcast") && isValidWorld(x)) {
+            if (fd.hasPerms(x,"fd.broadcast") && isEnabledWorld(x)) {
                 if (!recievedAdminMessage.contains(x)) {
                     x.sendMessage(formatted);
                     if (debug) {log.info(FoundDiamonds.getDebugPrefix() + "Sent broadcast to " + x.getName());}
@@ -495,7 +495,7 @@ public class BlockListener implements Listener  {
                     if (!x.hasPermission("fd.broadcast")) {
                         log.info(FoundDiamonds.getDebugPrefix() + x.getName() + " does not have permission 'fd.broadcast'.  Not broadcasting to " + x.getName());
                     }
-                    if (!isValidWorld(x)) {
+                    if (!isEnabledWorld(x)) {
                         log.info(FoundDiamonds.getDebugPrefix() + x.getName() + " is not in an enabled world, so not broadcasting to  " + x.getName());
                     }
                 }
@@ -521,7 +521,7 @@ public class BlockListener implements Listener  {
     /*
      * Other Methods
      */
-    private boolean isValidWorld(Player player) {
+    private boolean isEnabledWorld(Player player) {
         return fd.getConfig().getList(Config.enabledWorlds).contains(player.getWorld().getName());
     }
 

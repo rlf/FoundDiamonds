@@ -1,5 +1,12 @@
 package org.seed419.founddiamonds;
 
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -13,18 +20,8 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.seed419.founddiamonds.listeners.BlockListener;
 import org.seed419.founddiamonds.listeners.PlayerDamageListener;
-import org.seed419.founddiamonds.listeners.PlayerJoinListener;
-import org.seed419.founddiamonds.listeners.PlayerQuitListener;
 import org.seed419.founddiamonds.metrics.MetricsLite;
 import org.seed419.founddiamonds.sql.MySQL;
-
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /* TODO
 * Smarter trap blocks - remember material NOT just the location!  Prevents pistons and physics from tricking them.
@@ -72,8 +69,6 @@ public class FoundDiamonds extends JavaPlugin {
     private final static Logger log = Logger.getLogger("FoundDiamonds");
     private final MySQL mysql = new MySQL(this);
     private final BlockListener bl = new BlockListener(this, mysql);
-    private final PlayerJoinListener pjl = new PlayerJoinListener(this);
-    private final PlayerQuitListener pql = new PlayerQuitListener(this);
     private final ListHandler lh = new ListHandler(this);
     private final PlayerDamageListener damage = new PlayerDamageListener(this);
     private final WorldManager wm = new WorldManager(this);
@@ -85,7 +80,7 @@ public class FoundDiamonds extends JavaPlugin {
 
     /*
      * Changelog:
-     * 
+     *
      */
 
 
@@ -107,8 +102,6 @@ public class FoundDiamonds extends JavaPlugin {
         final PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(this.bl, this);
         pm.registerEvents(damage, this);
-        pm.registerEvents(pjl, this);
-        pm.registerEvents(pql, this);
 
         startMetrics();
 
@@ -562,10 +555,12 @@ public class FoundDiamonds extends JavaPlugin {
      * Metrics
      */
     private void startMetrics() {
-        try {
-            MetricsLite metrics = new MetricsLite(this);
-            metrics.start();
-        } catch (IOException e) {}
+        if (this.getConfig().getBoolean(Config.metrics)) {
+            try {
+                MetricsLite metrics = new MetricsLite(this);
+                metrics.start();
+            } catch (IOException e) {}
+        }
     }
 
 }

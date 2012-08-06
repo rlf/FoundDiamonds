@@ -31,6 +31,7 @@ public class Config {
     /*Awards.Items*/
     public static String itemsForFindingDiamonds = "Found Diamonds Configuration.Awards.Items.Random items for finding diamonds";
     public static String chanceToGetItem = "Found Diamonds Configuration.Awards.Items.Percent of time items are given";
+    public static String maxItems = "Found Diamonds Configuration.Awards.Items.Maximum number or items to give";
     public static String randomItem1 = "Found Diamonds Configuration.Awards.Items.Random Item 1";
     public static String randomItem2 = "Found Diamonds Configuration.Awards.Items.Random Item 2";
     public static String randomItem3 = "Found Diamonds Configuration.Awards.Items.Random Item 3";
@@ -65,18 +66,22 @@ public class Config {
 
     /*Admin Messages*/
     public static String adminMessageBlocks = "Found Diamonds Configuration.Admin Messages.Admin Message Blocks";
-    
+
     /*MySQL*/
     public static String mysqlEnabled = "Found Diamonds Configuration.MySQL.Enabled";
     public static String mysqlUsername = "Found Diamonds Configuration.MySQL.Username";
-    public static String mysqlPassword = "Found Diamonds Configuration.MySQL.Password";    
+    public static String mysqlPassword = "Found Diamonds Configuration.MySQL.Password";
     public static String mysqlDatabase = "Found Diamonds Configuration.MySQL.DatabaseName";
     public static String mysqlUrl = "Found Diamonds Configuration.MySQL.URL";
     public static String mysqlPort = "Found Diamonds Configuration.MySQL.Port";
     public static String mysqlPrefix = "Found Diamonds Configuration.MySQL.Prefix";
-    
+
     /*Debug*/
     public static String debug = "Found Diamonds Configuration.Debug.Enabled";
+
+    /*Metrics*/
+    public static String metrics = "Found Diamonds Configuration.Metrics.Enabled";
+
 
 
     public Config(FoundDiamonds fd) {

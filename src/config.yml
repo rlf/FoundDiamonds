@@ -14,6 +14,7 @@ Found Diamonds Configuration:
     Items:
       Random items for finding diamonds: false
       Percent of time items are given: 25
+      Maximum number or items to give: 3
       Random Item 1: 265
       Random Item 2: 263
       Random Item 3: 340
@@ -54,3 +55,5 @@ Found Diamonds Configuration:
     Prefix: fd
   Debug:
     Enabled: false
+  Metrics:
+    Enabled: true
