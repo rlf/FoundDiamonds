@@ -342,27 +342,23 @@ public class BlockListener implements Listener  {
         } else {
             randomItem = fd.getConfig().getInt(Config.randomItem3);
         }
-        int amount = getRandomAmount();
+        int amount = getRandomItemAmount();
         giveItems(randomItem, amount);
-    }
-
-    private void broadcastRandomItem(int item, int amount) {
-        fd.getServer().broadcastMessage(FoundDiamonds.getPrefix() + ChatColor.GRAY + " Everyone else got " + amount +
-        " " + Format.getFormattedName(Material.getMaterial(item), amount));
     }
 
     @SuppressWarnings("deprecation")
     private void giveItems(int item, int amount) {
         for(Player p: fd.getServer().getOnlinePlayers()) {
             if (isEnabledWorld(p)) {
-                broadcastRandomItem(item, amount);
+                p.sendMessage(FoundDiamonds.getPrefix() + ChatColor.GRAY + " Everyone else got " + amount +
+                    " " + Format.getFormattedName(Material.getMaterial(item), amount));
                 p.getInventory().addItem(new ItemStack(item, amount));
                 p.updateInventory();
             }
         }
     }
 
-    private int getRandomAmount(){
+    private int getRandomItemAmount(){
         Random rand = new Random();
         int amount = rand.nextInt(fd.getConfig().getInt(Config.maxItems)) + 1;
         return amount;
