@@ -18,6 +18,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -58,6 +59,19 @@ public class BlockListener implements Listener  {
         }
     }
 
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onBlockDamage(BlockDamageEvent event) {
+        Material mat = event.getBlock().getType();
+        //Check to see if the block's lightlevel is being monitored.  Comes before others to prevent loopholes.
+        Node lightNode = Node.getNodeByMaterial(ListHandler.getLightLevelBlocks(), mat);
+        if (lightNode != null) {
+            EventInformation lightEvent = new EventInformation(this, event, lightNode, false);
+            if(!isValidLightLevel(lightEvent, event)) {
+                return;
+            }
+        }
+    }
+
     /*Block break event*/
     /*
     * Method structure:
@@ -78,20 +92,14 @@ public class BlockListener implements Listener  {
         debug = fd.getConfig().getBoolean(Config.debug);
         Material mat = event.getBlock().getType();
 
-        //Prevent mcMMO's superbreaker from re-announcing.
-        if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) { return; }
-
         //Check if the world is a world we're listening to
         if (!isEnabledWorld(event.getPlayer())) {
             if (debug) {log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: User is not in a FD enabled world.");}
             return;
         }
 
-        //Check to see if the block is a trap block
-        if (isTrapBlock(event.getBlock())) {
-            handleTrapBlock(event.getPlayer(), event.getBlock(), event);
-            return;
-        }
+        //Prevent mcMMO's superbreaker from re-announcing.
+        if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) { return; }
 
         //Make sure the player is in a valid gamemode
         if (!isValidGameMode(event.getPlayer())) {
@@ -99,14 +107,10 @@ public class BlockListener implements Listener  {
             return;
         }
 
-        //Check to see if the block's lightlevel is being monitored.  Comes before others to prevent loopholes.
-        Node lightNode = Node.getNodeByMaterial(ListHandler.getLightLevelBlocks(), mat);
-        if (lightNode != null) {
-            EventInformation lightEvent = new EventInformation(this, event, lightNode, false);
-            if(!isValidLightLevel(lightEvent)) {
-                event.setCancelled(true);
-                return;
-            }
+        //Check to see if the block is a trap block
+        if (isTrapBlock(event.getBlock())) {
+            handleTrapBlock(event.getPlayer(), event.getBlock(), event);
+            return;
         }
 
         //Check if the block was already announced
@@ -585,10 +589,10 @@ public class BlockListener implements Listener  {
         return true;
     }
 
-    private boolean isValidLightLevel(EventInformation ei) {
+    private boolean isValidLightLevel(EventInformation ei, BlockDamageEvent event) {
         if (fd.hasPerms(ei.getPlayer(), "fd.monitor")) {
             if (blockSeesNoLight(ei) && ei.getPlayer().getWorld().getEnvironment() != World.Environment.NETHER) {
-                ei.getEvent().setCancelled(true);
+                event.setCancelled(true);
                 ei.getPlayer().sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Mining in the dark is dangerous, place a torch!");
                 return false;
             }

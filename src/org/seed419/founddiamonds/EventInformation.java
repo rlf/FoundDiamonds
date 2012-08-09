@@ -14,6 +14,7 @@ import org.seed419.founddiamonds.listeners.BlockListener;
 
 import java.util.HashSet;
 import java.util.Set;
+import org.bukkit.event.block.BlockDamageEvent;
 
 /**
  *
@@ -29,7 +30,8 @@ public class EventInformation {
     private int total;
     private Node node;
     private Block block;
-    private BlockBreakEvent event;
+    private BlockBreakEvent bbevent;
+    private BlockDamageEvent bdevent;
     private Player player;
 
 
@@ -39,9 +41,17 @@ public class EventInformation {
         if (total) {this.total =  getTotalBlocks(this.block);}
         this.node = node;
         this.player = event.getPlayer();
-        this.event = event;
+        this.bbevent = event;
     }
 
+    public EventInformation(BlockListener bl, BlockDamageEvent event, Node node, boolean total) {
+        this.bl = bl;
+        this.block = event.getBlock();
+        if (total) {this.total =  getTotalBlocks(this.block);}
+        this.node = node;
+        this.player = event.getPlayer();
+        this.bdevent = event;
+    }
     public ChatColor getColor() {
         return node.getColor();
     }
@@ -58,8 +68,8 @@ public class EventInformation {
         return block;
     }
 
-    public BlockBreakEvent getEvent() {
-        return event;
+    public BlockBreakEvent getBBEvent() {
+        return bbevent;
     }
 
     public Player getPlayer() {
