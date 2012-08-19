@@ -1,17 +1,6 @@
 package org.seed419.founddiamonds.listeners;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.text.DecimalFormat;
-import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bukkit.*;
-import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,18 +8,27 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.seed419.founddiamonds.*;
 import org.seed419.founddiamonds.sql.MySQL;
 
-public class BlockListener implements Listener  {
+import java.text.DecimalFormat;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
+import java.util.logging.Logger;
+
+public class BlockBreakListener implements Listener  {
 
 
     private FoundDiamonds fd;
     private MySQL mysql;
+    private Trap trap;
+    private Logging logging;
+    private BlockPlaceListener bpl;
     private boolean mysqlEnabled;
     private static final Logger log = Logger.getLogger("FoundDiamonds");
     private HashSet<Location> cantAnnounce = new HashSet<Location>();
@@ -39,24 +37,12 @@ public class BlockListener implements Listener  {
     private boolean debug;
 
 
-    public BlockListener(FoundDiamonds instance, MySQL mysql) {
+    public BlockBreakListener(FoundDiamonds instance, MySQL mysql, Trap trap, Logging logging, BlockPlaceListener bpl) {
         this.mysql = mysql;
         this.fd = instance;
-    }
-
-    /*Placed block listener*/
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onBlockPlace(BlockPlaceEvent event) {
-        for (Node x : ListHandler.getBroadcastedBlocks()) {
-            if (x.getMaterial() == event.getBlockPlaced().getType()) {
-                cantAnnounce.add(event.getBlock().getLocation());
-            }
-        }
-        for (Node x : ListHandler.getAdminMessageBlocks()) {
-            if (x.getMaterial() == event.getBlockPlaced().getType()) {
-                cantAnnounce.add(event.getBlock().getLocation());
-            }
-        }
+        this.trap = trap;
+        this.logging = logging;
+        this.bpl = bpl;
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -108,24 +94,23 @@ public class BlockListener implements Listener  {
         }
 
         //Check to see if the block is a trap block
-        if (isTrapBlock(event.getBlock())) {
-            handleTrapBlock(event.getPlayer(), event.getBlock(), event);
+        if (trap.checkForTrapBlock(event)) {
             return;
         }
 
-        //Check if the block was already announced
-        if (!isAnnounceable(event.getBlock().getLocation())) {
-            cantAnnounce.remove(event.getBlock().getLocation());
-            if (debug) {log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: Block already announced or placed.  Removing broken block from memory.");}
-            return;
-        }
-
-        //Check if block is broadcast
-        Node broadcastNode = Node.getNodeByMaterial(ListHandler.getBroadcastedBlocks(), mat);
-        EventInformation broadcastEvent;
-        if (broadcastNode != null) {
-                broadcastEvent = new EventInformation(this, event, broadcastNode, true);
-                handleBroadcast(broadcastEvent);
+        //Broadcast
+        if (fd.hasPerms(event.getPlayer(), "fd.broadcast")) {
+            if (!isAnnounceable(event.getBlock().getLocation())) {
+                removeAnnouncedOrPlacedBlock(event.getBlock().getLocation());
+                if (debug) {log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: Block already announced or placed.  Removing broken block from memory.");}
+                return;
+            }
+            Node broadcastNode = Node.getNodeByMaterial(ListHandler.getBroadcastedBlocks(), mat);
+            EventInformation broadcastEvent;
+            if (broadcastNode != null) {
+                    broadcastEvent = new EventInformation(this, event, broadcastNode, true);
+                    handleBroadcast(broadcastEvent);
+            }
         }
 
         //Check if block is admin message material
@@ -138,13 +123,23 @@ public class BlockListener implements Listener  {
         // Worry about logging here.  Right now this only logs diamond ore
         if (mat == Material.DIAMOND_ORE) {
             if (fd.getConfig().getBoolean(Config.logDiamondBreaks)) {
-                handleLogging(event.getPlayer(), event.getBlock(), false, false, false);
+                logging.handleLogging(event.getPlayer(), event.getBlock(), false, false, false);
             }
         }
 
         //reset message checks after successful event
         recievedAdminMessage.clear();
         consoleReceived = false;
+    }
+
+
+
+    public void removeAnnouncedOrPlacedBlock(Location loc) {
+        if (bpl.getPlacedBlocks().contains(loc)) {
+            bpl.getPlacedBlocks().remove(loc);
+        } else if (cantAnnounce.contains(loc)) {
+            cantAnnounce.remove(loc);
+        }
     }
 
 
@@ -188,150 +183,6 @@ public class BlockListener implements Listener  {
             }
         }
     }
-
-
-
-
-
-    /*
-     * Trap block handlers
-     */
-    private boolean isTrapBlock(Block block) {
-        if (fd.getTrapBlocks().contains(block.getLocation())) {
-            return true;
-        }
-        return false;
-    }
-
-    private void removeTrapBlock(Block block) {
-        fd.getTrapBlocks().remove(block.getLocation());
-    }
-
-    private void handleTrapBlock(Player player, Block block, BlockBreakEvent event) {
-        if(fd.getConfig().getBoolean(Config.adminAlertsOnAllTrapBreaks)) {
-            for (Player x: fd.getServer().getOnlinePlayers()) {
-                if(fd.hasPerms(x, "fd.admin") && (x != player)) {
-                    x.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " " + player.getName()
-                            + " just broke a trap block");
-                }
-            }
-        }
-        if (fd.hasPerms(player, "fd.trap")) {
-            player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " Trap block removed");
-            event.setCancelled(true);
-            block.setType(Material.AIR);
-        } else {
-            fd.getServer().broadcastMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " " +  player.getName()
-                    + " just broke a trap block");
-            event.setCancelled(true);
-        }
-        boolean banned = false;
-        boolean kicked = false;
-        if (fd.getConfig().getBoolean(Config.kickOnTrapBreak)  && !fd.hasPerms(player, "FD.trap")) {
-            player.kickPlayer(fd.getConfig().getString(Config.kickMessage));
-            kicked = true;
-        }
-        if (fd.getConfig().getBoolean(Config.banOnTrapBreak) && !fd.hasPerms(player, "FD.trap")) {
-            player.setBanned(true);
-            banned = true;
-        }
-        if((fd.getConfig().getBoolean(Config.logTrapBreaks)) && (!fd.hasPerms(player, "fd.trap"))) {
-            handleLogging(player, block, true, kicked, banned);
-        }
-        removeTrapBlock(block);
-    }
-
-
-
-
-    /*
-     * Logging Handlers
-     */
-    private void handleLogging(Player player, Block block, boolean trapBlock, boolean kicked, boolean banned) {
-        try {
-            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(FileHandler.getLogFile(), true)));
-            pw.print("[" + getFormattedDate() + "]");
-            if (trapBlock) {
-                pw.print(" [TRAP BLOCK]");
-            }
-            pw.println(" " + block.getType().name().toLowerCase().replace("_", " ") + " broken by "
-                    + player.getName() + " at (x: " + block.getX() + ", y: " + block.getY() + ", z: " + block.getZ()
-                    + ") in " + player.getWorld().getName());
-            if (trapBlock) {
-                pw.print("[" + getFormattedDate() + "]" + " [ACTION TAKEN] ");
-                if (kicked && !banned) {
-                    pw.println(player.getName() + " was kicked from the sever per the configuration.");
-                } else if (banned && !kicked) {
-                    pw.println(player.getName() + " was banned from the sever per the configuration.");
-                } else if (banned && kicked) {
-                    pw.println(player.getName() + " was kicked and banned from the sever per the configuration.");
-                } else if (!banned && !kicked) {
-                    pw.println(player.getName() + " was neither kicked nor banned per the configuration.");
-                }
-            }
-            pw.flush();
-            FileHandler.close(pw);
-        } catch (IOException ex) {
-            log.severe(MessageFormat.format("[{0}] Unable to write to log file {1}", FoundDiamonds.getPrefix(), ex));
-        }
-    }
-
-    private void logLightLevelViolation(EventInformation ei,  int lightLevel) {
-        String lightLogMsg = "[" + getFormattedDate() + "]" + " " + ei.getPlayer().getName() + " was denied mining "
-                + Format.getFormattedName(ei.getMaterial(), 1) + " at" + " light level " +  lightLevel;
-        try {
-            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(FileHandler.getLogFile(), true)));
-            pw.println(lightLogMsg);
-            pw.flush();
-            FileHandler.close(pw);
-        } catch (IOException ex) {
-            log.severe(MessageFormat.format("[{0}] Unable to write to log file {1}", FoundDiamonds.getPrefix(), ex));
-        }
-    }
-
-    private void writeToCleanLog(EventInformation ei, String playerName) {
-        String formattedDate = getFormattedDate();
-        String message;
-        if (ei.getMaterial() == Material.GLOWING_REDSTONE_ORE || ei.getMaterial() == Material.REDSTONE_ORE) {
-            if (ei.getTotal() > 1) {
-                message = fd.getConfig().getString(Config.bcMessage).replace("@Player@", playerName
-                        ).replace("@Number@", String.valueOf(ei.getTotal())).replace("@BlockName@", "redstone ores");
-            } else {
-                message = fd.getConfig().getString(Config.bcMessage).replace("@Player@", playerName
-                        ).replace("@Number@", String.valueOf(ei.getTotal())).replace("@BlockName@", "redstone ore");
-            }
-        } else if (ei.getMaterial() == Material.OBSIDIAN) {
-                message = fd.getConfig().getString(Config.bcMessage).replace("@Player@", playerName
-                        ).replace("@Number@", String.valueOf(ei.getTotal())).replace("@BlockName@", "obsidian");
-        } else {
-            String blockName = Format.getFormattedName(ei.getMaterial(), ei.getTotal());
-            if (ei.getTotal() > 1) {
-                message = fd.getConfig().getString(Config.bcMessage).replace("@Player@", playerName
-                        ).replace("@Number@", String.valueOf(ei.getTotal())).replace("@BlockName@", blockName +
-                        (ei.getMaterial() == Material.DIAMOND_ORE ? "s!" : "s"));
-            } else {
-                message = fd.getConfig().getString(Config.bcMessage).replace("@Player@", playerName
-                        ).replace("@Number@", String.valueOf(ei.getTotal())).replace("@BlockName@", blockName +
-                        (ei.getMaterial() == Material.DIAMOND_ORE ? "!" : ""));
-            }
-        }
-        try {
-            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(FileHandler.getCleanLog(), true)));
-            pw.println("[" + formattedDate + "] " + message);
-            pw.flush();
-            FileHandler.close(pw);
-        } catch (IOException ex) {
-            Logger.getLogger(BlockListener.class.getName()).log(Level.SEVERE, "Couldn't write to clean log!", ex);
-        }
-    }
-
-    private String getFormattedDate() {
-        Date todaysDate = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss");
-        return formatter.format(todaysDate);
-    }
-
-
 
 
     /*
@@ -440,6 +291,9 @@ public class BlockListener implements Listener  {
     /*Broadcasts*/
     // This looks sloppy but it needs to be in this order for the output.  Whatever.
     private void handleBroadcast(EventInformation ei) {
+        if (!fd.hasPerms(ei.getPlayer(), "fd.broadcast")) {
+            return;
+        }
         /*Handle mysql*/
         if (isOre(ei.getMaterial()) && mysqlEnabled) {
             mysql.updateUser(ei);
@@ -504,7 +358,7 @@ public class BlockListener implements Listener  {
 
         //write to log if cleanlogging.
         if (fd.getConfig().getBoolean(Config.cleanLog)) {
-            writeToCleanLog(ei, playerName);
+            logging.writeToCleanLog(ei, playerName);
         }
     }
 
@@ -530,7 +384,7 @@ public class BlockListener implements Listener  {
     }
 
     public boolean isAnnounceable(Location loc) {
-        return !cantAnnounce.contains(loc);
+        return !cantAnnounce.contains(loc) && !bpl.getPlacedBlocks().contains(loc);
     }
 
     public static String customTranslateAlternateColorCodes(char altColorChar, String textToTranslate) {
@@ -547,7 +401,6 @@ public class BlockListener implements Listener  {
     public HashSet<Location> getCantAnnounce() {
         return cantAnnounce;
     }
-
 
 
 
@@ -578,7 +431,7 @@ public class BlockListener implements Listener  {
         }
         sendLightAdminMessage(ei, highestLevel);
         if ((fd.getConfig().getBoolean(Config.logLightLevelViolations))) {
-            logLightLevelViolation(ei, highestLevel);
+            logging.logLightLevelViolation(ei, highestLevel);
         }
         if (debug) {
             log.info(FoundDiamonds.getDebugPrefix() + ei.getPlayer().getName() + " was denied mining "
