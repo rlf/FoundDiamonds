@@ -1,13 +1,15 @@
 package org.seed419.founddiamonds.listeners;
 
-import org.bukkit.*;
+import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -29,7 +31,6 @@ public class BlockBreakListener implements Listener  {
     private Trap trap;
     private Logging logging;
     private BlockPlaceListener bpl;
-    private boolean mysqlEnabled;
     private static final Logger log = Logger.getLogger("FoundDiamonds");
     private HashSet<Location> cantAnnounce = new HashSet<Location>();
     private List<Player> recievedAdminMessage = new LinkedList<Player>();
@@ -45,32 +46,6 @@ public class BlockBreakListener implements Listener  {
         this.bpl = bpl;
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onBlockDamage(BlockDamageEvent event) {
-        Material mat = event.getBlock().getType();
-        //Check to see if the block's lightlevel is being monitored.  Comes before others to prevent loopholes.
-        Node lightNode = Node.getNodeByMaterial(ListHandler.getLightLevelBlocks(), mat);
-        if (lightNode != null) {
-            EventInformation lightEvent = new EventInformation(this, event, lightNode, false);
-            if(!isValidLightLevel(lightEvent, event)) {
-                return;
-            }
-        }
-    }
-
-    /*Block break event*/
-    /*
-    * Method structure:
-    * Valid world - returnable
-    * Is trap block - cancellable/returnable
-    * Valid gamemode - returnable
-    * Already broadcasted - returnable
-    * Has permissions.
-    * Valid lightlevel- cancellable
-    * Admin message block
-    * Broadcastable block.
-    * Logging
-    */
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
 
@@ -135,7 +110,9 @@ public class BlockBreakListener implements Listener  {
 
 
     public void removeAnnouncedOrPlacedBlock(Location loc) {
+
         if (bpl.getPlacedBlocks().contains(loc)) {
+
             bpl.getPlacedBlocks().remove(loc);
         } else if (cantAnnounce.contains(loc)) {
             cantAnnounce.remove(loc);
@@ -295,7 +272,7 @@ public class BlockBreakListener implements Listener  {
             return;
         }
         /*Handle mysql*/
-        if (isOre(ei.getMaterial()) && mysqlEnabled) {
+        if (isOre(ei.getMaterial()) && fd.getConfig().getBoolean(Config.mysqlEnabled)) {
             mysql.updateUser(ei);
         }
         if (ei.getMaterial() == Material.DIAMOND_ORE) {
@@ -384,7 +361,11 @@ public class BlockBreakListener implements Listener  {
     }
 
     public boolean isAnnounceable(Location loc) {
-        return !cantAnnounce.contains(loc) && !bpl.getPlacedBlocks().contains(loc);
+        if (fd.getConfig().getBoolean(Config.mysqlEnabled)) {
+            return !cantAnnounce.contains(loc);
+        } else {
+            return !cantAnnounce.contains(loc) && !bpl.getPlacedBlocks().contains(loc);
+        }
     }
 
     public static String customTranslateAlternateColorCodes(char altColorChar, String textToTranslate) {
@@ -407,7 +388,7 @@ public class BlockBreakListener implements Listener  {
     /*
      * Light Methods
      */
-    private boolean blockSeesNoLight(EventInformation ei) {
+    public boolean blockSeesNoLight(EventInformation ei) {
         double percentage = Double.parseDouble(fd.getConfig().getString(Config.percentOfLightRequired).replaceAll("%", ""));
         double levelToDisableAt = percentage / 15.0;
         DecimalFormat dform = new DecimalFormat("#.##");
@@ -440,21 +421,6 @@ public class BlockBreakListener implements Listener  {
                     + "%");
         }
         return true;
-    }
-
-    private boolean isValidLightLevel(EventInformation ei, BlockDamageEvent event) {
-        if (fd.hasPerms(ei.getPlayer(), "fd.monitor")) {
-            if (blockSeesNoLight(ei) && ei.getPlayer().getWorld().getEnvironment() != World.Environment.NETHER) {
-                event.setCancelled(true);
-                ei.getPlayer().sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Mining in the dark is dangerous, place a torch!");
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public void setMySQLEnabled(boolean b) {
-        mysqlEnabled = b;
     }
 
     public boolean isOre(Material mat) {

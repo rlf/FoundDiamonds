@@ -1,5 +1,18 @@
 package org.seed419.founddiamonds.listeners;
 
+import org.bukkit.Location;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.seed419.founddiamonds.Config;
+import org.seed419.founddiamonds.FoundDiamonds;
+import org.seed419.founddiamonds.ListHandler;
+import org.seed419.founddiamonds.Node;
+import org.seed419.founddiamonds.sql.MySQL;
+
+import java.util.HashSet;
+
 /**
  * Attribute Only (Public) License
  * Version 0.a3, July 11, 2011
@@ -24,5 +37,52 @@ package org.seed419.founddiamonds.listeners;
  *
  * @license AOL v.a3 <http://aol.nexua.org>
  */
-public class BlockPlaceListener {
+public class BlockPlaceListener implements Listener {
+
+
+    private HashSet<Location> placed = new HashSet<Location>();
+    private FoundDiamonds fd;
+    private MySQL mysql;
+
+
+    public BlockPlaceListener(FoundDiamonds fd, MySQL mysql) {
+        this.fd = fd;
+        this.mysql = mysql;
+    }
+
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onBlockPlace(BlockPlaceEvent event) {
+        for (Node x : ListHandler.getBroadcastedBlocks()) {
+            if (x.getMaterial() == event.getBlockPlaced().getType()) {
+                addBlock(event);
+                return;
+            }
+        }
+        for (Node x : ListHandler.getAdminMessageBlocks()) {
+            if (x.getMaterial() == event.getBlockPlaced().getType()) {
+                addBlock(event);
+                return;
+            }
+        }
+        for (Node x : ListHandler.getLightLevelBlocks()) {
+            if (x.getMaterial() == event.getBlockPlaced().getType()) {
+                addBlock(event);
+            }
+        }
+    }
+
+    public void addBlock(BlockPlaceEvent event) {
+        if (fd.getConfig().getBoolean(Config.mysqlEnabled)) {
+            mysql.updatePlaced(event);
+        } else {
+            placed.add(event.getBlock().getLocation());
+        }
+    }
+
+    public HashSet<Location> getPlacedBlocks() {
+        return placed;
+    }
+
+
 }

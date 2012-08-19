@@ -1,27 +1,23 @@
 package org.seed419.founddiamonds;
 
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.seed419.founddiamonds.listeners.BlockListener;
+import org.seed419.founddiamonds.listeners.BlockBreakListener;
+import org.seed419.founddiamonds.listeners.BlockPlaceListener;
 import org.seed419.founddiamonds.listeners.PlayerDamageListener;
 import org.seed419.founddiamonds.metrics.MetricsLite;
 import org.seed419.founddiamonds.sql.MySQL;
+
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.logging.Logger;
 
 /* TODO
 * Smarter trap blocks - remember material NOT just the location!  Prevents pistons and physics from tricking them.
@@ -64,15 +60,22 @@ public class FoundDiamonds extends JavaPlugin {
     private final static String adminPrefix = ChatColor.RED + "[FD]";
     private final static String debugPrefix = "[FD Debug] ";
     private final static String loggerPrefix = "[FoundDiamonds]";
-    private final Set<Location> trapBlocks = new HashSet<Location>();
+
+    public Logger log;
+
+    //Todo this makes no sense being here...
     private final HashMap<Player, Boolean> jumpPotion = new HashMap<Player,Boolean>();
-    private final static Logger log = Logger.getLogger("FoundDiamonds");
+
     private final MySQL mysql = new MySQL(this);
-    private final BlockListener bl = new BlockListener(this, mysql);
     private final ListHandler lh = new ListHandler(this);
     private final PlayerDamageListener damage = new PlayerDamageListener(this);
     private final WorldManager wm = new WorldManager(this);
-    private final FileHandler fh = new FileHandler(this, wm, bl);
+    private final Logging logging = new Logging(this);
+    private final Trap trap = new Trap(this, logging);
+    private final BlockPlaceListener bpl = new BlockPlaceListener(this, mysql);
+    private final BlockBreakListener bl = new BlockBreakListener(this, mysql, trap, logging, bpl);
+    private final FileHandler fh = new FileHandler(this, wm, bpl, trap);
+
     private static PluginDescriptionFile pdf;
     private String pluginName;
     private final static int togglePages = 2;
@@ -80,12 +83,21 @@ public class FoundDiamonds extends JavaPlugin {
 
     /*
      * Changelog:
-     *
+     * Refactored a ton of code for cleaner and easier maintenance
+     * Fixed inadvertently writing announced blocks to the placed blocks file
+     * Finally implemented MySQL functionality for .placed file
      */
 
 
+    /*
+     * TODO:
+     * Add all player or one player potions and awards.
+     * Keep working on .placed in SQL, need BBL to send it off.
+     */
+
     @Override
     public void onEnable() {
+        log = this.getLogger();
         pdf = this.getDescription();
         pluginName = pdf.getName();
 
@@ -96,12 +108,13 @@ public class FoundDiamonds extends JavaPlugin {
         /*Load the new lists*/
         lh.loadAllBlocks();
 
-        bl.setMySQLEnabled(getConfig().getBoolean(Config.mysqlEnabled));
+        getCommand("fd").setExecutor(new CommandHandler(this, mysql, wm, trap));
 
         /*Register events*/
         final PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(this.bl, this);
         pm.registerEvents(damage, this);
+        pm.registerEvents(bpl, this);
 
         startMetrics();
 
@@ -112,15 +125,17 @@ public class FoundDiamonds extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        /*File I/O*/
         log.info(MessageFormat.format("[{0}] Saving all data...", pluginName));
         String info = "This file stores your trap block locations.";
         String info2 = "If you have any issues with traps - feel free to delete this file.";
-        boolean temp = fh.writeBlocksToFile(fh.getTrapsFile(), trapBlocks, info, info2);
-        String info5 = "This file stores blocks that would be announced that players placed";
-        String info6 = "If you'd like to announce these placed blocks, feel free to delete this file.";
-        boolean temp3 = fh.writeBlocksToFile(fh.getPlacedFile(), bl.getCantAnnounce(), info5, info6);
-        if (temp && temp3) {
+        boolean temp = fh.writeBlocksToFile(fh.getTrapsFile(), trap.getTrapBlocks(), info, info2);
+        boolean temp2 = true;
+        if (!getConfig().getBoolean(Config.mysqlEnabled)) {
+            String info5 = "This file stores blocks that would be announced that players placed";
+            String info6 = "If you'd like to announce these placed blocks, feel free to delete this file.";
+            temp2 = fh.writeBlocksToFile(fh.getPlacedFile(), bpl.getPlacedBlocks(), info5, info6);
+        }
+        if (temp && temp2) {
             log.info(MessageFormat.format("[{0}] Data successfully saved.", pluginName));
         } else {
             log.warning(MessageFormat.format("[{0}] Couldn't save blocks to files!", pluginName));
@@ -129,364 +144,6 @@ public class FoundDiamonds extends JavaPlugin {
         log.info(MessageFormat.format("[{0}] Disabled", pluginName));
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
-        Player player = null;
-        if (sender instanceof Player) {
-            player = (Player) sender;
-            StringBuilder sb = new StringBuilder();
-            sb.append(commandLabel).append(" ");
-            if (args.length > 0) {
-                for (String x : args) {
-                    sb.append(x).append(" ");
-                }
-            }
-            String cmd = sb.toString();
-            log.info("[PLAYER_COMMAND] " + player.getName() + ": /" + cmd);
-        }
-        if (((commandLabel.equalsIgnoreCase("fd")) || commandLabel.equalsIgnoreCase("founddiamonds"))) {
-            if (args.length == 0) {
-                Menu.printMainMenu(this, sender);
-                return true;
-            } else {
-                String arg = args[0];
-                if (arg.equalsIgnoreCase("admin")) {
-                    if (sender instanceof Player) {
-                        if (hasPerms(player, "fd.manage.admin.add") || hasPerms(player, "fd.manage.admin.remove")
-                                || hasPerms(player, "fd.manage.admin.list")) {
-                            Menu.handleAdminMenu(this, sender, args);
-                        } else {
-                            sendPermissionsMessage(player);
-                        }
-                    } else {
-                        Menu.handleAdminMenu(this, sender, args);
-                    }
-                    return true;
-                } else if (arg.equalsIgnoreCase("bc") || arg.equalsIgnoreCase("broadcast")) {
-                    if (sender instanceof Player) {
-                        if (hasPerms(player, "fd.manage.bc.add") || hasPerms(player, "fd.manage.bc.remove")
-                                || hasPerms(player, "fd.manage.bc.list")) {
-                            Menu.handleBcMenu(this, sender, args);
-                        } else {
-                            sendPermissionsMessage(player);
-                        }
-                    } else {
-                        Menu.handleBcMenu(this, sender, args);
-                    }
-                    return true;
-                } else if (arg.equalsIgnoreCase("config")) {
-                    if (sender instanceof Player) {
-                        if (hasPerms(player, "fd.config")) {
-                            if (args.length == 2) {
-                                if (args[1].equalsIgnoreCase("2")) {
-                                    Menu.showConfig2(this, sender);
-                                }
-                            } else {
-                                Menu.showConfig(this, sender);
-                            }
-                        } else {
-                            sendPermissionsMessage(player);
-                        }
-                    }
-                } else if (arg.equalsIgnoreCase("debug")) {
-                    if (sender instanceof Player) {
-                        if (hasPerms(player, "fd.toggle")) {
-                            if (args.length == 2) {
-                                if (args[1].equalsIgnoreCase("2")) {
-                                    Menu.showConfig2(this, sender);
-                                }
-                            } else {
-                                Menu.showConfig(this, sender);
-                            }
-                        } else {
-                            sendPermissionsMessage(player);
-                        }
-                    }
-                } else if (arg.equalsIgnoreCase("light")) {
-                    if (sender instanceof Player) {
-                        if (hasPerms(player, "fd.manage.light.add") || hasPerms(player, "fd.manage.light.remove")
-                                || hasPerms(player, "fd.manage.light.list")) {
-                            Menu.handleLightMenu(this, sender, args);
-                        } else {
-                            sendPermissionsMessage(player);
-                        }
-                    } else {
-                        Menu.handleLightMenu(this, sender, args);
-                    }
-                    return true;
-               } else if (arg.equalsIgnoreCase("reload")) {
-                    if (sender instanceof Player) {
-                        if (hasPerms(player, "fd.reload")) {
-                            reloadConfig();
-                            saveConfig();
-                            sender.sendMessage(getPrefix() + ChatColor.AQUA + " Configuration saved and reloaded.");
-                        } else {
-                            sendPermissionsMessage(player);
-                        }
-                    } else {
-                        reloadConfig();
-                        saveConfig();
-                        sender.sendMessage(getPrefix() + ChatColor.AQUA + " Configuration saved and reloaded.");
-                    }
-                    return true;
-                } else if (arg.equalsIgnoreCase("set")) {
-                    if (sender instanceof Player) {
-                        if (hasPerms(player, "fd.toggle")) {
-                            Menu.handleSetMenu(this, sender, args);
-                        } else {
-                            sendPermissionsMessage(player);
-                        }
-                    }
-                    return true;
-                } else if (arg.equalsIgnoreCase("stats")) {
-                    if (sender instanceof Player) {
-                        mysql.printStats(player);
-                    }
-                    return true;
-                } else if (arg.equalsIgnoreCase("toggle")) {
-                    if (!hasPerms(sender, "fd.toggle")) {
-                        sendPermissionsMessage(sender);
-                    } else {
-                        if (args.length == 1) {
-                            Menu.showToggle(sender);
-                        } else  if (args.length == 2) {
-                            arg = args[1];
-                            handleToggle(sender, arg);
-                        } else {
-                            sender.sendMessage(getPrefix() + ChatColor.RED + " Invalid number of arguments.");
-                            sender.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
-                        }
-                    }
-                    return true;
-                } else if (arg.equalsIgnoreCase("trap")) {
-                    if (sender instanceof Player) {
-                        if (hasPerms(player, "fd.trap")) {
-                            handleTrap(player, args);
-                        } else {
-                            sendPermissionsMessage(player);
-                        }
-                    } else {
-                        sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Can't set a trap from the console.");
-                    }
-                    return true;
-                } else if (arg.equalsIgnoreCase("world")) {
-                    if (sender instanceof Player) {
-                        if (hasPerms(player, "fd.world")) {
-                            wm.handleWorldMenu(sender, args);
-                        } else {
-                            sendPermissionsMessage(player);
-                        }
-                    }
-                    return true;
-                } else if (arg.equalsIgnoreCase("version")) {
-                    Menu.showVersion(sender);
-                    return true;
-                } else if (arg.equalsIgnoreCase("diamond") || arg.equalsIgnoreCase("gold")
-                        || arg.equalsIgnoreCase("lapis") || arg.equalsIgnoreCase("iron")
-                        || arg.equalsIgnoreCase("redstone") || arg.equalsIgnoreCase("coal")) {
-                    if (this.getConfig().getBoolean(Config.mysqlEnabled)) {
-                        if (args[0].equalsIgnoreCase("diamond")) {
-                            mysql.handleTop(sender, "diamond");
-                        } else if (args[0].equalsIgnoreCase("gold")) {
-                            mysql.handleTop(sender, "gold");
-                        } else if (args[0].equalsIgnoreCase("lapis")) {
-                            mysql.handleTop(sender, "lapis");
-                        } else if (args[0].equalsIgnoreCase("iron")) {
-                            mysql.handleTop(sender, "iron");
-                        } else if (args[0].equalsIgnoreCase("coal")) {
-                            mysql.handleTop(sender, "coal");
-                        } else if (args[0].equalsIgnoreCase("redstone")) {
-                            mysql.handleTop(sender, "redstone");
-                        }
-                    }
-                    return true;
-                } else {
-                        sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Unrecognized command '"
-                                + ChatColor.WHITE + args[0] + ChatColor.DARK_RED + "'");
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-
-
-
-    /*
-     * Trap Blocks
-     */
-    private void handleTrap(Player player, String[] args) {
-        Location playerLoc = player.getLocation();
-        Material trap;
-        String item;
-        int depth=0;
-        if (args.length == 1) {
-            trap = Material.DIAMOND_ORE;
-            item = "Diamond ore";
-        } else if (args.length == 2) {	//either trap block specified, old format, or depth specified, assuming diamond blocks
-            item = args[1];
-            trap = Material.matchMaterial(item);
-            if(trap==null) {
-            	try {
-            		depth = Integer.parseInt(args[1]);
-            	}catch(NumberFormatException ex) {
-            		player.sendMessage(ChatColor.RED + "Please specifiy a valid number as depth");
-            		return;
-            	}
-            	item = "Diamond ore";
-            	trap = Material.DIAMOND_ORE;
-            }
-        } else if (args.length == 3) {	//either new block format specification, or depth + old block formatting
-            item = args[1] + "_" + args[2];
-            trap = Material.matchMaterial(item);
-            if(trap == null) {
-            	try {
-            		depth = Integer.parseInt(args[2]);
-            	}catch(NumberFormatException ex) {
-               		player.sendMessage(ChatColor.RED + "Please specifiy a valid number as depth");
-            		return;
-            	}
-            	item = args[1];
-            	trap = Material.matchMaterial(item);
-            }
-        }else if(args.length == 4) {	//new block format + depth
-            item = args[1] + "_" + args[2];
-            trap = Material.matchMaterial(item);
-            try {
-        		depth = Integer.parseInt(args[3]);
-        	}catch(NumberFormatException ex) {
-           		player.sendMessage(ChatColor.RED + "Please specifiy a valid number as depth");
-        		return;
-        	}
-        }
-        	else {
-            player.sendMessage(getPrefix() + ChatColor.RED + " Invalid number of arguments");
-            player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold ore");
-            return;
-        }
-        if (trap != null && trap.isBlock()) {
-            getTrapLocations(player, playerLoc, trap, depth);
-        } else {
-            player.sendMessage(getPrefix() + ChatColor.RED + " Unable to set a trap with '" + item + "'");
-            player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold ore");
-        }
-    }
-
-    private void getTrapLocations(Player player, Location playerLoc, Material trap, int depth) {
-        int x = playerLoc.getBlockX();
-        int y = playerLoc.getBlockY() - depth;
-        int maxHeight = player.getWorld().getMaxHeight();
-        if ((y - 2) < 0) {
-            player.sendMessage(getPrefix() + ChatColor.RED + " I can't place a trap down there, sorry.");
-            return;
-        } else if ((y - 1) > maxHeight) {
-            player.sendMessage(getPrefix() + ChatColor.RED + " I can't place a trap this high, sorry.");
-            return;
-        }
-        int z = playerLoc.getBlockZ();
-        World world = player.getWorld();
-        int randomnumber = (int)(Math.random() * 100);
-        if ((randomnumber >= 0) && randomnumber < 50) {
-            Block block1 = world.getBlockAt(x, y - 1, z);
-            Block block2 = world.getBlockAt(x, y - 2, z + 1);
-            Block block3 = world.getBlockAt(x - 1, y - 2, z);
-            Block block4 = world.getBlockAt(x, y - 2, z);
-            handleTrapBlocks(player, trap, block1, block2, block3, block4);
-        } else if (randomnumber >= 50) {
-            Block block1 = world.getBlockAt(x, y - 1, z);
-            Block block2 = world.getBlockAt(x - 1, y - 2, z);
-            Block block3 = world.getBlockAt(x , y - 2, z);
-            Block block4 = world.getBlockAt(x -1, y - 1, z);
-            handleTrapBlocks(player, trap, block1, block2, block3, block4);
-        }
-    }
-
-    public void handleTrapBlocks(Player player, Material trap, Block block1, Block block2, Block block3, Block block4) {
-        trapBlocks.add(block1.getLocation());
-        trapBlocks.add(block2.getLocation());
-        trapBlocks.add(block3.getLocation());
-        trapBlocks.add(block4.getLocation());
-        block1.setType(trap);
-        block2.setType(trap);
-        block3.setType(trap);
-        block4.setType(trap);
-        player.sendMessage(getPrefix() + ChatColor.AQUA + " Trap set using " + trap.name().toLowerCase().replace("_", " "));
-    }
-
-    @SuppressWarnings("ReturnOfCollectionOrArrayField")
-    public Set<Location> getTrapBlocks() {
-        return trapBlocks;
-    }
-
-
-
-
-    /*
-     * Toggle handler
-     */
-    private boolean handleToggle(CommandSender sender, String arg) {
-        if (arg.equalsIgnoreCase("creative")) {
-            getConfig().set(Config.disableInCreative, !getConfig().getBoolean(Config.disableInCreative));
-            Menu.printSaved(this, sender);
-        } else if (arg.equalsIgnoreCase("ops")) {
-            getConfig().set(Config.opsAsFDAdmin, !getConfig().getBoolean(Config.opsAsFDAdmin));
-            Menu.printSaved(this, sender);
-        } else if (arg.equalsIgnoreCase("kick")) {
-            getConfig().set(Config.kickOnTrapBreak, !getConfig().getBoolean(Config.kickOnTrapBreak));
-            Menu.printSaved(this, sender);
-        } else if (arg.equalsIgnoreCase("ban") || arg.equalsIgnoreCase("bans")) {
-            getConfig().set(Config.banOnTrapBreak, !getConfig().getBoolean(Config.banOnTrapBreak));
-            Menu.printSaved(this, sender);
-        } else if (arg.equalsIgnoreCase("trapalerts")) {
-            getConfig().set(Config.adminAlertsOnAllTrapBreaks, !getConfig().getBoolean(Config.adminAlertsOnAllTrapBreaks));
-            Menu.printSaved(this, sender);
-        } else if (arg.equalsIgnoreCase("items")) {
-            getConfig().set(Config.itemsForFindingDiamonds, !getConfig().getBoolean(Config.itemsForFindingDiamonds));
-            Menu.printSaved(this, sender);
-        } else if (arg.equalsIgnoreCase("logging")) {
-            getConfig().set(Config.logDiamondBreaks, !getConfig().getBoolean(Config.logDiamondBreaks));
-            Menu.printSaved(this, sender);
-        } else if (arg.equalsIgnoreCase("spells")) {
-            getConfig().set(Config.potionsForFindingDiamonds, !getConfig().getBoolean(Config.potionsForFindingDiamonds));
-            Menu.printSaved(this, sender);
-        } else if (arg.equalsIgnoreCase("cleanlog")) {
-            getConfig().set(Config.cleanLog, !getConfig().getBoolean(Config.cleanLog));
-            if (!FileHandler.getCleanLog().exists()) {
-                try {
-                    boolean successful = FileHandler.getCleanLog().createNewFile();
-                    if (successful) {sender.sendMessage(getPrefix() + ChatColor.DARK_GREEN +" Cleanlog created.");}
-                    } catch (IOException ex) {
-                    sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Uh-oh...couldn't create CleanLog.txt");
-                    Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Failed to create CleanLog file.", ex);
-                }
-            }
-            Menu.printSaved(this, sender);
-        } else if (arg.equalsIgnoreCase("nick") || arg.equalsIgnoreCase("nicks")) {
-            getConfig().set(Config.useNick, !getConfig().getBoolean(Config.useNick));
-            Menu.printSaved(this, sender);
-        } else if (arg.equalsIgnoreCase("debug")) {
-            getConfig().set(Config.debug, !getConfig().getBoolean(Config.debug));
-            Menu.printSaved(this, sender);
-        } else if (arg.equalsIgnoreCase("prefix")) {
-            sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Prefix is now a part of the broadcast message.");
-            sender.sendMessage(getPrefix() + ChatColor.DARK_RED + " Please modify it in the config file.");
-        } else if (arg.equalsIgnoreCase("2")) {
-            Menu.showToggle2(sender);
-        } else {
-            sender.sendMessage(getPrefix() + ChatColor.RED + " Argument '" + arg + "' unrecognized.");
-            sender.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
-            return false;
-        }
-        return true;
-    }
-
-
-
-
-    /*
-     * Misc
-     */
     public static boolean isRedstone(Block m) {
         return (m.getType() == Material.REDSTONE_ORE || m.getType() == Material.GLOWING_REDSTONE_ORE);
     }
@@ -510,11 +167,6 @@ public class FoundDiamonds extends JavaPlugin {
 
     public static int getConfigPages() {
         return configPages;
-    }
-
-    public static void sendPermissionsMessage(CommandSender sender) {
-        sender.sendMessage(getPrefix() + ChatColor.RED + " You don't have permission to do that.");
-        log.warning(sender.getName() + " was denied access to a command.");
     }
 
     public Logger getLog() {

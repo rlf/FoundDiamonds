@@ -1,5 +1,17 @@
 package org.seed419.founddiamonds.listeners;
 
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockDamageEvent;
+import org.seed419.founddiamonds.EventInformation;
+import org.seed419.founddiamonds.FoundDiamonds;
+import org.seed419.founddiamonds.ListHandler;
+import org.seed419.founddiamonds.Node;
+
 /**
  * Attribute Only (Public) License
  * Version 0.a3, July 11, 2011
@@ -24,5 +36,41 @@ package org.seed419.founddiamonds.listeners;
  *
  * @license AOL v.a3 <http://aol.nexua.org>
  */
-public class BlockDamageListener {
+public class BlockDamageListener implements Listener {
+
+
+    private FoundDiamonds fd;
+    private BlockBreakListener bbl;
+
+
+    public BlockDamageListener(FoundDiamonds fd, BlockBreakListener bbl) {
+        this.fd = fd;
+        this.bbl = bbl;
+    }
+
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onBlockDamage(BlockDamageEvent event) {
+        Material mat = event.getBlock().getType();
+        Node lightNode = Node.getNodeByMaterial(ListHandler.getLightLevelBlocks(), mat);
+        if (lightNode != null) {
+            EventInformation lightEvent = new EventInformation(event, lightNode, false);
+            if(!isValidLightLevel(lightEvent, event)) {
+                return;
+            }
+        }
+    }
+
+    private boolean isValidLightLevel(EventInformation ei, BlockDamageEvent event) {
+        if (fd.hasPerms(ei.getPlayer(), "fd.monitor")) {
+            if (bbl.blockSeesNoLight(ei) && ei.getPlayer().getWorld().getEnvironment() != World.Environment.NETHER) {
+                event.setCancelled(true);
+                ei.getPlayer().sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Mining in the dark is dangerous, place a torch!");
+                return false;
+            }
+        }
+        return true;
+    }
+
+
 }

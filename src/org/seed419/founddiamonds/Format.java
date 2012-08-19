@@ -52,6 +52,16 @@ public class Format {
             } else {
                 matName = "snow block";
             }
+        } else if (mat == Material.BREAD) {
+            matName = "bread";
+        } else if (mat == Material.CHAINMAIL_LEGGINGS) {
+            matName = "chainmail leggings";
+        } else if (mat == Material.IRON_LEGGINGS) {
+            matName = "iron leggings";
+        } else if (mat == Material.GOLD_LEGGINGS) {
+            matName = "gold leggings";
+        } else if (mat == Material.DIAMOND_LEGGINGS) {
+            matName = "diamond leggings";
         } else if (mat == Material.CLAY) {
             if (total > 1) {
                 matName = "clay blocks";

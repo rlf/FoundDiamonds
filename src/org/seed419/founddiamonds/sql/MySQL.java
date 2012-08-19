@@ -1,13 +1,15 @@
 package org.seed419.founddiamonds.sql;
 
-import java.sql.*;
-import java.util.logging.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.seed419.founddiamonds.Config;
 import org.seed419.founddiamonds.EventInformation;
 import org.seed419.founddiamonds.FoundDiamonds;
+
+import java.sql.*;
+import java.util.logging.Logger;
 
 /**
  *
@@ -19,9 +21,7 @@ public class MySQL {
     private FoundDiamonds fd;
     private Connection connection;
     private final static Logger log = Logger.getLogger("FoundDiamonds");
-    private String username;
-    private String password;
-    private String url;
+    private String prefix;
 
 
     public MySQL(FoundDiamonds fd) {
@@ -35,6 +35,7 @@ public class MySQL {
         String username = fd.getConfig().getString(Config.mysqlUsername);
         String password = fd.getConfig().getString(Config.mysqlPassword);
         String url = getMysqlUrl();
+        prefix = fd.getConfig().getString(Config.mysqlPrefix);
         try {
             this.connection = DriverManager.getConnection(url, username, password);
             createTables();
@@ -53,45 +54,50 @@ public class MySQL {
     }
 
     public void createTables() {
-        writeToSQL("CREATE TABLE IF NOT EXISTS `" + fd.getConfig().getString(Config.mysqlPrefix)
-            + "_blocks` (`player` varchar(16) NOT NULL,"
-            + "`diamond` int(32) unsigned NOT NULL DEFAULT '0',"
-            + "`gold` int(32) unsigned NOT NULL DEFAULT '0',"
-            + "`lapis` int(32) unsigned NOT NULL DEFAULT '0',"
-            + "`iron` int(32) unsigned NOT NULL DEFAULT '0',"
-            + "`coal` int(32) unsigned NOT NULL DEFAULT '0',"
-            + "`redstone` int(32) unsigned NOT NULL DEFAULT '0',"
-            + "`hours` int(32) unsigned NOT NULL DEFAULT '0',"
-            + "PRIMARY KEY (`player`)) ENGINE=MyISAM DEFAULT CHARSET=latin1");
-        //TODO vein table?  maybe?  what about silk touch...
-//        writeToSQL("CREATE TABLE IF NOT EXISTS `" + fd.getConfig().getString(Config.mysqlPrefix)
-//            + "_blocks` (`player` varchar(16) NOT NULL,"
-//            + "`diamond` int(32) unsigned NOT NULL DEFAULT '0',"
-//            + "`gold` int(32) unsigned NOT NULL DEFAULT '0',"
-//            + "`lapis` int(32) unsigned NOT NULL DEFAULT '0',"
-//            + "`iron` int(32) unsigned NOT NULL DEFAULT '0',"
-//            + "`coal` int(32) unsigned NOT NULL DEFAULT '0',"
-//            + "`redstone` int(32) unsigned NOT NULL DEFAULT '0',"
-//            + "`hours` int(32) unsigned NOT NULL DEFAULT '0',"
-//            + "PRIMARY KEY (`player`)) ENGINE=MyISAM DEFAULT CHARSET=latin1");
+        writeToSQL("CREATE TABLE IF NOT EXISTS `" + prefix
+                + "_blocks` (`player` varchar(16) NOT NULL,"
+                + "`diamond` int(32) unsigned NOT NULL DEFAULT '0',"
+                + "`gold` int(32) unsigned NOT NULL DEFAULT '0',"
+                + "`lapis` int(32) unsigned NOT NULL DEFAULT '0',"
+                + "`iron` int(32) unsigned NOT NULL DEFAULT '0',"
+                + "`coal` int(32) unsigned NOT NULL DEFAULT '0',"
+                + "`redstone` int(32) unsigned NOT NULL DEFAULT '0',"
+                + "`emerald` int(32) unsigned NOT NULL DEFAULT '0',"
+                + "PRIMARY KEY (`player`)) ENGINE=MyISAM DEFAULT CHARSET=latin1");
+
+        writeToSQL("CREATE TABLE IF NOT EXISTS `" + prefix
+                + "_placed` (`world` varchar(16) NOT NULL,"
+                + "`x` int(32) unsigned NOT NULL DEFAULT '0',"
+                + "`y` int(32) unsigned NOT NULL DEFAULT '0',"
+                + "`z` int(32) unsigned NOT NULL DEFAULT '0',"
+                + "PRIMARY KEY (`world`)) ENGINE=MyISAM DEFAULT CHARSET=latin1");
     }
 
     public void updateUser(EventInformation ei) {
         if (isConnected()) {
             try {
                 Statement s = connection.createStatement();
-                ResultSet rs = s.executeQuery("SELECT * FROM fd_blocks WHERE player='" + ei.getPlayer().getName() + "'");
+                ResultSet rs = s.executeQuery("SELECT * FROM " + prefix + "_blocks WHERE player='" + ei.getPlayer().getName() + "'");
                 String type = getBlockName(ei);
                 if (rs.next()) {
                     int current = rs.getInt(type);
                     s = connection.createStatement();
-                    s.executeUpdate("UPDATE fd_blocks SET " + type + "=" + (current+ei.getTotal()) + " WHERE player='" + ei.getPlayer().getName() + "'");
+                    s.executeUpdate("UPDATE " + prefix + "_blocks SET " + type + "=" + (current+ei.getTotal()) + " WHERE player='" + ei.getPlayer().getName() + "'");
                 } else {
-                    writeToSQL("INSERT INTO fd_blocks (player," + type + ") VALUES('" + ei.getPlayer().getName() + "'," + ei.getTotal() + ")");
+                    writeToSQL("INSERT INTO " + prefix + "_blocks (player," + type + ") VALUES('" + ei.getPlayer().getName() + "'," + ei.getTotal() + ")");
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+        } else {
+            getConnection();
+        }
+    }
+
+    public void updatePlaced(BlockPlaceEvent ei) {
+        if (isConnected()) {
+            writeToSQL("INSERT INTO " + prefix + "_blocks (world,x,y,z) VALUES('" + ei.getPlayer().getWorld().getName()
+                    + "'," + ei.getBlock().getX() + "," + ei.getBlock().getType() + "," + ei.getBlock().getZ() + ")");
         } else {
             getConnection();
         }
@@ -131,7 +137,7 @@ public class MySQL {
         if (isConnected()) {
             try {
                 Statement s = connection.createStatement();
-                ResultSet r = s.executeQuery("SELECT * FROM fd_blocks ORDER BY "+ore+" DESC LIMIT 10");
+                ResultSet r = s.executeQuery("SELECT * FROM " + prefix + "_blocks ORDER BY "+ore+" DESC LIMIT 10");
                 sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Top "+ore+"]");
                 int counter = 1;
                 while (r.next()) {
@@ -172,7 +178,7 @@ public class MySQL {
         if (isConnected()) {
             try {
                 Statement s = connection.createStatement();
-                ResultSet r = s.executeQuery("SELECT * FROM fd_blocks WHERE player='" + player.getName() + "'");
+                ResultSet r = s.executeQuery("SELECT * FROM " + prefix + "_blocks WHERE player='" + player.getName() + "'");
                     player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [" + player.getName() + "'s Stats]");
                 if (r.next()) {
                     player.sendMessage(ChatColor.RED + "Diamond: " + ChatColor.AQUA + r.getInt("diamond"));
@@ -192,4 +198,24 @@ public class MySQL {
         }
     }
 
+/*    public boolean blockWasPlaced(BlockBreakEvent bbe) {
+        if (isConnected()) {
+            try {
+                Statement s = connection.createStatement();
+                ResultSet rs = s.executeQuery("SELECT * FROM " + prefix + "_placed WHERE world='" + bbe.getPlayer().getWorld().getName() + "'");
+                String type = getBlockName(ei);
+                if (rs.next()) {
+                    int current = rs.getInt(type);
+                    s = connection.createStatement();
+                    s.executeUpdate("UPDATE " + prefix + "_blocks SET " + type + "=" + (current+ ei.getTotal()) + " WHERE player='" + ei.getPlayer().getName() + "'");
+                } else {
+                    writeToSQL("INSERT INTO " + prefix + "_blocks (player," + type + ") VALUES('" + ei.getPlayer().getName() + "'," + ei.getTotal() + ")");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } else {
+            getConnection();
+        }
+    }*/
 }

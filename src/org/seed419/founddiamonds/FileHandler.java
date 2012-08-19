@@ -1,13 +1,14 @@
 package org.seed419.founddiamonds;
 
+import org.bukkit.Location;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.seed419.founddiamonds.listeners.BlockPlaceListener;
+
 import java.io.*;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.bukkit.Location;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.seed419.founddiamonds.listeners.BlockListener;
 
 
 public class FileHandler {
@@ -15,19 +16,21 @@ public class FileHandler {
 
     private FoundDiamonds fd;
     private WorldManager wm;
-    private BlockListener bl;
+    private BlockPlaceListener bpl;
     private static File logs;
     private File traps;
     private static File cleanLog;
     private File configFile;
     private File placed;
+    private Trap trap;
     private boolean printed = false;
 
 
-    public FileHandler(FoundDiamonds f, WorldManager wm, BlockListener bl) {
+    public FileHandler(FoundDiamonds f, WorldManager wm, BlockPlaceListener bpl, Trap trap) {
         this.fd = f;
         this.wm = wm;
-        this.bl = bl;
+        this.trap = trap;
+        this.bpl = bpl;
     }
 
     /*For the love of FUCK do not change this*/
@@ -35,7 +38,7 @@ public class FileHandler {
         logs = new File(fd.getDataFolder(), "log.txt");
         traps = new File(fd.getDataFolder(), ".traps");
         placed = new File(fd.getDataFolder(), ".placed");
-        configFile = new File(fd.getDataFolder(), "config.yml");
+        configFile = new File(fd.getDataFolder(), "org/seed419/founddiamonds/resources/config.yml");
         cleanLog = new File(fd.getDataFolder(), "cleanlog.txt");
     }
 
@@ -63,10 +66,10 @@ public class FileHandler {
             }
         }
         if (traps.exists()) {
-            readBlocksFromFile(traps, fd.getTrapBlocks());
+            readBlocksFromFile(traps, trap.getTrapBlocks());
         }
-        if (placed.exists()) {
-            readBlocksFromFile(placed, bl.getCantAnnounce());
+        if (placed.exists() && !fd.getConfig().getBoolean(Config.mysqlEnabled)) {
+            readBlocksFromFile(placed, bpl.getPlacedBlocks());
         }
         if (!configFile.exists()) {
             fd.getConfig().options().copyDefaults(true);

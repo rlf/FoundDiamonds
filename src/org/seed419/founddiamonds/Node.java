@@ -2,17 +2,11 @@ package org.seed419.founddiamonds;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-
-import java.util.List;
 import org.bukkit.inventory.ItemStack;
 
-/**
- * Created with IntelliJ IDEA.
- * User: seed419
- * Date: 4/13/12
- * Time: 12:29 AM
- * To change this template use File | Settings | File Templates.
- */
+import java.util.List;
+
+
 public class Node {
 
 
