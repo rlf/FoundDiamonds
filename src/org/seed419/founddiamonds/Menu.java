@@ -16,54 +16,54 @@ import org.bukkit.entity.Player;
 public class Menu {
 
 
+    private final static int togglePages = 2;
+    private final static int configPages = 2;
 
-    /*
-     * Main Menu
-     */
+
     public static boolean printMainMenu(FoundDiamonds fd, CommandSender sender) {
         if (sender instanceof Player) {
             Player player = (Player) sender;
-            if (fd.hasPerms(player, "fd.trap") || fd.hasPerms(player, "fd.manage.config") || fd.hasPerms(player, "fd.manage.reload")
-                    || fd.hasPerms(player, "fd.manage.toggle") || fd.hasPerms(player, "fd.manage.admin.add") || fd.hasPerms(player, "fd.manage.admin.remove")
-                    || fd.hasPerms(player, "fd.manage.worlds") || fd.hasPerms(player, "fd.manage.admin.list")
-                    || fd.hasPerms(player, "fd.manage.broadcast.add") || fd.hasPerms(player, "fd.manage.broadcast.remove")
-                    || fd.hasPerms(player, "fd.manage.broadcast.list") || fd.hasPerms(player, "fd.manage.light.add")
-                    || fd.hasPerms(player, "fd.manage.light.list") || fd.hasPerms(player, "fd.manage.light.remove")) {
+            if (Permissions.hasPerms(player, "fd.trap") || Permissions.hasPerms(player, "fd.manage.config") || Permissions.hasPerms(player, "fd.manage.reload")
+                    || Permissions.hasPerms(player, "fd.manage.toggle") || Permissions.hasPerms(player, "fd.manage.admin.add") || Permissions.hasPerms(player, "fd.manage.admin.remove")
+                    || Permissions.hasPerms(player, "fd.manage.worlds") || Permissions.hasPerms(player, "fd.manage.admin.list")
+                    || Permissions.hasPerms(player, "fd.manage.broadcast.add") || Permissions.hasPerms(player, "fd.manage.broadcast.remove")
+                    || Permissions.hasPerms(player, "fd.manage.broadcast.list") || Permissions.hasPerms(player, "fd.manage.light.add")
+                    || Permissions.hasPerms(player, "fd.manage.light.list") || Permissions.hasPerms(player, "fd.manage.light.remove")) {
                 player.sendMessage(fd.getPrefix() + ChatColor.AQUA + " [FoundDiamonds Main Menu]");
                 player.sendMessage("/fd " + ChatColor.RED + "<option>");
             } else {
                 return false;
             }
-            if (fd.hasPerms(player, "fd.manage.admin.add") || fd.hasPerms(player, "fd.manage.admin.remove")
-                    || fd.hasPerms(player, "fd.manage.admin.list")) {
+            if (Permissions.hasPerms(player, "fd.manage.admin.add") || Permissions.hasPerms(player, "fd.manage.admin.remove")
+                    || Permissions.hasPerms(player, "fd.manage.admin.list")) {
                 player.sendMessage(ChatColor.RED + "    admin" + ChatColor.WHITE + " - Manage admin message blocks");
             }
-            if (fd.hasPerms(player, "fd.manage.broadcast.add") || fd.hasPerms(player, "fd.broadcast.remove")
-                    || fd.hasPerms(player, "fd.broadcast.list")) {
+            if (Permissions.hasPerms(player, "fd.manage.broadcast.add") || Permissions.hasPerms(player, "fd.broadcast.remove")
+                    || Permissions.hasPerms(player, "fd.broadcast.list")) {
                 player.sendMessage(ChatColor.RED + "    bc" + ChatColor.WHITE + " - Manage broadcasted blocks");
             }
-            if (fd.hasPerms(player, "fd.manage.config")) {
+            if (Permissions.hasPerms(player, "fd.manage.config")) {
                 player.sendMessage(ChatColor.RED + "    config" + ChatColor.WHITE + " - View the configuration file");
             }
-            if (fd.hasPerms(player, "fd.manage.light.add") || fd.hasPerms(player, "fd.manage.light.remove")
-                    || fd.hasPerms(player, "fd.manage.light.list")) {
+            if (Permissions.hasPerms(player, "fd.manage.light.add") || Permissions.hasPerms(player, "fd.manage.light.remove")
+                    || Permissions.hasPerms(player, "fd.manage.light.list")) {
                 player.sendMessage(ChatColor.RED + "    light" + ChatColor.WHITE + " - Manage light-monitored blocks");
             }
-            if (fd.hasPerms(player, "fd.manage.reload")) {
+            if (Permissions.hasPerms(player, "fd.manage.reload")) {
                 player.sendMessage(ChatColor.RED + "    reload" + ChatColor.WHITE + " - Reload the configuration file");
             }
-            if (fd.hasPerms(player, "fd.manage.toggle")) {
+            if (Permissions.hasPerms(player, "fd.manage.toggle")) {
                 player.sendMessage(ChatColor.RED + "    set" + ChatColor.WHITE + " - Modify values in the config");
             }
-            if (fd.hasPerms(player, "fd.manage.toggle")) {
+            if (Permissions.hasPerms(player, "fd.manage.toggle")) {
                 player.sendMessage(ChatColor.RED + "    toggle <option>" + ChatColor.WHITE + " - Change the configuration");
             }
-            if (fd.hasPerms(player, "fd.trap")) {
+            if (Permissions.hasPerms(player, "fd.trap")) {
                 player.sendMessage(ChatColor.RED + "    trap" + ChatColor.WHITE + " - Set a diamond ore trap");
                 player.sendMessage(ChatColor.RED + "    trap <itemname>" + ChatColor.WHITE + " - Set a trap with another block");
                 player.sendMessage(ChatColor.WHITE + "    You can also specify a depth after each trap command ");
             }
-            if (fd.hasPerms(player, "fd.manage.worlds")) {
+            if (Permissions.hasPerms(player, "fd.manage.worlds")) {
                 player.sendMessage(ChatColor.RED + "    world" + ChatColor.WHITE + " - Manage enabled worlds");
             }
         } else {
@@ -85,7 +85,7 @@ public class Menu {
 
     //Toggle Menu
     public static void showToggle(CommandSender sender) {
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Toggle Options 1/" + FoundDiamonds.getTogglePages() + "]");
+        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Toggle Options 1/" + togglePages + "]");
         sender.sendMessage(ChatColor.RED + "    ops" + ChatColor.WHITE + " - OPs have all permissions");
         sender.sendMessage(ChatColor.RED + "    kick" + ChatColor.WHITE + " - Kick players on trap breaks");
         sender.sendMessage(ChatColor.RED + "    ban" + ChatColor.WHITE + " - Ban players on trap breaks");
@@ -99,7 +99,7 @@ public class Menu {
     }
 
     public static void showToggle2(CommandSender sender) {
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Toggle Options 2/" + FoundDiamonds.getTogglePages() + "]");
+        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Toggle Options 2/" + togglePages + "]");
         sender.sendMessage(ChatColor.RED + "    cleanlog" + ChatColor.WHITE + " - Clean log (all ore announcements)");
         sender.sendMessage(ChatColor.RED + "    debug" + ChatColor.WHITE + " - Toggle debug output to the console");
         //sender.sendMessage("Type /fd toggle 3 to read the next page");
@@ -109,7 +109,7 @@ public class Menu {
 
     //Config menus
     public static void showConfig(FoundDiamonds fd, CommandSender sender) {
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Configuration 1/" + FoundDiamonds.getConfigPages() + "]");
+        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Configuration 1/" + configPages + "]");
         sender.sendMessage(ChatColor.RED + "    Random spells for finding diamonds: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.potionsForFindingDiamonds)));
         sender.sendMessage(ChatColor.RED + "    Spell Strength: " + ChatColor.AQUA + fd.getConfig().getInt(Config.potionStrength));
         sender.sendMessage(ChatColor.RED + "    Odds of casting spells: " + ChatColor.AQUA + fd.getConfig().getInt(Config.chanceToGetPotion) + "%");
@@ -124,7 +124,7 @@ public class Menu {
     }
 
     public static void showConfig2(FoundDiamonds fd, CommandSender sender) {
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Configuration 2/" + FoundDiamonds.getConfigPages() + "]");
+        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Configuration 2/" + configPages + "]");
         sender.sendMessage(ChatColor.RED + "    Disable in creative mode: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.disableInCreative)));
         sender.sendMessage(ChatColor.RED + "    Clean Log: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.cleanLog)));
         sender.sendMessage(ChatColor.RED + "    Debug Mode: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.debug)));

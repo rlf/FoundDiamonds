@@ -3,23 +3,17 @@ package org.seed419.founddiamonds;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * Created with IntelliJ IDEA.
- * User: seed419
- * Date: 5/10/12
- * Time: 7:16 AM
- * To change this template use File | Settings | File Templates.
- */
 public class WorldManager {
 
 
-    private FoundDiamonds fd;
+    private static FoundDiamonds fd;
 
 
     public WorldManager(FoundDiamonds fd) {
@@ -110,4 +104,9 @@ public class WorldManager {
         fd.getConfig().set(Config.enabledWorlds, worldNames);
         fd.saveConfig();
     }
+
+    public static boolean isEnabledWorld(Player player) {
+        return fd.getConfig().getList(Config.enabledWorlds).contains(player.getWorld().getName());
+    }
+
 }

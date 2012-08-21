@@ -69,7 +69,7 @@ public class FileHandler {
             readBlocksFromFile(traps, trap.getTrapBlocks());
         }
         if (placed.exists() && !fd.getConfig().getBoolean(Config.mysqlEnabled)) {
-            readBlocksFromFile(placed, bpl.getPlacedBlocks());
+            readBlocksFromFile(placed, bpl.getFlatFilePlacedBlocks());
         }
         if (!configFile.exists()) {
             fd.getConfig().options().copyDefaults(true);

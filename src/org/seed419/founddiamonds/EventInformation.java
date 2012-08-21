@@ -5,6 +5,7 @@
 package org.seed419.founddiamonds;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -26,8 +27,10 @@ public class EventInformation {
     private final BlockFace[] horizFaces = {BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH,
             BlockFace.SOUTH_EAST, BlockFace.SOUTH_WEST, BlockFace.NORTH_EAST, BlockFace.NORTH_WEST, BlockFace.DOWN,
             BlockFace.UP};
-    private BlockBreakEvent bbe;
-    private BlockDamageEvent bde;
+    private final BlockFace[] upperFaces = {BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH,
+            BlockFace.SOUTH_EAST, BlockFace.SOUTH_WEST, BlockFace.NORTH_EAST, BlockFace.NORTH_WEST, BlockFace.UP};
+    private final BlockFace[] LowerFaces = {BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH,
+            BlockFace.SOUTH_EAST, BlockFace.SOUTH_WEST, BlockFace.NORTH_EAST, BlockFace.NORTH_WEST, BlockFace.DOWN};
     private BlockBreakListener bbl;
     private int total;
     private Node node;
@@ -41,11 +44,9 @@ public class EventInformation {
         if (total) {this.total =  getTotalBlocks(this.block);}
         this.node = node;
         this.player = event.getPlayer();
-        this.bbe = event;
     }
 
     public EventInformation(BlockDamageEvent bde, Node node, boolean total) {
-        this.bde = bde;
         this.block = bde.getBlock();
         if (total) {this.total =  getTotalBlocks(this.block);}
         this.node = node;
@@ -72,42 +73,74 @@ public class EventInformation {
     }
 
     private int getTotalBlocks(Block original) {
-        HashSet<Block> blocks = new HashSet<Block>();
-        blocks.add(original);
+        HashSet<Location> blocks = new HashSet<Location>();
+        blocks.add(original.getLocation());
         cycleHorizontalFaces(original.getType(), original, blocks);
         return blocks.size() >= 500 ? 500 : blocks.size();
     }
 
-    private void cycleHorizontalFaces(Material mat, Block original, Set<Block> list) {
+    private void cycleHorizontalFaces(Material mat, Block original, Set<Location> list) {
         if (list.size() >= 500) { return; }
         findLikeBlocks(horizFaces, original, mat, list);
         if (list.size() >= 500) { return; }
         Block upper = original.getRelative(BlockFace.UP);
         //System.out.println("CHECKING UPPER BLOCKS");
-        findLikeBlocks(horizFaces, upper, mat, list);
+        findLikeBlocks(upperFaces, upper, mat, list);
         if (list.size() >= 500) { return; }
         Block lower = original.getRelative(BlockFace.DOWN);
         //System.out.println("CHECKING LOWER BLOCKS");
+        findLikeBlocks(LowerFaces, lower, mat, list);
+    }
+
+    private void findLikeBlocks(BlockFace[] faces, Block passed, Material originalMaterial, Set<Location> alreadyAdded) {
+        //System.out.println("Passed Block @ X:" + passed.getX() + " Y:" + passed.getY() + " Z:" + passed.getZ());
+        for (BlockFace y : faces) {
+            Block var = passed.getRelative(y);
+            System.out.println("X:" + var.getX() + " Y:" + var.getY() + " Z:" + var.getZ() + " Type: " + Format.material(var.getType()) + " Face: " + y.name());
+            //TODO This checks the same location a few times...
+            //@TODO SEEMS FIXED - confirmed?
+            //System.out.println("Checking relative blocks...");
+            if (var.getType() == originalMaterial && !alreadyAdded.contains(var.getLocation()) && bbl.isAnnounceable(var.getLocation())
+                    || PluginUtils.isRedstone(var) && PluginUtils.isRedstone(originalMaterial) && bbl.isAnnounceable(var.getLocation())
+                    && !alreadyAdded.contains(var.getLocation())) {
+                bbl.getCantAnnounce().add(var.getLocation());
+                alreadyAdded.add(var.getLocation());
+                if (alreadyAdded.size() >= 500) { return; }
+                cycleHorizontalFaces(originalMaterial, var, alreadyAdded);
+            }
+        }
+    }
+
+    /*    private void cycleHorizontalFaces(Material mat, Block original, Set<Block> list) {
+        findLikeBlocks(horizFaces, original, mat, list);
+        if (list.size() >= 500) { return; }
+        Block upper = original.getRelative(BlockFace.UP);
+        System.out.println("CHECKING UPPER BLOCKS");
+        findLikeBlocks(horizFaces, upper, mat, list);
+        if (list.size() >= 500) { return; }
+        Block lower = original.getRelative(BlockFace.DOWN);
+        System.out.println("CHECKING LOWER BLOCKS");
         findLikeBlocks(horizFaces, lower, mat, list);
     }
 
     private void findLikeBlocks(BlockFace[] faces, Block passed, Material mat, Set<Block> alreadyAdded) {
-        //System.out.println("Passed Block @ X:" + passed.getX() + " Y:" + passed.getY() + " Z:" + passed.getZ());
+        System.out.println("Passed Block @ X:" + passed.getX() + " Y:" + passed.getY() + " Z:" + passed.getZ());
         for (BlockFace y : faces) {
             Block var = passed.getRelative(y);
-            //System.out.println("X:" + var.getX() + " Y:" + var.getY() + " Z:" + var.getZ() + " Type: " + Format.material(var.getType()) + " Face: " + y.name());
-
-            //TODO fml this needs to check whether the block was placed from sql db as well as the file list...
+            System.out.println("X:" + var.getX() + " Y:" + var.getY() + " Z:" + var.getZ() + " Type: " + Format.material(var.getType()) + " Face: " + y.name());
             //ATTEMPTED FIX = needs testing.  FFS I hope this works...
-            if (var.getType() == mat && bbl.isAnnounceable(var.getLocation()) && !alreadyAdded.contains(var)
-                    || FoundDiamonds.isRedstone(var) && FoundDiamonds.isRedstone(mat) && bbl.isAnnounceable(var.getLocation())
+            //TODO This checks the same location a few times...
+            System.out.println("Checking relative blocks...");
+            if (var.getType() == mat && !alreadyAdded.contains(var) && bbl.isAnnounceable(var.getLocation())
+                    || PluginUtils.isRedstone(var) && PluginUtils.isRedstone(mat) && bbl.isAnnounceable(var.getLocation())
                     && !alreadyAdded.contains(var)) {
+
                 bbl.getCantAnnounce().add(var.getLocation());
                 alreadyAdded.add(var);
-                //System.out.println("Cycling another block.");
+
                 if (alreadyAdded.size() >= 500) { return; }
                 cycleHorizontalFaces(mat, var, alreadyAdded);
             }
         }
-    }
+    }*/
 }

@@ -4,15 +4,15 @@
  */
 package org.seed419.founddiamonds;
 
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.seed419.founddiamonds.sql.MySQL;
+
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -22,14 +22,12 @@ public class CommandHandler implements CommandExecutor {
 
 
     private FoundDiamonds fd;
-    private MySQL mysql;
     private WorldManager wm;
     private Trap trap;
 
 
-    public CommandHandler(FoundDiamonds fd, MySQL mysql, WorldManager wm, Trap trap) {
+    public CommandHandler(FoundDiamonds fd, WorldManager wm, Trap trap) {
         this.fd = fd;
-        this.mysql = mysql;
         this.wm = wm;
         this.trap = trap;
     }
@@ -41,15 +39,7 @@ public class CommandHandler implements CommandExecutor {
         Player player = null;
         if (sender instanceof Player) {
             player = (Player) sender;
-            StringBuilder sb = new StringBuilder();
-            sb.append(commandLabel).append(" ");
-            if (args.length > 0) {
-                for (String x : args) {
-                    sb.append(x).append(" ");
-                }
-            }
-            String cmd = sb.toString();
-            fd.getLog().info("[PLAYER_COMMAND] " + player.getName() + ": /" + cmd);
+            PluginUtils.logCommandToConsole(fd, player, commandLabel, args);
         }
         if (((commandLabel.equalsIgnoreCase("fd")) || commandLabel.equalsIgnoreCase("founddiamonds"))) {
             if (args.length == 0) {
@@ -59,8 +49,8 @@ public class CommandHandler implements CommandExecutor {
                 String arg = args[0];
                 if (arg.equalsIgnoreCase("admin")) {
                     if (sender instanceof Player) {
-                        if (fd.hasPerms(player, "fd.manage.admin.add") || fd.hasPerms(player, "fd.manage.admin.remove")
-                                || fd.hasPerms(player, "fd.manage.admin.list")) {
+                        if (Permissions.hasPerms(player, "fd.manage.admin.add") || Permissions.hasPerms(player, "fd.manage.admin.remove")
+                                || Permissions.hasPerms(player, "fd.manage.admin.list")) {
                             Menu.handleAdminMenu(fd, sender, args);
                         } else {
                             sendPermissionsMessage(player);
@@ -71,8 +61,8 @@ public class CommandHandler implements CommandExecutor {
                     return true;
                 } else if (arg.equalsIgnoreCase("bc") || arg.equalsIgnoreCase("broadcast")) {
                     if (sender instanceof Player) {
-                        if (fd.hasPerms(player, "fd.manage.bc.add") || fd.hasPerms(player, "fd.manage.bc.remove")
-                                || fd.hasPerms(player, "fd.manage.bc.list")) {
+                        if (Permissions.hasPerms(player, "fd.manage.bc.add") || Permissions.hasPerms(player, "fd.manage.bc.remove")
+                                || Permissions.hasPerms(player, "fd.manage.bc.list")) {
                             Menu.handleBcMenu(fd, sender, args);
                         } else {
                             sendPermissionsMessage(player);
@@ -83,7 +73,7 @@ public class CommandHandler implements CommandExecutor {
                     return true;
                 } else if (arg.equalsIgnoreCase("config")) {
                     if (sender instanceof Player) {
-                        if (fd.hasPerms(player, "fd.config")) {
+                        if (Permissions.hasPerms(player, "fd.config")) {
                             if (args.length == 2) {
                                 if (args[1].equalsIgnoreCase("2")) {
                                     Menu.showConfig2(fd, sender);
@@ -97,7 +87,7 @@ public class CommandHandler implements CommandExecutor {
                     }
                 } else if (arg.equalsIgnoreCase("debug")) {
                     if (sender instanceof Player) {
-                        if (fd.hasPerms(player, "fd.toggle")) {
+                        if (Permissions.hasPerms(player, "fd.toggle")) {
                             if (args.length == 2) {
                                 if (args[1].equalsIgnoreCase("2")) {
                                     Menu.showConfig2(fd, sender);
@@ -111,8 +101,8 @@ public class CommandHandler implements CommandExecutor {
                     }
                 } else if (arg.equalsIgnoreCase("light")) {
                     if (sender instanceof Player) {
-                        if (fd.hasPerms(player, "fd.manage.light.add") || fd.hasPerms(player, "fd.manage.light.remove")
-                                || fd.hasPerms(player, "fd.manage.light.list")) {
+                        if (Permissions.hasPerms(player, "fd.manage.light.add") || Permissions.hasPerms(player, "fd.manage.light.remove")
+                                || Permissions.hasPerms(player, "fd.manage.light.list")) {
                             Menu.handleLightMenu(fd, sender, args);
                         } else {
                             sendPermissionsMessage(player);
@@ -123,7 +113,7 @@ public class CommandHandler implements CommandExecutor {
                     return true;
                } else if (arg.equalsIgnoreCase("reload")) {
                     if (sender instanceof Player) {
-                        if (fd.hasPerms(player, "fd.reload")) {
+                        if (Permissions.hasPerms(player, "fd.reload")) {
                             fd.reloadConfig();
                             fd.saveConfig();
                             sender.sendMessage(fd.getPrefix() + ChatColor.AQUA + " Configuration saved and reloaded.");
@@ -138,20 +128,15 @@ public class CommandHandler implements CommandExecutor {
                     return true;
                 } else if (arg.equalsIgnoreCase("set")) {
                     if (sender instanceof Player) {
-                        if (fd.hasPerms(player, "fd.toggle")) {
+                        if (Permissions.hasPerms(player, "fd.toggle")) {
                             Menu.handleSetMenu(fd, sender, args);
                         } else {
                             sendPermissionsMessage(player);
                         }
                     }
                     return true;
-                } else if (arg.equalsIgnoreCase("stats")) {
-                    if (sender instanceof Player) {
-                        mysql.printStats(player);
-                    }
-                    return true;
                 } else if (arg.equalsIgnoreCase("toggle")) {
-                    if (!fd.hasPerms(sender, "fd.toggle")) {
+                    if (!Permissions.hasPerms(sender, "fd.toggle")) {
                         sendPermissionsMessage(sender);
                     } else {
                         if (args.length == 1) {
@@ -167,7 +152,7 @@ public class CommandHandler implements CommandExecutor {
                     return true;
                 } else if (arg.equalsIgnoreCase("trap")) {
                     if (sender instanceof Player) {
-                        if (fd.hasPerms(player, "fd.trap")) {
+                        if (Permissions.hasPerms(player, "fd.trap")) {
                             trap.handleTrap(player, args);
                         } else {
                             sendPermissionsMessage(player);
@@ -178,7 +163,7 @@ public class CommandHandler implements CommandExecutor {
                     return true;
                 } else if (arg.equalsIgnoreCase("world")) {
                     if (sender instanceof Player) {
-                        if (fd.hasPerms(player, "fd.world")) {
+                        if (Permissions.hasPerms(player, "fd.world")) {
                             wm.handleWorldMenu(sender, args);
                         } else {
                             sendPermissionsMessage(player);
@@ -187,25 +172,6 @@ public class CommandHandler implements CommandExecutor {
                     return true;
                 } else if (arg.equalsIgnoreCase("version")) {
                     Menu.showVersion(sender);
-                    return true;
-                } else if (arg.equalsIgnoreCase("diamond") || arg.equalsIgnoreCase("gold")
-                        || arg.equalsIgnoreCase("lapis") || arg.equalsIgnoreCase("iron")
-                        || arg.equalsIgnoreCase("redstone") || arg.equalsIgnoreCase("coal")) {
-                    if (fd.getConfig().getBoolean(Config.mysqlEnabled)) {
-                        if (args[0].equalsIgnoreCase("diamond")) {
-                            mysql.handleTop(sender, "diamond");
-                        } else if (args[0].equalsIgnoreCase("gold")) {
-                            mysql.handleTop(sender, "gold");
-                        } else if (args[0].equalsIgnoreCase("lapis")) {
-                            mysql.handleTop(sender, "lapis");
-                        } else if (args[0].equalsIgnoreCase("iron")) {
-                            mysql.handleTop(sender, "iron");
-                        } else if (args[0].equalsIgnoreCase("coal")) {
-                            mysql.handleTop(sender, "coal");
-                        } else if (args[0].equalsIgnoreCase("redstone")) {
-                            mysql.handleTop(sender, "redstone");
-                        }
-                    }
                     return true;
                 } else {
                         sender.sendMessage(fd.getPrefix() + ChatColor.DARK_RED + " Unrecognized command '"

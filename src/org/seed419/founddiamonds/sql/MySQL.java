@@ -1,11 +1,7 @@
 package org.seed419.founddiamonds.sql;
 
-import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.Location;
 import org.seed419.founddiamonds.Config;
-import org.seed419.founddiamonds.EventInformation;
 import org.seed419.founddiamonds.FoundDiamonds;
 
 import java.sql.*;
@@ -55,24 +51,13 @@ public class MySQL {
 
     public void createTables() {
         writeToSQL("CREATE TABLE IF NOT EXISTS `" + prefix
-                + "_blocks` (`player` varchar(16) NOT NULL,"
-                + "`diamond` int(32) unsigned NOT NULL DEFAULT '0',"
-                + "`gold` int(32) unsigned NOT NULL DEFAULT '0',"
-                + "`lapis` int(32) unsigned NOT NULL DEFAULT '0',"
-                + "`iron` int(32) unsigned NOT NULL DEFAULT '0',"
-                + "`coal` int(32) unsigned NOT NULL DEFAULT '0',"
-                + "`redstone` int(32) unsigned NOT NULL DEFAULT '0',"
-                + "`emerald` int(32) unsigned NOT NULL DEFAULT '0',"
-                + "PRIMARY KEY (`player`)) ENGINE=MyISAM DEFAULT CHARSET=latin1");
-
-        writeToSQL("CREATE TABLE IF NOT EXISTS `" + prefix
                 + "_placed` (`world` varchar(16) NOT NULL,"
-                + "`x` int(32) unsigned NOT NULL DEFAULT '0',"
-                + "`y` int(32) unsigned NOT NULL DEFAULT '0',"
-                + "`z` int(32) unsigned NOT NULL DEFAULT '0',"
-                + "PRIMARY KEY (`world`)) ENGINE=MyISAM DEFAULT CHARSET=latin1");
+                + "`x` int(32) signed NOT NULL DEFAULT '0',"
+                + "`y` int(32) signed NOT NULL DEFAULT '0',"
+                + "`z` int(32) signed NOT NULL DEFAULT '0',"
+                + "PRIMARY KEY (`world`,`x`,`y`,`z`)) ENGINE=MyISAM DEFAULT CHARSET=latin1");
     }
-
+/*
     public void updateUser(EventInformation ei) {
         if (isConnected()) {
             try {
@@ -92,15 +77,52 @@ public class MySQL {
         } else {
             getConnection();
         }
-    }
+    }*/
 
-    public void updatePlaced(BlockPlaceEvent ei) {
+    public boolean blockWasPlaced(Location loc) {
         if (isConnected()) {
-            writeToSQL("INSERT INTO " + prefix + "_blocks (world,x,y,z) VALUES('" + ei.getPlayer().getWorld().getName()
-                    + "'," + ei.getBlock().getX() + "," + ei.getBlock().getType() + "," + ei.getBlock().getZ() + ")");
+            String query = "SELECT * FROM " + prefix + "_placed WHERE world=? AND x=? AND y=? AND z=?";
+            try {
+                PreparedStatement ps = getPreparedStatement(query, loc);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    return true;
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
         } else {
             getConnection();
         }
+        return false;
+    }
+
+    public void removePlacedBlock(Location loc) {
+        if (isConnected()) {
+            try {
+                String update = "DELETE FROM " + prefix + "_placed WHERE world=? AND x=? AND y=? AND z=?";
+                PreparedStatement ps = getPreparedStatement(update, loc);
+                ps.executeUpdate();
+            } catch (SQLException ex) {
+                fd.getLog().warning("Unable to remove block from placed database...");
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    public PreparedStatement getPreparedStatement(String string, Location loc) {
+        try {
+            PreparedStatement ps = connection.prepareStatement(string);
+            ps.setString(1, loc.getWorld().getName());
+            ps.setInt(2, loc.getBlockX());
+            ps.setInt(3, loc.getBlockY());
+            ps.setInt(4, loc.getBlockZ());
+            return ps;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        fd.getLog().warning("Unable to prepare statement.");
+        return null;
     }
 
     public boolean writeToSQL(String sql) {
@@ -119,6 +141,20 @@ public class MySQL {
         }
     }
 
+    public void updatePlacedBlockinSQL(Location loc) {
+        if (isConnected()) {
+            String update = "INSERT INTO " + prefix + "_placed VALUES(?,?,?,?)";
+            try {
+                PreparedStatement ps = getPreparedStatement(update, loc);
+                ps.executeUpdate();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        } else {
+            getConnection();
+        }
+    }
+
     public boolean isConnected() {
         if (connection == null) {
             return false;
@@ -131,7 +167,7 @@ public class MySQL {
             return false;
         }
     }
-
+/*
 
     public void handleTop(CommandSender sender, String ore) {
         if (isConnected()) {
@@ -192,27 +228,6 @@ public class MySQL {
                 }
             } catch (SQLException ex) {
                 ex.printStackTrace();
-            }
-        } else {
-            getConnection();
-        }
-    }
-
-/*    public boolean blockWasPlaced(BlockBreakEvent bbe) {
-        if (isConnected()) {
-            try {
-                Statement s = connection.createStatement();
-                ResultSet rs = s.executeQuery("SELECT * FROM " + prefix + "_placed WHERE world='" + bbe.getPlayer().getWorld().getName() + "'");
-                String type = getBlockName(ei);
-                if (rs.next()) {
-                    int current = rs.getInt(type);
-                    s = connection.createStatement();
-                    s.executeUpdate("UPDATE " + prefix + "_blocks SET " + type + "=" + (current+ ei.getTotal()) + " WHERE player='" + ei.getPlayer().getName() + "'");
-                } else {
-                    writeToSQL("INSERT INTO " + prefix + "_blocks (player," + type + ") VALUES('" + ei.getPlayer().getName() + "'," + ei.getTotal() + ")");
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
             }
         } else {
             getConnection();

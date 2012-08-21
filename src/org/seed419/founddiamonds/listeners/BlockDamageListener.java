@@ -7,10 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockDamageEvent;
-import org.seed419.founddiamonds.EventInformation;
-import org.seed419.founddiamonds.FoundDiamonds;
-import org.seed419.founddiamonds.ListHandler;
-import org.seed419.founddiamonds.Node;
+import org.seed419.founddiamonds.*;
 
 /**
  * Attribute Only (Public) License
@@ -62,7 +59,7 @@ public class BlockDamageListener implements Listener {
     }
 
     private boolean isValidLightLevel(EventInformation ei, BlockDamageEvent event) {
-        if (fd.hasPerms(ei.getPlayer(), "fd.monitor")) {
+        if (Permissions.hasPerms(ei.getPlayer(), "fd.monitor")) {
             if (bbl.blockSeesNoLight(ei) && ei.getPlayer().getWorld().getEnvironment() != World.Environment.NETHER) {
                 event.setCancelled(true);
                 ei.getPlayer().sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Mining in the dark is dangerous, place a torch!");

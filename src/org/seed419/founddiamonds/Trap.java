@@ -152,35 +152,36 @@ public class Trap {
     private void handleTrapBlock(Player player, Block block, BlockBreakEvent event) {
         if(fd.getConfig().getBoolean(Config.adminAlertsOnAllTrapBreaks)) {
             for (Player x: fd.getServer().getOnlinePlayers()) {
-                if(fd.hasPerms(x, "fd.admin") && (x != player)) {
+                if(Permissions.hasPerms(x, "fd.admin") && (x != player)) {
                     x.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " " + player.getName()
                             + " just broke a trap block");
                 }
             }
         }
-        if (fd.hasPerms(player, "fd.trap")) {
+        if (Permissions.hasPerms(player, "fd.trap")) {
             player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " Trap block removed");
             event.setCancelled(true);
             block.setType(Material.AIR);
+            removeTrapBlock(block);
+            return;
         } else {
             fd.getServer().broadcastMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " " +  player.getName()
                     + " just broke a trap block");
             event.setCancelled(true);
+            boolean banned = false;
+            boolean kicked = false;
+            if (fd.getConfig().getBoolean(Config.kickOnTrapBreak)  && !Permissions.hasPerms(player, "FD.trap")) {
+                player.kickPlayer(fd.getConfig().getString(Config.kickMessage));
+                kicked = true;
+            }
+            if (fd.getConfig().getBoolean(Config.banOnTrapBreak) && !Permissions.hasPerms(player, "FD.trap")) {
+                player.setBanned(true);
+                banned = true;
+            }
+            if((fd.getConfig().getBoolean(Config.logTrapBreaks)) && (!Permissions.hasPerms(player, "fd.trap"))) {
+                logging.handleLogging(player, block, true, kicked, banned);
+            }
         }
-        boolean banned = false;
-        boolean kicked = false;
-        if (fd.getConfig().getBoolean(Config.kickOnTrapBreak)  && !fd.hasPerms(player, "FD.trap")) {
-            player.kickPlayer(fd.getConfig().getString(Config.kickMessage));
-            kicked = true;
-        }
-        if (fd.getConfig().getBoolean(Config.banOnTrapBreak) && !fd.hasPerms(player, "FD.trap")) {
-            player.setBanned(true);
-            banned = true;
-        }
-        if((fd.getConfig().getBoolean(Config.logTrapBreaks)) && (!fd.hasPerms(player, "fd.trap"))) {
-            logging.handleLogging(player, block, true, kicked, banned);
-        }
-        removeTrapBlock(block);
     }
 
 }

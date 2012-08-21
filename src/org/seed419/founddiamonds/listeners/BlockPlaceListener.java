@@ -5,10 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.seed419.founddiamonds.Config;
-import org.seed419.founddiamonds.FoundDiamonds;
-import org.seed419.founddiamonds.ListHandler;
-import org.seed419.founddiamonds.Node;
+import org.seed419.founddiamonds.*;
 import org.seed419.founddiamonds.sql.MySQL;
 
 import java.util.HashSet;
@@ -53,20 +50,8 @@ public class BlockPlaceListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        for (Node x : ListHandler.getBroadcastedBlocks()) {
-            if (x.getMaterial() == event.getBlockPlaced().getType()) {
-                addBlock(event);
-                return;
-            }
-        }
-        for (Node x : ListHandler.getAdminMessageBlocks()) {
-            if (x.getMaterial() == event.getBlockPlaced().getType()) {
-                addBlock(event);
-                return;
-            }
-        }
-        for (Node x : ListHandler.getLightLevelBlocks()) {
-            if (x.getMaterial() == event.getBlockPlaced().getType()) {
+        if (WorldManager.isEnabledWorld(event.getPlayer())) {
+            if (isMonitoredBlock(event)) {
                 addBlock(event);
             }
         }
@@ -74,13 +59,33 @@ public class BlockPlaceListener implements Listener {
 
     public void addBlock(BlockPlaceEvent event) {
         if (fd.getConfig().getBoolean(Config.mysqlEnabled)) {
-            mysql.updatePlaced(event);
+            mysql.updatePlacedBlockinSQL(event.getBlock().getLocation());
         } else {
             placed.add(event.getBlock().getLocation());
         }
     }
 
-    public HashSet<Location> getPlacedBlocks() {
+    public boolean isMonitoredBlock(BlockPlaceEvent event) {
+        for (Node x : ListHandler.getBroadcastedBlocks()) {
+            if (x.getMaterial() == event.getBlockPlaced().getType()) {
+                return true;
+            }
+        }
+        for (Node x : ListHandler.getAdminMessageBlocks()) {
+            if (x.getMaterial() == event.getBlockPlaced().getType()) {
+                return true;
+            }
+        }
+
+        for (Node x : ListHandler.getLightLevelBlocks()) {
+            if (x.getMaterial() == event.getBlockPlaced().getType()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public HashSet<Location> getFlatFilePlacedBlocks() {
         return placed;
     }
 

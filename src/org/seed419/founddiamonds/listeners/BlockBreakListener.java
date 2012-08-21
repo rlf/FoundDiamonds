@@ -31,6 +31,7 @@ public class BlockBreakListener implements Listener  {
     private Trap trap;
     private Logging logging;
     private BlockPlaceListener bpl;
+    private PlayerDamageListener pdl;
     private static final Logger log = Logger.getLogger("FoundDiamonds");
     private HashSet<Location> cantAnnounce = new HashSet<Location>();
     private List<Player> recievedAdminMessage = new LinkedList<Player>();
@@ -38,12 +39,13 @@ public class BlockBreakListener implements Listener  {
     private boolean debug;
 
 
-    public BlockBreakListener(FoundDiamonds instance, MySQL mysql, Trap trap, Logging logging, BlockPlaceListener bpl) {
+    public BlockBreakListener(FoundDiamonds instance, MySQL mysql, Trap trap, Logging logging, BlockPlaceListener bpl, PlayerDamageListener pdl) {
         this.mysql = mysql;
         this.fd = instance;
         this.trap = trap;
         this.logging = logging;
         this.bpl = bpl;
+        this.pdl = pdl;
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -54,7 +56,7 @@ public class BlockBreakListener implements Listener  {
         Material mat = event.getBlock().getType();
 
         //Check if the world is a world we're listening to
-        if (!isEnabledWorld(event.getPlayer())) {
+        if (!WorldManager.isEnabledWorld(event.getPlayer())) {
             if (debug) {log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: User is not in a FD enabled world.");}
             return;
         }
@@ -74,7 +76,7 @@ public class BlockBreakListener implements Listener  {
         }
 
         //Broadcast
-        if (fd.hasPerms(event.getPlayer(), "fd.broadcast")) {
+        if (Permissions.hasPerms(event.getPlayer(), "fd.broadcast")) {
             if (!isAnnounceable(event.getBlock().getLocation())) {
                 removeAnnouncedOrPlacedBlock(event.getBlock().getLocation());
                 if (debug) {log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: Block already announced or placed.  Removing broken block from memory.");}
@@ -110,11 +112,12 @@ public class BlockBreakListener implements Listener  {
 
 
     public void removeAnnouncedOrPlacedBlock(Location loc) {
-
-        if (bpl.getPlacedBlocks().contains(loc)) {
-
-            bpl.getPlacedBlocks().remove(loc);
-        } else if (cantAnnounce.contains(loc)) {
+        if (fd.getConfig().getBoolean(Config.mysqlEnabled)) {
+            mysql.removePlacedBlock(loc);
+        } else if (bpl.getFlatFilePlacedBlocks().contains(loc)) {
+            bpl.getFlatFilePlacedBlocks().remove(loc);
+        }
+        if (cantAnnounce.contains(loc)) {
             cantAnnounce.remove(loc);
         }
     }
@@ -126,12 +129,12 @@ public class BlockBreakListener implements Listener  {
     private void sendAdminMessage(EventInformation adminEvent) {
         String adminMessage = FoundDiamonds.getAdminPrefix() + " " + ChatColor.YELLOW + adminEvent.getPlayer().getName() +
                 ChatColor.DARK_RED + " just found " + adminEvent.getColor() +
-                (adminEvent.getTotal() == 500 ? "a lot of " :String.valueOf(adminEvent.getTotal())) + " " +
+                (adminEvent.getTotal() == 500 ? "over 500 " :String.valueOf(adminEvent.getTotal())) + " " +
                 Format.getFormattedName(adminEvent.getMaterial(), adminEvent.getTotal());
         fd.getServer().getConsoleSender().sendMessage(adminMessage);
         consoleReceived = true;
         for (Player y : fd.getServer().getOnlinePlayers()) {
-            if (fd.hasPerms(y, "fd.admin") && y != adminEvent.getPlayer()) {
+            if (Permissions.hasPerms(y, "fd.admin") && y != adminEvent.getPlayer()) {
                 y.sendMessage(adminMessage);
                 recievedAdminMessage.add(y);
                 if (debug) {log.info(FoundDiamonds.getDebugPrefix() + "Sent admin message to " + y.getName());}
@@ -148,7 +151,7 @@ public class BlockBreakListener implements Listener  {
                 + ChatColor.WHITE +  lightLevel;
         fd.getServer().getConsoleSender().sendMessage(lightAdminMessage);
         for (Player y : fd.getServer().getOnlinePlayers()) {
-            if (fd.hasPerms(y, "fd.admin")) {
+            if (Permissions.hasPerms(y, "fd.admin")) {
                 if (y != ei.getPlayer()) {
                     y.sendMessage(lightAdminMessage);
                     if (debug) {log.info(FoundDiamonds.getDebugPrefix() + "Sent admin message to " + y.getName());}
@@ -181,7 +184,7 @@ public class BlockBreakListener implements Listener  {
     @SuppressWarnings("deprecation")
     private void giveItems(int item, int amount) {
         for(Player p: fd.getServer().getOnlinePlayers()) {
-            if (isEnabledWorld(p)) {
+            if (WorldManager.isEnabledWorld(p)) {
                 p.sendMessage(FoundDiamonds.getPrefix() + ChatColor.GRAY + " Everyone else got " + amount +
                     " " + Format.getFormattedName(Material.getMaterial(item), amount));
                 p.getInventory().addItem(new ItemStack(item, amount));
@@ -233,10 +236,10 @@ public class BlockBreakListener implements Listener  {
 
     private void givePotions(PotionEffect potion, String potionMsg) {
         for (Player p : fd.getServer().getOnlinePlayers()) {
-            if (!p.hasPotionEffect(potion.getType()) && isEnabledWorld(p)) {
+            if (!p.hasPotionEffect(potion.getType()) && WorldManager.isEnabledWorld(p)) {
                 p.addPotionEffect(potion);
                 if (potion.getType() == PotionEffectType.JUMP) {
-                    fd.getJumpPotion().put(p, Boolean.TRUE);
+                    pdl.addJumpPotionPlayer(p);
                 }
                 p.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " " + potionMsg);
             }
@@ -268,13 +271,6 @@ public class BlockBreakListener implements Listener  {
     /*Broadcasts*/
     // This looks sloppy but it needs to be in this order for the output.  Whatever.
     private void handleBroadcast(EventInformation ei) {
-        if (!fd.hasPerms(ei.getPlayer(), "fd.broadcast")) {
-            return;
-        }
-        /*Handle mysql*/
-        if (isOre(ei.getMaterial()) && fd.getConfig().getBoolean(Config.mysqlEnabled)) {
-            mysql.updateUser(ei);
-        }
         if (ei.getMaterial() == Material.DIAMOND_ORE) {
             if (fd.getConfig().getBoolean(Config.potionsForFindingDiamonds)) {
                 int randomInt = (int) (Math.random()*100);
@@ -305,7 +301,7 @@ public class BlockBreakListener implements Listener  {
         String matName = Format.getFormattedName(ei.getMaterial(), ei.getTotal());
         String message = fd.getConfig().getString(Config.bcMessage).replace("@Prefix@", FoundDiamonds.getPrefix() + ei.getColor()).replace("@Player@",
                 playerName +  (fd.getConfig().getBoolean(Config.useOreColors) ? ei.getColor() : "")).replace("@Number@",
-                (ei.getTotal() == 500 ? "a lot of" :String.valueOf(ei.getTotal()))).replace("@BlockName@", matName);
+                (ei.getTotal() == 500 ? "over 500" :String.valueOf(ei.getTotal()))).replace("@BlockName@", matName);
         String formatted = customTranslateAlternateColorCodes('&', message);
 
         //Prevent redunant output to the console if an admin message was already sent.
@@ -314,7 +310,7 @@ public class BlockBreakListener implements Listener  {
         }
 
         for (Player x : fd.getServer().getOnlinePlayers()) {
-            if (fd.hasPerms(x,"fd.broadcast") && isEnabledWorld(x)) {
+            if (Permissions.hasPerms(x,"fd.broadcast") && WorldManager.isEnabledWorld(x)) {
                 if (!recievedAdminMessage.contains(x)) {
                     x.sendMessage(formatted);
                     if (debug) {log.info(FoundDiamonds.getDebugPrefix() + "Sent broadcast to " + x.getName());}
@@ -326,7 +322,7 @@ public class BlockBreakListener implements Listener  {
                     if (!x.hasPermission("fd.broadcast")) {
                         log.info(FoundDiamonds.getDebugPrefix() + x.getName() + " does not have permission 'fd.broadcast'.  Not broadcasting to " + x.getName());
                     }
-                    if (!isEnabledWorld(x)) {
+                    if (!WorldManager.isEnabledWorld(x)) {
                         log.info(FoundDiamonds.getDebugPrefix() + x.getName() + " is not in an enabled world, so not broadcasting to  " + x.getName());
                     }
                 }
@@ -352,19 +348,15 @@ public class BlockBreakListener implements Listener  {
     /*
      * Other Methods
      */
-    private boolean isEnabledWorld(Player player) {
-        return fd.getConfig().getList(Config.enabledWorlds).contains(player.getWorld().getName());
-    }
-
     private boolean isValidGameMode(Player player) {
         return !((player.getGameMode() == GameMode.CREATIVE) && (fd.getConfig().getBoolean(Config.disableInCreative)));
     }
 
     public boolean isAnnounceable(Location loc) {
         if (fd.getConfig().getBoolean(Config.mysqlEnabled)) {
-            return !cantAnnounce.contains(loc);
+            return !mysql.blockWasPlaced(loc);
         } else {
-            return !cantAnnounce.contains(loc) && !bpl.getPlacedBlocks().contains(loc);
+            return !cantAnnounce.contains(loc) && !bpl.getFlatFilePlacedBlocks().contains(loc);
         }
     }
 
@@ -426,7 +418,7 @@ public class BlockBreakListener implements Listener  {
     public boolean isOre(Material mat) {
         return mat == Material.IRON_ORE || mat == Material.GOLD_ORE || mat == Material.COAL_ORE
                 || mat == Material.LAPIS_ORE || mat == Material.DIAMOND_ORE || mat == Material.REDSTONE_ORE
-                || mat == Material.GLOWING_REDSTONE_ORE;
+                || mat == Material.GLOWING_REDSTONE_ORE || mat == Material.EMERALD_ORE;
     }
 
 }

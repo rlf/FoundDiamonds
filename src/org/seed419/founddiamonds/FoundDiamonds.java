@@ -1,10 +1,6 @@
 package org.seed419.founddiamonds;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -16,7 +12,6 @@ import org.seed419.founddiamonds.sql.MySQL;
 
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.HashMap;
 import java.util.logging.Logger;
 
 /* TODO
@@ -64,35 +59,36 @@ public class FoundDiamonds extends JavaPlugin {
     public Logger log;
 
     //Todo this makes no sense being here...
-    private final HashMap<Player, Boolean> jumpPotion = new HashMap<Player,Boolean>();
 
     private final MySQL mysql = new MySQL(this);
     private final ListHandler lh = new ListHandler(this);
-    private final PlayerDamageListener damage = new PlayerDamageListener(this);
+    private final Permissions p = new Permissions(this);
+    private final PlayerDamageListener pdl = new PlayerDamageListener(this);
     private final WorldManager wm = new WorldManager(this);
     private final Logging logging = new Logging(this);
     private final Trap trap = new Trap(this, logging);
     private final BlockPlaceListener bpl = new BlockPlaceListener(this, mysql);
-    private final BlockBreakListener bl = new BlockBreakListener(this, mysql, trap, logging, bpl);
+    private final BlockBreakListener bl = new BlockBreakListener(this, mysql, trap, logging, bpl, pdl);
     private final FileHandler fh = new FileHandler(this, wm, bpl, trap);
 
     private static PluginDescriptionFile pdf;
     private String pluginName;
-    private final static int togglePages = 2;
-    private final static int configPages = 2;
+
+
 
     /*
      * Changelog:
      * Refactored a ton of code for cleaner and easier maintenance
-     * Fixed inadvertently writing announced blocks to the placed blocks file
-     * Finally implemented MySQL functionality for .placed file
+     * Fixed inadvertently writing announced blocks to the .placed blocks file
+     * Finally implemented MySQL functionality for placed blocks!
+     * Fixed trap blocks not being persistent
      */
 
 
     /*
      * TODO:
      * Add all player or one player potions and awards.
-     * Keep working on .placed in SQL, need BBL to send it off.
+     * Keep working on .placed in SQL
      */
 
     @Override
@@ -104,16 +100,13 @@ public class FoundDiamonds extends JavaPlugin {
         fh.initFileVariables();
         fh.checkFiles();
         wm.checkWorlds();
-
-        /*Load the new lists*/
         lh.loadAllBlocks();
 
-        getCommand("fd").setExecutor(new CommandHandler(this, mysql, wm, trap));
+        getCommand("fd").setExecutor(new CommandHandler(this, wm, trap));
 
-        /*Register events*/
         final PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(this.bl, this);
-        pm.registerEvents(damage, this);
+        pm.registerEvents(pdl, this);
         pm.registerEvents(bpl, this);
 
         startMetrics();
@@ -133,7 +126,7 @@ public class FoundDiamonds extends JavaPlugin {
         if (!getConfig().getBoolean(Config.mysqlEnabled)) {
             String info5 = "This file stores blocks that would be announced that players placed";
             String info6 = "If you'd like to announce these placed blocks, feel free to delete this file.";
-            temp2 = fh.writeBlocksToFile(fh.getPlacedFile(), bpl.getPlacedBlocks(), info5, info6);
+            temp2 = fh.writeBlocksToFile(fh.getPlacedFile(), bpl.getFlatFilePlacedBlocks(), info5, info6);
         }
         if (temp && temp2) {
             log.info(MessageFormat.format("[{0}] Data successfully saved.", pluginName));
@@ -142,31 +135,6 @@ public class FoundDiamonds extends JavaPlugin {
             log.warning(MessageFormat.format("[{0}] You could try deleting .placed and .traps if they exist", pluginName));
         }
         log.info(MessageFormat.format("[{0}] Disabled", pluginName));
-    }
-
-    public static boolean isRedstone(Block m) {
-        return (m.getType() == Material.REDSTONE_ORE || m.getType() == Material.GLOWING_REDSTONE_ORE);
-    }
-
-    public static boolean isRedstone(Material m) {
-        return (m == Material.REDSTONE_ORE || m == Material.GLOWING_REDSTONE_ORE);
-    }
-
-    public boolean hasPerms(CommandSender sender, String permission) {
-        return (sender.hasPermission(permission) || (getConfig().getBoolean(Config.opsAsFDAdmin) && sender.isOp()));
-    }
-
-    @SuppressWarnings("ReturnOfCollectionOrArrayField")
-    public HashMap<Player, Boolean> getJumpPotion() {
-        return jumpPotion;
-    }
-
-    public static int getTogglePages() {
-        return togglePages;
-    }
-
-    public static int getConfigPages() {
-        return configPages;
     }
 
     public Logger getLog() {
@@ -181,11 +149,6 @@ public class FoundDiamonds extends JavaPlugin {
         return pdf;
     }
 
-
-
-    /*
-     * Prefix
-     */
     public static String getPrefix() {
         return prefix;
     }
