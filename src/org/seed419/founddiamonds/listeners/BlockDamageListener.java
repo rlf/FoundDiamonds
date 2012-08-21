@@ -36,12 +36,10 @@ import org.seed419.founddiamonds.*;
 public class BlockDamageListener implements Listener {
 
 
-    private FoundDiamonds fd;
     private BlockBreakListener bbl;
 
 
-    public BlockDamageListener(FoundDiamonds fd, BlockBreakListener bbl) {
-        this.fd = fd;
+    public BlockDamageListener(BlockBreakListener bbl) {
         this.bbl = bbl;
     }
 

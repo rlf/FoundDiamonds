@@ -354,7 +354,7 @@ public class BlockBreakListener implements Listener  {
 
     public boolean isAnnounceable(Location loc) {
         if (fd.getConfig().getBoolean(Config.mysqlEnabled)) {
-            return !mysql.blockWasPlaced(loc);
+            return !mysql.blockWasPlaced(loc) && !cantAnnounce.contains(loc);
         } else {
             return !cantAnnounce.contains(loc) && !bpl.getFlatFilePlacedBlocks().contains(loc);
         }

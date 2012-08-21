@@ -10,7 +10,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.potion.PotionEffectType;
-import org.seed419.founddiamonds.FoundDiamonds;
 
 import java.util.HashMap;
 
@@ -21,13 +20,8 @@ import java.util.HashMap;
 public class PlayerDamageListener implements Listener {
 
 
-    private FoundDiamonds fd;
     private final HashMap<String, Boolean> jumpPotion = new HashMap<String,Boolean>();
 
-
-    public PlayerDamageListener(FoundDiamonds fd) {
-        this.fd = fd;
-    }
 
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {

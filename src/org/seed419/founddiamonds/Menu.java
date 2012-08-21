@@ -20,7 +20,7 @@ public class Menu {
     private final static int configPages = 2;
 
 
-    public static boolean printMainMenu(FoundDiamonds fd, CommandSender sender) {
+    public static boolean printMainMenu(CommandSender sender) {
         if (sender instanceof Player) {
             Player player = (Player) sender;
             if (Permissions.hasPerms(player, "fd.trap") || Permissions.hasPerms(player, "fd.manage.config") || Permissions.hasPerms(player, "fd.manage.reload")
@@ -29,8 +29,8 @@ public class Menu {
                     || Permissions.hasPerms(player, "fd.manage.broadcast.add") || Permissions.hasPerms(player, "fd.manage.broadcast.remove")
                     || Permissions.hasPerms(player, "fd.manage.broadcast.list") || Permissions.hasPerms(player, "fd.manage.light.add")
                     || Permissions.hasPerms(player, "fd.manage.light.list") || Permissions.hasPerms(player, "fd.manage.light.remove")) {
-                player.sendMessage(fd.getPrefix() + ChatColor.AQUA + " [FoundDiamonds Main Menu]");
-                player.sendMessage("/fd " + ChatColor.RED + "<option>");
+                player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [FoundDiamonds Main Menu]");
+                player.sendMessage("/fd " + ChatColor.RED + "{optional}");
             } else {
                 return false;
             }
@@ -56,17 +56,16 @@ public class Menu {
                 player.sendMessage(ChatColor.RED + "    set" + ChatColor.WHITE + " - Modify values in the config");
             }
             if (Permissions.hasPerms(player, "fd.manage.toggle")) {
-                player.sendMessage(ChatColor.RED + "    toggle <option>" + ChatColor.WHITE + " - Change the configuration");
+                player.sendMessage(ChatColor.RED + "    toggle" + ChatColor.WHITE + " - Change the configuration");
             }
             if (Permissions.hasPerms(player, "fd.trap")) {
-                player.sendMessage(ChatColor.RED + "    trap" + ChatColor.WHITE + " - Set a diamond ore trap");
-                player.sendMessage(ChatColor.RED + "    trap <itemname>" + ChatColor.WHITE + " - Set a trap with another block");
-                player.sendMessage(ChatColor.WHITE + "    You can also specify a depth after each trap command ");
+                player.sendMessage(ChatColor.RED + "    trap {item} {depth}" + ChatColor.WHITE + " - Set a trap block");
             }
             if (Permissions.hasPerms(player, "fd.manage.worlds")) {
                 player.sendMessage(ChatColor.RED + "    world" + ChatColor.WHITE + " - Manage enabled worlds");
             }
         } else {
+            sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [FoundDiamonds Main Menu]");
             sender.sendMessage("/fd " + ChatColor.RED + "<option>");
             sender.sendMessage(ChatColor.RED + "    admin" + ChatColor.WHITE + " - Manage admin message blocks");
             sender.sendMessage(ChatColor.RED + "    bc" + ChatColor.WHITE + " - Manage broadcasted blocks");

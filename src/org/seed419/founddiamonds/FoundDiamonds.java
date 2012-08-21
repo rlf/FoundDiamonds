@@ -5,6 +5,7 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.seed419.founddiamonds.listeners.BlockBreakListener;
+import org.seed419.founddiamonds.listeners.BlockDamageListener;
 import org.seed419.founddiamonds.listeners.BlockPlaceListener;
 import org.seed419.founddiamonds.listeners.PlayerDamageListener;
 import org.seed419.founddiamonds.metrics.MetricsLite;
@@ -58,17 +59,16 @@ public class FoundDiamonds extends JavaPlugin {
 
     public Logger log;
 
-    //Todo this makes no sense being here...
-
     private final MySQL mysql = new MySQL(this);
     private final ListHandler lh = new ListHandler(this);
     private final Permissions p = new Permissions(this);
-    private final PlayerDamageListener pdl = new PlayerDamageListener(this);
+    private final PlayerDamageListener pdl = new PlayerDamageListener();
     private final WorldManager wm = new WorldManager(this);
     private final Logging logging = new Logging(this);
     private final Trap trap = new Trap(this, logging);
     private final BlockPlaceListener bpl = new BlockPlaceListener(this, mysql);
-    private final BlockBreakListener bl = new BlockBreakListener(this, mysql, trap, logging, bpl, pdl);
+    private final BlockBreakListener bbl = new BlockBreakListener(this, mysql, trap, logging, bpl, pdl);
+    private final BlockDamageListener bdl = new BlockDamageListener(bbl);
     private final FileHandler fh = new FileHandler(this, wm, bpl, trap);
 
     private static PluginDescriptionFile pdf;
@@ -78,17 +78,18 @@ public class FoundDiamonds extends JavaPlugin {
 
     /*
      * Changelog:
-     * Refactored a ton of code for cleaner and easier maintenance
-     * Fixed inadvertently writing announced blocks to the .placed blocks file
-     * Finally implemented MySQL functionality for placed blocks!
-     * Fixed trap blocks not being persistent
+     * Fixed potential memory leak
+     * Performance improvements
+     * More refactoring, much cleaner code
+     * Cleanlog to SQL?
+
      */
 
 
     /*
      * TODO:
      * Add all player or one player potions and awards.
-     * Keep working on .placed in SQL
+     *
      */
 
     @Override
@@ -104,16 +105,23 @@ public class FoundDiamonds extends JavaPlugin {
 
         getCommand("fd").setExecutor(new CommandHandler(this, wm, trap));
 
-        final PluginManager pm = getServer().getPluginManager();
-        pm.registerEvents(this.bl, this);
-        pm.registerEvents(pdl, this);
-        pm.registerEvents(bpl, this);
+        registerEvents();
 
         startMetrics();
 
         mysql.getConnection();
 
         log.info(MessageFormat.format("[{0}] Enabled", pluginName));
+    }
+
+    public void registerEvents() {
+        final PluginManager pm = getServer().getPluginManager();
+        if (getConfig().getBoolean(Config.potionsForFindingDiamonds)) {
+            pm.registerEvents(pdl, this);
+        }
+        pm.registerEvents(bbl, this);
+        pm.registerEvents(bpl, this);
+        pm.registerEvents(bdl, this);
     }
 
     @Override

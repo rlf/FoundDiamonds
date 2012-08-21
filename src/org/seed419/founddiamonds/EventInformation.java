@@ -96,7 +96,7 @@ public class EventInformation {
         //System.out.println("Passed Block @ X:" + passed.getX() + " Y:" + passed.getY() + " Z:" + passed.getZ());
         for (BlockFace y : faces) {
             Block var = passed.getRelative(y);
-            System.out.println("X:" + var.getX() + " Y:" + var.getY() + " Z:" + var.getZ() + " Type: " + Format.material(var.getType()) + " Face: " + y.name());
+            //System.out.println("X:" + var.getX() + " Y:" + var.getY() + " Z:" + var.getZ() + " Type: " + Format.material(var.getType()) + " Face: " + y.name());
             //TODO This checks the same location a few times...
             //@TODO SEEMS FIXED - confirmed?
             //System.out.println("Checking relative blocks...");

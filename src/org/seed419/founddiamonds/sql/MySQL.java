@@ -86,6 +86,7 @@ public class MySQL {
                 PreparedStatement ps = getPreparedStatement(query, loc);
                 ResultSet rs = ps.executeQuery();
                 if (rs.next()) {
+                    System.out.println("block was placed");
                     return true;
                 }
             } catch (SQLException ex) {
