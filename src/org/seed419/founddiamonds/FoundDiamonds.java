@@ -7,10 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.file.FileHandler;
 import org.seed419.founddiamonds.handlers.*;
-import org.seed419.founddiamonds.listeners.BlockBreakListener;
-import org.seed419.founddiamonds.listeners.BlockDamageListener;
-import org.seed419.founddiamonds.listeners.BlockPlaceListener;
-import org.seed419.founddiamonds.listeners.PlayerDamageListener;
+import org.seed419.founddiamonds.listeners.*;
 import org.seed419.founddiamonds.metrics.MetricsLite;
 import org.seed419.founddiamonds.sql.MySQL;
 
@@ -75,6 +72,7 @@ public class FoundDiamonds extends JavaPlugin {
     private final BlockBreakListener bbl = new BlockBreakListener(this, mysql, trap, logging, bpl, potions, itemHandler);
     private final BlockDamageListener bdl = new BlockDamageListener(bbl);
     private final FileHandler fh = new FileHandler(this, wm, bpl, trap);
+    private final PistonListener pl = new PistonListener(trap);
 
     private static PluginDescriptionFile pdf;
     private String pluginName;
@@ -85,6 +83,7 @@ public class FoundDiamonds extends JavaPlugin {
      * Changelog:
      * Tons of refactoring, much cleaner code.  Pull requests should be much easier in the future
      * Added an option for awarding all player items/potions, or just the player who found the diamonds.
+     * Removed config option for admin alerts on trap breaks.  Why would admins not want to know about this?
      *
      */
 
@@ -124,19 +123,18 @@ public class FoundDiamonds extends JavaPlugin {
         pm.registerEvents(bbl, this);
         pm.registerEvents(bpl, this);
         pm.registerEvents(bdl, this);
+        pm.registerEvents(pl, this);
     }
 
     @Override
     public void onDisable() {
         log.info(MessageFormat.format("[{0}] Saving all data...", pluginName));
         String info = "This file stores your trap block locations.";
-        String info2 = "If you have any issues with traps - feel free to delete this file.";
-        boolean temp = fh.writeBlocksToFile(fh.getTrapsFile(), trap.getTrapBlocks(), info, info2);
+        boolean temp = fh.writeBlocksToFile(fh.getTrapsFile(), trap.getTrapBlocks(), info);
         boolean temp2 = true;
         if (!getConfig().getBoolean(Config.mysqlEnabled)) {
-            String info5 = "This file stores blocks that would be announced that players placed";
-            String info6 = "If you'd like to announce these placed blocks, feel free to delete this file.";
-            temp2 = fh.writeBlocksToFile(fh.getPlacedFile(), bpl.getFlatFilePlacedBlocks(), info5, info6);
+            String info5 = "This file stores blocks that won't be announced because players placed them.";
+            temp2 = fh.writeBlocksToFile(fh.getPlacedFile(), bpl.getFlatFilePlacedBlocks(), info5);
         }
         if (temp && temp2) {
             log.info(MessageFormat.format("[{0}] Data successfully saved.", pluginName));

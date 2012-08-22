@@ -39,7 +39,7 @@ public class Permissions {
     }
 
     public static boolean hasPerms(CommandSender sender, String permission) {
-        return (sender.hasPermission(permission) || (plugin.getConfig().getBoolean(Config.opsAsFDAdmin) && sender.isOp()));
+        return (sender.hasPermission(permission) || sender.hasPermission ("fd.*") || plugin.getConfig().getBoolean(Config.opsAsFDAdmin) && sender.isOp());
     }
 
 }

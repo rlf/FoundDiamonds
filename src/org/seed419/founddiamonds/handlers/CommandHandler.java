@@ -206,9 +206,6 @@ public class CommandHandler implements CommandExecutor {
         } else if (arg.equalsIgnoreCase("ban") || arg.equalsIgnoreCase("bans")) {
             fd.getConfig().set(Config.banOnTrapBreak, !fd.getConfig().getBoolean(Config.banOnTrapBreak));
             MenuHandler.printSaved(fd, sender);
-        } else if (arg.equalsIgnoreCase("trapalerts")) {
-            fd.getConfig().set(Config.adminAlertsOnAllTrapBreaks, !fd.getConfig().getBoolean(Config.adminAlertsOnAllTrapBreaks));
-            MenuHandler.printSaved(fd, sender);
         } else if (arg.equalsIgnoreCase("items")) {
             fd.getConfig().set(Config.itemsForFindingDiamonds, !fd.getConfig().getBoolean(Config.itemsForFindingDiamonds));
             MenuHandler.printSaved(fd, sender);

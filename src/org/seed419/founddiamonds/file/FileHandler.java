@@ -1,10 +1,9 @@
 package org.seed419.founddiamonds.file;
 
 import org.bukkit.Location;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.seed419.founddiamonds.FoundDiamonds;
-import org.seed419.founddiamonds.handlers.WorldHandler;
 import org.seed419.founddiamonds.handlers.TrapHandler;
+import org.seed419.founddiamonds.handlers.WorldHandler;
 import org.seed419.founddiamonds.listeners.BlockPlaceListener;
 
 import java.io.*;
@@ -46,13 +45,11 @@ public class FileHandler {
     }
 
     public void checkFiles() {
+        boolean firstrun = false;
         if (!fd.getDataFolder().exists()) {
+            firstrun = true;
             try {
-                boolean success = fd.getDataFolder().mkdirs();
-                if (!success) {
-                    fd.getLog().severe(MessageFormat.format("[{0}] Couldn't create plugins/FoundDiamonds folder", fd.getPluginName()));
-                    fd.getServer().getPluginManager().disablePlugin(fd);
-                }
+                verfiyFileCreation(fd.getDataFolder().mkdirs(), "main plugin folder");
             } catch (Exception ex) {
                 fd.getLog().severe(MessageFormat.format("[{0}] Couldn't create plugins/FoundDiamonds folder", fd.getPluginName()));
                 fd.getServer().getPluginManager().disablePlugin(fd);
@@ -60,10 +57,7 @@ public class FileHandler {
         }
         if (!logs.exists()) {
             try {
-                boolean success = logs.createNewFile();
-                if (!success) {
-                    fd.getLog().severe(MessageFormat.format("[{0}] Couldn't create plugins/FoundDiamonds/log.txt", fd.getPluginName()));
-                }
+                verfiyFileCreation(logs.createNewFile(), "logs.txt");
             } catch (Exception ex) {
                 fd.getLog().severe(MessageFormat.format("[{0}] Unable to create log file, {1}", fd.getPluginName(), ex));
             }
@@ -74,16 +68,14 @@ public class FileHandler {
         if (placed.exists() && !fd.getConfig().getBoolean(Config.mysqlEnabled)) {
             readBlocksFromFile(placed, bpl.getFlatFilePlacedBlocks());
         }
-        if (!configFile.exists()) {
-            fd.getConfig().options().copyDefaults(true);
-            fd.saveConfig();
+        fd.getConfig().options().copyDefaults(true);
+        if (firstrun) {
             wm.addAllWorlds();
-        } else {
-            loadYaml();
         }
+        fd.saveConfig();
         if (fd.getConfig().getBoolean(Config.cleanLog)) {
             try {
-                cleanLog.createNewFile();
+                verfiyFileCreation(cleanLog.createNewFile(), "cleanlog.txt");
             } catch (IOException ex) {
                 fd.getLog().severe(MessageFormat.format("[{0}] Unable to create log file, {1}", fd.getPluginName(), ex));
                 Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Couldn't create clean log file, ", ex);
@@ -91,7 +83,13 @@ public class FileHandler {
         }
     }
 
-    public boolean writeBlocksToFile(File file, Collection<Location> blockList, String info, String info2) {
+    public void verfiyFileCreation(boolean b, String name) {
+        if (!b) {
+            fd.getLog().severe(MessageFormat.format("[{0}] Failed to create " + name + "!", fd.getPluginName()));
+        }
+    }
+
+    public boolean writeBlocksToFile(File file, Collection<Location> blockList, String info) {
         if (blockList.size() > 0) {
             if (fd.getDataFolder().exists()) {
                 PrintWriter out = null;
@@ -105,8 +103,6 @@ public class FileHandler {
                     try {
                         out =  new PrintWriter(new BufferedWriter(new FileWriter(file, false)));
                         out.write("# " + info);
-                        out.println();
-                        out.write("# " + info2);
                         out.println();
                         for (Location m : blockList) {
                             out.write(m.getWorld().getName() + ";" + m.getX() + ";" + m.getY() + ";" + m.getZ());
@@ -131,7 +127,11 @@ public class FileHandler {
             }
         } else {
             if (file.exists()) {
-                file.delete();
+                boolean deletion = file.delete();
+                if (deletion) {
+                    fd.getLog().info(MessageFormat.format("[{0}] Deleted an empty, obsolete file.", fd.getPluginName()));
+                    fd.getLog().info(MessageFormat.format("[{0}] What a kind and thoughtful developer that seed419 guy is", fd.getPluginName()));
+                }
             }
             return true;
         }
@@ -159,23 +159,6 @@ public class FileHandler {
             fd.getLog().severe(MessageFormat.format("[{0}] Unable to read blocks from file, {1}", fd.getPluginName(), ex));
         } finally {
             close(b);
-        }
-    }
-
-    /*
-    * Configuration File
-    */
-    public void loadYaml() {
-        try {
-            fd.getConfig().options().copyDefaults(true);
-            fd.getConfig().load(configFile);
-            fd.saveConfig();
-        } catch (FileNotFoundException ex) {
-            fd.getLog().severe(MessageFormat.format("[{0}] Couldn't find config.yml {1}", fd.getPluginName(), ex));
-        } catch (IOException ex) {
-            fd.getLog().severe(MessageFormat.format("[{0}] Unable to load configuration file {1}", fd.getPluginName(), ex));
-        } catch (InvalidConfigurationException ex) {
-            fd.getLog().severe(MessageFormat.format("[{0}] Unable to load configuration file {1}", fd.getPluginName(), ex));
         }
     }
 

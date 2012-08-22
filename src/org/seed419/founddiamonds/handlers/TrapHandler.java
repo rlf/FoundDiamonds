@@ -131,7 +131,7 @@ public class TrapHandler {
     private void setEmeraldTrap(Player player, Block block) {
         trapBlocks.add(block.getLocation());
         block.setType(Material.EMERALD_ORE);
-        player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " TrapHandler set using " + Material.EMERALD_ORE.name().toLowerCase().replace("_", " "));
+        player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " Trap set using " + Material.EMERALD_ORE.name().toLowerCase().replace("_", " "));
     }
 
     private void handleTrapBlocks(Player player, Material trap, Block block1, Block block2, Block block3, Block block4) {
@@ -143,44 +143,32 @@ public class TrapHandler {
         block2.setType(trap);
         block3.setType(trap);
         block4.setType(trap);
-        player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " TrapHandler set using " + trap.name().toLowerCase().replace("_", " "));
+        player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " Trap set using " + trap.name().toLowerCase().replace("_", " "));
     }
 
-    @SuppressWarnings("ReturnOfCollectionOrArrayField")
-    public Set<Location> getTrapBlocks() {
-        return trapBlocks;
-    }
-
-    public boolean checkForTrapBlock(BlockBreakEvent event) {
-        if (getTrapBlocks().contains(event.getBlock().getLocation())) {
-            handleTrapBlock(event.getPlayer(), event.getBlock(), event);
-            return true;
-        }
-        return false;
+    public boolean isTrapBlock(Location loc) {
+        return trapBlocks.contains(loc);
     }
 
     private void removeTrapBlock(Block block) {
-        getTrapBlocks().remove(block.getLocation());
+        trapBlocks.remove(block.getLocation());
     }
 
-    private void handleTrapBlock(Player player, Block block, BlockBreakEvent event) {
-        if(fd.getConfig().getBoolean(Config.adminAlertsOnAllTrapBreaks)) {
-            for (Player x: fd.getServer().getOnlinePlayers()) {
-                if(Permissions.hasPerms(x, "fd.admin") && (x != player)) {
-                    x.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " " + player.getName()
-                            + " just broke a trap block");
-                }
-            }
-        }
+    public void handleTrapBlockBreak(BlockBreakEvent event) {
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        Block block = event.getBlock();
         if (Permissions.hasPerms(player, "fd.trap")) {
-            player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " TrapHandler block removed");
-            event.setCancelled(true);
+            player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " Trap block removed");
             block.setType(Material.AIR);
             removeTrapBlock(block);
         } else {
-            fd.getServer().broadcastMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " " +  player.getName()
-                    + " just broke a trap block");
-            event.setCancelled(true);
+            for (Player x: fd.getServer().getOnlinePlayers()) {
+                if((Permissions.hasPerms(x, "fd.trap")) || Permissions.hasPerms(x, "fd.admin")) {
+                    x.sendMessage(FoundDiamonds.getPrefix() + ChatColor.YELLOW + " " + player.getName()
+                            + ChatColor.RED + " just triggered a trap block");
+                }
+            }
             boolean banned = false;
             boolean kicked = false;
             if (fd.getConfig().getBoolean(Config.kickOnTrapBreak)) {
@@ -195,6 +183,10 @@ public class TrapHandler {
                 logging.handleLogging(player, block, true, kicked, banned);
             }
         }
+    }
+
+    public Set<Location> getTrapBlocks() {
+        return trapBlocks;
     }
 
 }

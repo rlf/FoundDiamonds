@@ -136,7 +136,6 @@ public class MenuHandler {
         sender.sendMessage(ChatColor.RED + "    Give OPs all permissions: " +  getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.opsAsFDAdmin)));
         sender.sendMessage(ChatColor.RED + "    Kick players on trap break: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.kickOnTrapBreak)));
         sender.sendMessage(ChatColor.RED + "    Ban players on trap break: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.banOnTrapBreak)));
-        sender.sendMessage(ChatColor.RED + "    Admin alerts on all trap breaks: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.adminAlertsOnAllTrapBreaks)));
         //sender.sendMessage("Type /fd config 3 to read the next page");
     }
 

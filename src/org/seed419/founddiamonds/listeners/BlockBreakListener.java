@@ -62,7 +62,8 @@ public class BlockBreakListener implements Listener  {
 
         if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) { return; }
 
-        if (trap.checkForTrapBlock(event)) {
+        if (trap.isTrapBlock(event.getBlock().getLocation())) {
+            trap.handleTrapBlockBreak(event);
             return;
         }
 
