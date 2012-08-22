@@ -1,5 +1,6 @@
 package org.seed419.founddiamonds.listeners;
 
+import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPistonExtendEvent;
@@ -42,18 +43,18 @@ public class PistonListener implements Listener {
 
 
     @EventHandler
-    void onPistonExtend(BlockPistonRetractEvent event) {
-        if (trap.isTrapBlock(event.getBlock().getLocation())) {
-            System.out.println("It's a trap block");
+    void onPistonRetract(BlockPistonRetractEvent event) {
+        if (trap.isTrapBlock(event.getRetractLocation())) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler
-    void onPistonRetract(BlockPistonExtendEvent event) {
-        if (trap.isTrapBlock(event.getBlock().getLocation())) {
-            System.out.println("Trap block attempted to move");
-            event.setCancelled(true);
+    void onPistonExtend(BlockPistonExtendEvent event) {
+        for (Block x : event.getBlocks()) {
+            if (trap.isTrapBlock(x.getLocation())) {
+                event.setCancelled(true);
+            }
         }
     }
 

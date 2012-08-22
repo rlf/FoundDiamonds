@@ -84,13 +84,17 @@ public class FoundDiamonds extends JavaPlugin {
      * Tons of refactoring, much cleaner code.  Pull requests should be much easier in the future
      * Added an option for awarding all player items/potions, or just the player who found the diamonds.
      * Removed config option for admin alerts on trap breaks.  Why would admins not want to know about this?
-     *
+     * Pistons can no longer fool trap blocks
      */
 
 
     /*
      * TODO:
      * ? Refactor?
+     * //Fix adding worlds with spaces
+     * //Trap blocks in MySQL
+     * //Is cleanlogging in SQL a popular request?
+     * //Move light and admin messages into separate classes for fucks sake.
      */
 
     @Override
