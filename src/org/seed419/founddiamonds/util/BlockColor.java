@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.seed419.founddiamonds;
+package org.seed419.founddiamonds.util;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

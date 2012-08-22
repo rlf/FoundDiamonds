@@ -1,5 +1,6 @@
-package org.seed419.founddiamonds;
+package org.seed419.founddiamonds.util;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -51,4 +52,14 @@ public class PluginUtils {
         return (m == Material.REDSTONE_ORE || m == Material.GLOWING_REDSTONE_ORE);
     }
 
+    public static String customTranslateAlternateColorCodes(char altColorChar, String textToTranslate) {
+        char[] charArray = textToTranslate.toCharArray();
+        for (int i = 0; i < charArray.length - 1; i++) {
+            if (charArray[i] == altColorChar && "0123456789AaBbCcDdEeFfKkNnRrLlMmOo".indexOf(charArray[i+1]) > -1) {
+                charArray[i] = ChatColor.COLOR_CHAR;
+                charArray[i+1] = Character.toLowerCase(charArray[i+1]);
+            }
+        }
+        return new String(charArray);
+    }
 }

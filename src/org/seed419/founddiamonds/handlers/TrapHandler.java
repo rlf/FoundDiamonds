@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.seed419.founddiamonds;
+package org.seed419.founddiamonds.handlers;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -11,6 +11,9 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.seed419.founddiamonds.file.Config;
+import org.seed419.founddiamonds.FoundDiamonds;
+import org.seed419.founddiamonds.Permissions;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -19,16 +22,16 @@ import java.util.Set;
  *
  * @author seed419
  */
-public class Trap {
+public class TrapHandler {
 
 
     private FoundDiamonds fd;
-    private Logging logging;
+    private LoggingHandler logging;
     private final Set<Location> trapBlocks = new HashSet<Location>();
 
 
 
-    public Trap(FoundDiamonds fd, Logging logging) {
+    public TrapHandler(FoundDiamonds fd, LoggingHandler logging) {
         this.fd = fd;
         this.logging = logging;
     }
@@ -79,14 +82,14 @@ public class Trap {
         	}
         }
         	else {
-            player.sendMessage(fd.getPrefix() + ChatColor.RED + " Invalid number of arguments");
+            player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Invalid number of arguments");
             player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold ore");
             return;
         }
         if (trap != null && trap.isBlock()) {
             getTrapLocations(player, playerLoc, trap, depth);
         } else {
-            player.sendMessage(fd.getPrefix() + ChatColor.RED + " Unable to set a trap with '" + item + "'");
+            player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Unable to set a trap with '" + item + "'");
             player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold ore");
         }
     }
@@ -96,14 +99,19 @@ public class Trap {
         int y = playerLoc.getBlockY() - depth;
         int maxHeight = player.getWorld().getMaxHeight();
         if ((y - 2) < 0) {
-            player.sendMessage(fd.getPrefix() + ChatColor.RED + " I can't place a trap down there, sorry.");
+            player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " I can't place a trap down there, sorry.");
             return;
         } else if ((y - 1) > maxHeight) {
-            player.sendMessage(fd.getPrefix() + ChatColor.RED + " I can't place a trap this high, sorry.");
+            player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " I can't place a trap this high, sorry.");
             return;
         }
         int z = playerLoc.getBlockZ();
         World world = player.getWorld();
+        if (trap == Material.EMERALD_ORE) {
+            Block block = world.getBlockAt(x, (y-1), z);
+            setEmeraldTrap(player, block);
+            return;
+        }
         int randomnumber = (int)(Math.random() * 100);
         if ((randomnumber >= 0) && randomnumber < 50) {
             Block block1 = world.getBlockAt(x, y - 1, z);
@@ -120,6 +128,12 @@ public class Trap {
         }
     }
 
+    private void setEmeraldTrap(Player player, Block block) {
+        trapBlocks.add(block.getLocation());
+        block.setType(Material.EMERALD_ORE);
+        player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " TrapHandler set using " + Material.EMERALD_ORE.name().toLowerCase().replace("_", " "));
+    }
+
     private void handleTrapBlocks(Player player, Material trap, Block block1, Block block2, Block block3, Block block4) {
         trapBlocks.add(block1.getLocation());
         trapBlocks.add(block2.getLocation());
@@ -129,7 +143,7 @@ public class Trap {
         block2.setType(trap);
         block3.setType(trap);
         block4.setType(trap);
-        player.sendMessage(fd.getPrefix() + ChatColor.AQUA + " Trap set using " + trap.name().toLowerCase().replace("_", " "));
+        player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " TrapHandler set using " + trap.name().toLowerCase().replace("_", " "));
     }
 
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
@@ -159,26 +173,25 @@ public class Trap {
             }
         }
         if (Permissions.hasPerms(player, "fd.trap")) {
-            player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " Trap block removed");
+            player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " TrapHandler block removed");
             event.setCancelled(true);
             block.setType(Material.AIR);
             removeTrapBlock(block);
-            return;
         } else {
             fd.getServer().broadcastMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " " +  player.getName()
                     + " just broke a trap block");
             event.setCancelled(true);
             boolean banned = false;
             boolean kicked = false;
-            if (fd.getConfig().getBoolean(Config.kickOnTrapBreak)  && !Permissions.hasPerms(player, "FD.trap")) {
+            if (fd.getConfig().getBoolean(Config.kickOnTrapBreak)) {
                 player.kickPlayer(fd.getConfig().getString(Config.kickMessage));
                 kicked = true;
             }
-            if (fd.getConfig().getBoolean(Config.banOnTrapBreak) && !Permissions.hasPerms(player, "FD.trap")) {
+            if (fd.getConfig().getBoolean(Config.banOnTrapBreak)) {
                 player.setBanned(true);
                 banned = true;
             }
-            if((fd.getConfig().getBoolean(Config.logTrapBreaks)) && (!Permissions.hasPerms(player, "fd.trap"))) {
+            if((fd.getConfig().getBoolean(Config.logTrapBreaks))) {
                 logging.handleLogging(player, block, true, kicked, banned);
             }
         }

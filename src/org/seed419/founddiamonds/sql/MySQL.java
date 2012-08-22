@@ -1,22 +1,16 @@
 package org.seed419.founddiamonds.sql;
 
 import org.bukkit.Location;
-import org.seed419.founddiamonds.Config;
 import org.seed419.founddiamonds.FoundDiamonds;
+import org.seed419.founddiamonds.file.Config;
 
 import java.sql.*;
-import java.util.logging.Logger;
 
-/**
- *
- * @author proxa
- */
 public class MySQL {
 
 
     private FoundDiamonds fd;
     private Connection connection;
-    private final static Logger log = Logger.getLogger("FoundDiamonds");
     private String prefix;
 
 
@@ -35,9 +29,9 @@ public class MySQL {
         try {
             this.connection = DriverManager.getConnection(url, username, password);
             createTables();
-            log.info(FoundDiamonds.getLoggerPrefix() + " MySQL backend connected");
+            fd.getLog().info(FoundDiamonds.getLoggerPrefix() + " MySQL backend connected");
         } catch (SQLException ex) {
-            log.severe("Couldn't establish mysql connection.  Check your settings and verify "
+            fd.getLog().severe("Couldn't establish mysql connection.  Check your settings and verify "
                     + "that the database is actually running.");
             ex.printStackTrace();
         }
@@ -163,7 +157,7 @@ public class MySQL {
         try {
             return connection.isValid(3);
         } catch (SQLException e) {
-            log.warning(FoundDiamonds.getLoggerPrefix() + " MySQL not connected.");
+            fd.getLog().warning(FoundDiamonds.getLoggerPrefix() + " MySQL not connected.");
             e.printStackTrace();
             return false;
         }

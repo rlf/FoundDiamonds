@@ -10,17 +10,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.seed419.founddiamonds.*;
+import org.seed419.founddiamonds.file.Config;
+import org.seed419.founddiamonds.handlers.*;
 import org.seed419.founddiamonds.sql.MySQL;
+import org.seed419.founddiamonds.util.Format;
+import org.seed419.founddiamonds.util.PluginUtils;
 
 import java.text.DecimalFormat;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 import java.util.logging.Logger;
 
 public class BlockBreakListener implements Listener  {
@@ -28,10 +28,11 @@ public class BlockBreakListener implements Listener  {
 
     private FoundDiamonds fd;
     private MySQL mysql;
-    private Trap trap;
-    private Logging logging;
+    private TrapHandler trap;
+    private LoggingHandler logging;
     private BlockPlaceListener bpl;
-    private PlayerDamageListener pdl;
+    private PotionHandler potions;
+    private ItemHandler items;
     private static final Logger log = Logger.getLogger("FoundDiamonds");
     private HashSet<Location> cantAnnounce = new HashSet<Location>();
     private List<Player> recievedAdminMessage = new LinkedList<Player>();
@@ -39,47 +40,43 @@ public class BlockBreakListener implements Listener  {
     private boolean debug;
 
 
-    public BlockBreakListener(FoundDiamonds instance, MySQL mysql, Trap trap, Logging logging, BlockPlaceListener bpl, PlayerDamageListener pdl) {
+    public BlockBreakListener(FoundDiamonds instance, MySQL mysql, TrapHandler trap, LoggingHandler logging, BlockPlaceListener bpl, PotionHandler potions, ItemHandler items) {
         this.mysql = mysql;
         this.fd = instance;
         this.trap = trap;
         this.logging = logging;
         this.bpl = bpl;
-        this.pdl = pdl;
+        this.potions = potions;
+        this.items = items;
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
 
-        //Check for debug mode
         debug = fd.getConfig().getBoolean(Config.debug);
-        Material mat = event.getBlock().getType();
 
-        //Check if the world is a world we're listening to
-        if (!WorldManager.isEnabledWorld(event.getPlayer())) {
+        if (!WorldHandler.isEnabledWorld(event.getPlayer())) {
             if (debug) {log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: User is not in a FD enabled world.");}
             return;
         }
 
-        //Prevent mcMMO's superbreaker from re-announcing.
         if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) { return; }
 
-        //Make sure the player is in a valid gamemode
+        if (trap.checkForTrapBlock(event)) {
+            return;
+        }
+
         if (!isValidGameMode(event.getPlayer())) {
             if (debug) { log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: User is in creative mode."); }
             return;
         }
 
-        //Check to see if the block is a trap block
-        if (trap.checkForTrapBlock(event)) {
-            return;
-        }
+        Material mat = event.getBlock().getType();
 
-        //Broadcast
         if (Permissions.hasPerms(event.getPlayer(), "fd.broadcast")) {
             if (!isAnnounceable(event.getBlock().getLocation())) {
                 removeAnnouncedOrPlacedBlock(event.getBlock().getLocation());
-                if (debug) {log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: Block already announced or placed.  Removing broken block from memory.");}
+                if (debug) {log.info(FoundDiamonds.getDebugPrefix() + " Cancelling: Block already announced or placed.  Removing block from memory.");}
                 return;
             }
             Node broadcastNode = Node.getNodeByMaterial(ListHandler.getBroadcastedBlocks(), mat);
@@ -164,110 +161,6 @@ public class BlockBreakListener implements Listener  {
         }
     }
 
-
-    /*
-     * Random Item methods
-     */
-    private void handleRandomItems(int randomNumber) {
-        int randomItem;
-        if (randomNumber < 50) {
-            randomItem = fd.getConfig().getInt(Config.randomItem1);
-        } else if (randomNumber >= 50 && randomNumber < 100) {
-            randomItem = fd.getConfig().getInt(Config.randomItem2);
-        } else {
-            randomItem = fd.getConfig().getInt(Config.randomItem3);
-        }
-        int amount = getRandomItemAmount();
-        giveItems(randomItem, amount);
-    }
-
-    @SuppressWarnings("deprecation")
-    private void giveItems(int item, int amount) {
-        for(Player p: fd.getServer().getOnlinePlayers()) {
-            if (WorldManager.isEnabledWorld(p)) {
-                p.sendMessage(FoundDiamonds.getPrefix() + ChatColor.GRAY + " Everyone else got " + amount +
-                    " " + Format.getFormattedName(Material.getMaterial(item), amount));
-                p.getInventory().addItem(new ItemStack(item, amount));
-                p.updateInventory();
-            }
-        }
-    }
-
-    private int getRandomItemAmount(){
-        Random rand = new Random();
-        int amount = rand.nextInt(fd.getConfig().getInt(Config.maxItems)) + 1;
-        return amount;
-    }
-
-
-
-    /*Spells*/
-    private void handleRandomPotions(int randomNumber) {
-        PotionEffect potion;
-        String potionMessage;
-        int strength = fd.getConfig().getInt(Config.potionStrength);
-        if (randomNumber < 25) {
-            potion = new PotionEffect(PotionEffectType.SPEED, 3000, strength);
-            potionMessage = fd.getConfig().getString(Config.speed);
-        } else if (randomNumber >= 25 && randomNumber < 50) {
-            potion = new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 3000, strength);
-            potionMessage = fd.getConfig().getString(Config.strength);
-        } else if (randomNumber >=50 && randomNumber < 100) {
-            potion = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 3000, strength);
-            potionMessage = fd.getConfig().getString(Config.resist);
-        } else if (randomNumber >=100 && randomNumber < 125) {
-            potion = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 3000, strength);
-            potionMessage = fd.getConfig().getString(Config.fireresist);
-        } else if (randomNumber >=125 && randomNumber < 150) {
-            potion = new PotionEffect(PotionEffectType.FAST_DIGGING, 3000, strength);
-            potionMessage = fd.getConfig().getString(Config.fastdig);
-        } else if (randomNumber >=150 && randomNumber < 175) {
-            potion = new PotionEffect(PotionEffectType.WATER_BREATHING, 3000, strength);
-            potionMessage = fd.getConfig().getString(Config.waterbreathe);
-        } else if (randomNumber >=175 && randomNumber < 200) {
-            potion = new PotionEffect(PotionEffectType.REGENERATION, 3000, strength);
-            potionMessage = fd.getConfig().getString(Config.regeneration);
-        } else {
-            potion = new PotionEffect(PotionEffectType.JUMP, 3000, strength);
-            potionMessage = fd.getConfig().getString(Config.jump);
-        }
-        givePotions(potion, potionMessage);
-    }
-
-    private void givePotions(PotionEffect potion, String potionMsg) {
-        for (Player p : fd.getServer().getOnlinePlayers()) {
-            if (!p.hasPotionEffect(potion.getType()) && WorldManager.isEnabledWorld(p)) {
-                p.addPotionEffect(potion);
-                if (potion.getType() == PotionEffectType.JUMP) {
-                    pdl.addJumpPotionPlayer(p);
-                }
-                p.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " " + potionMsg);
-            }
-        }
-        sendPotionMessageToConsole(potion);
-    }
-
-    private void sendPotionMessageToConsole(PotionEffect potion) {
-       if (potion.getType() == PotionEffectType.SPEED) {
-           log.info(FoundDiamonds.getLoggerPrefix() + " A speed potion has been awarded to the players");
-       } else if (potion.getType() == PotionEffectType.FIRE_RESISTANCE) {
-           log.info(FoundDiamonds.getLoggerPrefix() + " A fire resistance potion has been awarded to the players");
-       } else if (potion.getType() == PotionEffectType.INCREASE_DAMAGE) {
-           log.info(FoundDiamonds.getLoggerPrefix() + " An attack buff potion has been awarded to the players");
-       } else if (potion.getType() == PotionEffectType.JUMP) {
-           log.info(FoundDiamonds.getLoggerPrefix() + " A jump potion has been awarded to the players");
-       } else if (potion.getType() == PotionEffectType.DAMAGE_RESISTANCE) {
-           log.info(FoundDiamonds.getLoggerPrefix() + " A damage resistance potion has been awarded to the players");
-       } else if (potion.getType() == PotionEffectType.FAST_DIGGING) {
-           log.info(FoundDiamonds.getLoggerPrefix() + " A fast digging potion has been awarded to the players");
-       } else if (potion.getType() == PotionEffectType.REGENERATION) {
-           log.info(FoundDiamonds.getLoggerPrefix() + " A regeneration potion has been awarded to the players");
-       } else if (potion.getType() == PotionEffectType.WATER_BREATHING) {
-           log.info(FoundDiamonds.getLoggerPrefix() + " A water breathing potion has been awarded to the players");
-       }
-
-    }
-
     /*Broadcasts*/
     // This looks sloppy but it needs to be in this order for the output.  Whatever.
     private void handleBroadcast(EventInformation ei) {
@@ -277,7 +170,7 @@ public class BlockBreakListener implements Listener  {
                 if (randomInt <= fd.getConfig().getInt(Config.chanceToGetPotion)) {
                     int randomNumber = (int)(Math.random()*225);
                     if (randomNumber >= 0 && randomNumber <= 225) {
-                        handleRandomPotions(randomNumber);
+                        potions.handleRandomPotions(ei.getPlayer(), randomNumber);
                     }
                 }
             }
@@ -289,7 +182,7 @@ public class BlockBreakListener implements Listener  {
                 if (randomInt <= fd.getConfig().getInt(Config.chanceToGetItem)) {
                     int randomNumber = (int)(Math.random()*150);
                     if (randomNumber >= 0 && randomNumber <= 150) {
-                        handleRandomItems(randomNumber);
+                        items.handleRandomItems(ei.getPlayer(), randomNumber);
                     }
                 }
             }
@@ -302,7 +195,7 @@ public class BlockBreakListener implements Listener  {
         String message = fd.getConfig().getString(Config.bcMessage).replace("@Prefix@", FoundDiamonds.getPrefix() + ei.getColor()).replace("@Player@",
                 playerName +  (fd.getConfig().getBoolean(Config.useOreColors) ? ei.getColor() : "")).replace("@Number@",
                 (ei.getTotal() == 500 ? "over 500" :String.valueOf(ei.getTotal()))).replace("@BlockName@", matName);
-        String formatted = customTranslateAlternateColorCodes('&', message);
+        String formatted = PluginUtils.customTranslateAlternateColorCodes('&', message);
 
         //Prevent redunant output to the console if an admin message was already sent.
         if (!consoleReceived) {
@@ -310,7 +203,7 @@ public class BlockBreakListener implements Listener  {
         }
 
         for (Player x : fd.getServer().getOnlinePlayers()) {
-            if (Permissions.hasPerms(x,"fd.broadcast") && WorldManager.isEnabledWorld(x)) {
+            if (Permissions.hasPerms(x,"fd.broadcast") && WorldHandler.isEnabledWorld(x)) {
                 if (!recievedAdminMessage.contains(x)) {
                     x.sendMessage(formatted);
                     if (debug) {log.info(FoundDiamonds.getDebugPrefix() + "Sent broadcast to " + x.getName());}
@@ -322,7 +215,7 @@ public class BlockBreakListener implements Listener  {
                     if (!x.hasPermission("fd.broadcast")) {
                         log.info(FoundDiamonds.getDebugPrefix() + x.getName() + " does not have permission 'fd.broadcast'.  Not broadcasting to " + x.getName());
                     }
-                    if (!WorldManager.isEnabledWorld(x)) {
+                    if (!WorldHandler.isEnabledWorld(x)) {
                         log.info(FoundDiamonds.getDebugPrefix() + x.getName() + " is not in an enabled world, so not broadcasting to  " + x.getName());
                     }
                 }
@@ -358,17 +251,6 @@ public class BlockBreakListener implements Listener  {
         } else {
             return !cantAnnounce.contains(loc) && !bpl.getFlatFilePlacedBlocks().contains(loc);
         }
-    }
-
-    public static String customTranslateAlternateColorCodes(char altColorChar, String textToTranslate) {
-        char[] charArray = textToTranslate.toCharArray();
-        for (int i = 0; i < charArray.length - 1; i++) {
-            if (charArray[i] == altColorChar && "0123456789AaBbCcDdEeFfKkNnRrLlMmOo".indexOf(charArray[i+1]) > -1) {
-                charArray[i] = ChatColor.COLOR_CHAR;
-                charArray[i+1] = Character.toLowerCase(charArray[i+1]);
-            }
-        }
-        return new String(charArray);
     }
 
     public HashSet<Location> getCantAnnounce() {
@@ -413,12 +295,6 @@ public class BlockBreakListener implements Listener  {
                     + "%");
         }
         return true;
-    }
-
-    public boolean isOre(Material mat) {
-        return mat == Material.IRON_ORE || mat == Material.GOLD_ORE || mat == Material.COAL_ORE
-                || mat == Material.LAPIS_ORE || mat == Material.DIAMOND_ORE || mat == Material.REDSTONE_ORE
-                || mat == Material.GLOWING_REDSTONE_ORE || mat == Material.EMERALD_ORE;
     }
 
 }

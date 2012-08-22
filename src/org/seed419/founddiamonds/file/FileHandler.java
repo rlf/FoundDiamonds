@@ -1,7 +1,10 @@
-package org.seed419.founddiamonds;
+package org.seed419.founddiamonds.file;
 
 import org.bukkit.Location;
 import org.bukkit.configuration.InvalidConfigurationException;
+import org.seed419.founddiamonds.FoundDiamonds;
+import org.seed419.founddiamonds.handlers.WorldHandler;
+import org.seed419.founddiamonds.handlers.TrapHandler;
 import org.seed419.founddiamonds.listeners.BlockPlaceListener;
 
 import java.io.*;
@@ -15,18 +18,18 @@ public class FileHandler {
 
 
     private FoundDiamonds fd;
-    private WorldManager wm;
+    private WorldHandler wm;
     private BlockPlaceListener bpl;
     private static File logs;
     private File traps;
     private static File cleanLog;
     private File configFile;
     private File placed;
-    private Trap trap;
+    private TrapHandler trap;
     private boolean printed = false;
 
 
-    public FileHandler(FoundDiamonds f, WorldManager wm, BlockPlaceListener bpl, Trap trap) {
+    public FileHandler(FoundDiamonds f, WorldHandler wm, BlockPlaceListener bpl, TrapHandler trap) {
         this.fd = f;
         this.wm = wm;
         this.trap = trap;

@@ -1,8 +1,12 @@
-package org.seed419.founddiamonds;
+package org.seed419.founddiamonds.handlers;
 
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.seed419.founddiamonds.*;
+import org.seed419.founddiamonds.file.Config;
+import org.seed419.founddiamonds.file.FileHandler;
+import org.seed419.founddiamonds.util.Format;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -36,13 +40,13 @@ import java.util.Date;
  *
  * @license AOL v.a3 <http://aol.nexua.org>
  */
-public class Logging {
+public class LoggingHandler {
 
 
     private FoundDiamonds fd;
 
 
-    public Logging(FoundDiamonds fd) {
+    public LoggingHandler(FoundDiamonds fd) {
         this.fd = fd;
     }
 

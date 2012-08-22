@@ -12,6 +12,7 @@ Found Diamonds Configuration:
     Kick message: You broke a FoundDiamonds trap block.
   Awards:
     Items:
+      Award all players: true
       Random items for finding diamonds: false
       Percent of time items are given: 25
       Maximum number or items to give: 3
@@ -19,6 +20,7 @@ Found Diamonds Configuration:
       Random Item 2: 263
       Random Item 3: 340
     Spells:
+      Award all players: true
       Random spells for finding diamonds: true
       Spell strength (1-5): 3
       Percent of time spells are casted: 100

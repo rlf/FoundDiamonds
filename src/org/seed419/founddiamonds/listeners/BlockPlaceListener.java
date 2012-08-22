@@ -6,6 +6,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.seed419.founddiamonds.*;
+import org.seed419.founddiamonds.file.Config;
+import org.seed419.founddiamonds.handlers.ListHandler;
+import org.seed419.founddiamonds.handlers.WorldHandler;
 import org.seed419.founddiamonds.sql.MySQL;
 
 import java.util.HashSet;
@@ -50,7 +53,7 @@ public class BlockPlaceListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        if (WorldManager.isEnabledWorld(event.getPlayer())) {
+        if (WorldHandler.isEnabledWorld(event.getPlayer())) {
             if (isMonitoredBlock(event)) {
                 addBlock(event);
             }

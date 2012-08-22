@@ -1,8 +1,10 @@
-package org.seed419.founddiamonds;
+package org.seed419.founddiamonds.util;
 
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.seed419.founddiamonds.FoundDiamonds;
+import org.seed419.founddiamonds.file.Config;
 
 /**
  * Created with IntelliJ IDEA.

@@ -2,13 +2,17 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.seed419.founddiamonds;
+package org.seed419.founddiamonds.handlers;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.seed419.founddiamonds.*;
+import org.seed419.founddiamonds.file.Config;
+import org.seed419.founddiamonds.file.FileHandler;
+import org.seed419.founddiamonds.util.PluginUtils;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -22,11 +26,11 @@ public class CommandHandler implements CommandExecutor {
 
 
     private FoundDiamonds fd;
-    private WorldManager wm;
-    private Trap trap;
+    private WorldHandler wm;
+    private TrapHandler trap;
 
 
-    public CommandHandler(FoundDiamonds fd, WorldManager wm, Trap trap) {
+    public CommandHandler(FoundDiamonds fd, WorldHandler wm, TrapHandler trap) {
         this.fd = fd;
         this.wm = wm;
         this.trap = trap;
@@ -43,7 +47,7 @@ public class CommandHandler implements CommandExecutor {
         }
         if (((commandLabel.equalsIgnoreCase("fd")) || commandLabel.equalsIgnoreCase("founddiamonds"))) {
             if (args.length == 0) {
-                Menu.printMainMenu(sender);
+                MenuHandler.printMainMenu(sender);
                 return true;
             } else {
                 String arg = args[0];
@@ -51,24 +55,24 @@ public class CommandHandler implements CommandExecutor {
                     if (sender instanceof Player) {
                         if (Permissions.hasPerms(player, "fd.manage.admin.add") || Permissions.hasPerms(player, "fd.manage.admin.remove")
                                 || Permissions.hasPerms(player, "fd.manage.admin.list")) {
-                            Menu.handleAdminMenu(fd, sender, args);
+                            MenuHandler.handleAdminMenu(fd, sender, args);
                         } else {
                             sendPermissionsMessage(player);
                         }
                     } else {
-                        Menu.handleAdminMenu(fd, sender, args);
+                        MenuHandler.handleAdminMenu(fd, sender, args);
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("bc") || arg.equalsIgnoreCase("broadcast")) {
                     if (sender instanceof Player) {
                         if (Permissions.hasPerms(player, "fd.manage.bc.add") || Permissions.hasPerms(player, "fd.manage.bc.remove")
                                 || Permissions.hasPerms(player, "fd.manage.bc.list")) {
-                            Menu.handleBcMenu(fd, sender, args);
+                            MenuHandler.handleBcMenu(fd, sender, args);
                         } else {
                             sendPermissionsMessage(player);
                         }
                     } else {
-                        Menu.handleBcMenu(fd, sender, args);
+                        MenuHandler.handleBcMenu(fd, sender, args);
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("config")) {
@@ -76,10 +80,10 @@ public class CommandHandler implements CommandExecutor {
                         if (Permissions.hasPerms(player, "fd.config")) {
                             if (args.length == 2) {
                                 if (args[1].equalsIgnoreCase("2")) {
-                                    Menu.showConfig2(fd, sender);
+                                    MenuHandler.showConfig2(fd, sender);
                                 }
                             } else {
-                                Menu.showConfig(fd, sender);
+                                MenuHandler.showConfig(fd, sender);
                             }
                         } else {
                             sendPermissionsMessage(player);
@@ -90,10 +94,10 @@ public class CommandHandler implements CommandExecutor {
                         if (Permissions.hasPerms(player, "fd.toggle")) {
                             if (args.length == 2) {
                                 if (args[1].equalsIgnoreCase("2")) {
-                                    Menu.showConfig2(fd, sender);
+                                    MenuHandler.showConfig2(fd, sender);
                                 }
                             } else {
-                                Menu.showConfig(fd, sender);
+                                MenuHandler.showConfig(fd, sender);
                             }
                         } else {
                             sendPermissionsMessage(player);
@@ -103,12 +107,12 @@ public class CommandHandler implements CommandExecutor {
                     if (sender instanceof Player) {
                         if (Permissions.hasPerms(player, "fd.manage.light.add") || Permissions.hasPerms(player, "fd.manage.light.remove")
                                 || Permissions.hasPerms(player, "fd.manage.light.list")) {
-                            Menu.handleLightMenu(fd, sender, args);
+                            MenuHandler.handleLightMenu(fd, sender, args);
                         } else {
                             sendPermissionsMessage(player);
                         }
                     } else {
-                        Menu.handleLightMenu(fd, sender, args);
+                        MenuHandler.handleLightMenu(fd, sender, args);
                     }
                     return true;
                } else if (arg.equalsIgnoreCase("reload")) {
@@ -129,7 +133,7 @@ public class CommandHandler implements CommandExecutor {
                 } else if (arg.equalsIgnoreCase("set")) {
                     if (sender instanceof Player) {
                         if (Permissions.hasPerms(player, "fd.toggle")) {
-                            Menu.handleSetMenu(fd, sender, args);
+                            MenuHandler.handleSetMenu(fd, sender, args);
                         } else {
                             sendPermissionsMessage(player);
                         }
@@ -140,7 +144,7 @@ public class CommandHandler implements CommandExecutor {
                         sendPermissionsMessage(sender);
                     } else {
                         if (args.length == 1) {
-                            Menu.showToggle(sender);
+                            MenuHandler.showToggle(sender);
                         } else  if (args.length == 2) {
                             arg = args[1];
                             handleToggle(sender, arg);
@@ -171,7 +175,7 @@ public class CommandHandler implements CommandExecutor {
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("version")) {
-                    Menu.showVersion(sender);
+                    MenuHandler.showVersion(sender);
                     return true;
                 } else {
                         sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Unrecognized command '"
@@ -192,28 +196,28 @@ public class CommandHandler implements CommandExecutor {
     private boolean handleToggle(CommandSender sender, String arg) {
         if (arg.equalsIgnoreCase("creative")) {
             fd.getConfig().set(Config.disableInCreative, !fd.getConfig().getBoolean(Config.disableInCreative));
-            Menu.printSaved(fd, sender);
+            MenuHandler.printSaved(fd, sender);
         } else if (arg.equalsIgnoreCase("ops")) {
             fd.getConfig().set(Config.opsAsFDAdmin, !fd.getConfig().getBoolean(Config.opsAsFDAdmin));
-            Menu.printSaved(fd, sender);
+            MenuHandler.printSaved(fd, sender);
         } else if (arg.equalsIgnoreCase("kick")) {
             fd.getConfig().set(Config.kickOnTrapBreak, !fd.getConfig().getBoolean(Config.kickOnTrapBreak));
-            Menu.printSaved(fd, sender);
+            MenuHandler.printSaved(fd, sender);
         } else if (arg.equalsIgnoreCase("ban") || arg.equalsIgnoreCase("bans")) {
             fd.getConfig().set(Config.banOnTrapBreak, !fd.getConfig().getBoolean(Config.banOnTrapBreak));
-            Menu.printSaved(fd, sender);
+            MenuHandler.printSaved(fd, sender);
         } else if (arg.equalsIgnoreCase("trapalerts")) {
             fd.getConfig().set(Config.adminAlertsOnAllTrapBreaks, !fd.getConfig().getBoolean(Config.adminAlertsOnAllTrapBreaks));
-            Menu.printSaved(fd, sender);
+            MenuHandler.printSaved(fd, sender);
         } else if (arg.equalsIgnoreCase("items")) {
             fd.getConfig().set(Config.itemsForFindingDiamonds, !fd.getConfig().getBoolean(Config.itemsForFindingDiamonds));
-            Menu.printSaved(fd, sender);
+            MenuHandler.printSaved(fd, sender);
         } else if (arg.equalsIgnoreCase("logging")) {
             fd.getConfig().set(Config.logDiamondBreaks, !fd.getConfig().getBoolean(Config.logDiamondBreaks));
-            Menu.printSaved(fd, sender);
+            MenuHandler.printSaved(fd, sender);
         } else if (arg.equalsIgnoreCase("spells")) {
             fd.getConfig().set(Config.potionsForFindingDiamonds, !fd.getConfig().getBoolean(Config.potionsForFindingDiamonds));
-            Menu.printSaved(fd, sender);
+            MenuHandler.printSaved(fd, sender);
         } else if (arg.equalsIgnoreCase("cleanlog")) {
             fd.getConfig().set(Config.cleanLog, !fd.getConfig().getBoolean(Config.cleanLog));
             if (!FileHandler.getCleanLog().exists()) {
@@ -225,15 +229,15 @@ public class CommandHandler implements CommandExecutor {
                     Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Failed to create CleanLog file.", ex);
                 }
             }
-            Menu.printSaved(fd, sender);
+            MenuHandler.printSaved(fd, sender);
         } else if (arg.equalsIgnoreCase("nick") || arg.equalsIgnoreCase("nicks")) {
             fd.getConfig().set(Config.useNick, !fd.getConfig().getBoolean(Config.useNick));
-            Menu.printSaved(fd, sender);
+            MenuHandler.printSaved(fd, sender);
         } else if (arg.equalsIgnoreCase("debug")) {
             fd.getConfig().set(Config.debug, !fd.getConfig().getBoolean(Config.debug));
-            Menu.printSaved(fd, sender);
+            MenuHandler.printSaved(fd, sender);
         } else if (arg.equalsIgnoreCase("2")) {
-            Menu.showToggle2(sender);
+            MenuHandler.showToggle2(sender);
         } else {
             sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Argument '" + arg + "' unrecognized.");
             sender.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");

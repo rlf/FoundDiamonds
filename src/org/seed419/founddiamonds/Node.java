@@ -3,6 +3,8 @@ package org.seed419.founddiamonds;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.seed419.founddiamonds.util.BlockColor;
+import org.seed419.founddiamonds.util.Format;
 
 import java.util.List;
 

@@ -2,18 +2,22 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.seed419.founddiamonds;
+package org.seed419.founddiamonds.handlers;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.seed419.founddiamonds.util.Format;
+import org.seed419.founddiamonds.FoundDiamonds;
+import org.seed419.founddiamonds.Permissions;
+import org.seed419.founddiamonds.file.Config;
 
 /**
  *
  * @author seed419
  */
-public class Menu {
+public class MenuHandler {
 
 
     private final static int togglePages = 2;
@@ -29,7 +33,7 @@ public class Menu {
                     || Permissions.hasPerms(player, "fd.manage.broadcast.add") || Permissions.hasPerms(player, "fd.manage.broadcast.remove")
                     || Permissions.hasPerms(player, "fd.manage.broadcast.list") || Permissions.hasPerms(player, "fd.manage.light.add")
                     || Permissions.hasPerms(player, "fd.manage.light.list") || Permissions.hasPerms(player, "fd.manage.light.remove")) {
-                player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [FoundDiamonds Main Menu]");
+                player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [FoundDiamonds Main MenuHandler]");
                 player.sendMessage("/fd " + ChatColor.RED + "{optional}");
             } else {
                 return false;
@@ -65,7 +69,7 @@ public class Menu {
                 player.sendMessage(ChatColor.RED + "    world" + ChatColor.WHITE + " - Manage enabled worlds");
             }
         } else {
-            sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [FoundDiamonds Main Menu]");
+            sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [FoundDiamonds Main MenuHandler]");
             sender.sendMessage("/fd " + ChatColor.RED + "<option>");
             sender.sendMessage(ChatColor.RED + "    admin" + ChatColor.WHITE + " - Manage admin message blocks");
             sender.sendMessage(ChatColor.RED + "    bc" + ChatColor.WHITE + " - Manage broadcasted blocks");
@@ -82,7 +86,7 @@ public class Menu {
 
 
 
-    //Toggle Menu
+    //Toggle MenuHandler
     public static void showToggle(CommandSender sender) {
         sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Toggle Options 1/" + togglePages + "]");
         sender.sendMessage(ChatColor.RED + "    ops" + ChatColor.WHITE + " - OPs have all permissions");
@@ -117,7 +121,7 @@ public class Menu {
         sender.sendMessage(ChatColor.RED + "    Item 1: " + ChatColor.AQUA + Format.material(Material.getMaterial(fd.getConfig().getInt(Config.randomItem1))));
         sender.sendMessage(ChatColor.RED + "    Item 2: " + ChatColor.AQUA + Format.material(Material.getMaterial(fd.getConfig().getInt(Config.randomItem2))));
         sender.sendMessage(ChatColor.RED + "    Item 3: " + ChatColor.AQUA + Format.material(Material.getMaterial(fd.getConfig().getInt(Config.randomItem3))));
-        sender.sendMessage(ChatColor.RED + "    Logging all diamond ore breaks: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.logDiamondBreaks)));
+        sender.sendMessage(ChatColor.RED + "    LoggingHandler all diamond ore breaks: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.logDiamondBreaks)));
         sender.sendMessage("Type /fd config 2 to read the next page");
 
     }
@@ -163,7 +167,7 @@ public class Menu {
         sender.sendMessage(ChatColor.RED + "    list" + ChatColor.WHITE + " - List all currently broadcasted blocks");
     }
 
-    //World Menu
+    //World MenuHandler
     public static void showWorldMenu(CommandSender sender) {
         sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Worlds 1/1]");
         sender.sendMessage("/fd world" + ChatColor.RED + " <option>");
@@ -175,7 +179,7 @@ public class Menu {
 
 
     /*
-    * Set Menu
+    * Set MenuHandler
     */
     public static void showSetMenu(CommandSender sender) {
         sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Set]");
@@ -245,7 +249,7 @@ public class Menu {
     /*List menu handlers*/
     public static void handleBcMenu(FoundDiamonds fd, CommandSender sender, String[] args) {
         if (args.length == 1) {
-            Menu.showBcMenu(sender);
+            MenuHandler.showBcMenu(sender);
         } else if (args.length > 1) {
             if (args[1].equalsIgnoreCase("list")) {
                 sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Broadcasted Blocks]");
@@ -268,7 +272,7 @@ public class Menu {
 
     public static void handleAdminMenu(FoundDiamonds fd, CommandSender sender, String[] args) {
         if (args.length == 1) {
-            Menu.showAdminMenu(sender);
+            MenuHandler.showAdminMenu(sender);
         } else if (args.length > 1) {
             if (args[1].equalsIgnoreCase("list")) {
                 sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Admin Message Blocks]");
@@ -285,7 +289,7 @@ public class Menu {
 
     public static void handleLightMenu(FoundDiamonds fd, CommandSender sender, String[] args) {
         if (args.length == 1) {
-            Menu.showLightMenu(sender);
+            MenuHandler.showLightMenu(sender);
         } else if (args.length > 1) {
             if (args[1].equalsIgnoreCase("list")) {
                 sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Light-Monitored Blocks]");
@@ -320,7 +324,7 @@ public class Menu {
 
 
 
-    //Menu helpers
+    //MenuHandler helpers
     private static String getPrettyMenuBoolean(Boolean b) {
         return (b ? ChatColor.DARK_GREEN + "[On]" : ChatColor.DARK_RED + "[Off]");
     }

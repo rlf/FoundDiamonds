@@ -1,8 +1,4 @@
-package org.seed419.founddiamonds;
-
-import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.seed419.founddiamonds.file.Config;
+package org.seed419.founddiamonds.handlers;
 
 /**
  * Attribute Only (Public) License
@@ -28,18 +24,8 @@ import org.seed419.founddiamonds.file.Config;
  *
  * @license AOL v.a3 <http://aol.nexua.org>
  */
-public class Permissions {
+public class AdminMessageHandler {
 
-
-    private static JavaPlugin plugin;
-
-
-    public Permissions(JavaPlugin plugin) {
-        this.plugin = plugin;
-    }
-
-    public static boolean hasPerms(CommandSender sender, String permission) {
-        return (sender.hasPermission(permission) || (plugin.getConfig().getBoolean(Config.opsAsFDAdmin) && sender.isOp()));
-    }
+    //Unimplemented.  Seriously, who uses these fucking things?
 
 }

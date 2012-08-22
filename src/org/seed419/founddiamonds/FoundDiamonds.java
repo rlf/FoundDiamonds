@@ -4,6 +4,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.seed419.founddiamonds.file.Config;
+import org.seed419.founddiamonds.file.FileHandler;
+import org.seed419.founddiamonds.handlers.*;
 import org.seed419.founddiamonds.listeners.BlockBreakListener;
 import org.seed419.founddiamonds.listeners.BlockDamageListener;
 import org.seed419.founddiamonds.listeners.BlockPlaceListener;
@@ -63,11 +66,13 @@ public class FoundDiamonds extends JavaPlugin {
     private final ListHandler lh = new ListHandler(this);
     private final Permissions p = new Permissions(this);
     private final PlayerDamageListener pdl = new PlayerDamageListener();
-    private final WorldManager wm = new WorldManager(this);
-    private final Logging logging = new Logging(this);
-    private final Trap trap = new Trap(this, logging);
+    private final WorldHandler wm = new WorldHandler(this);
+    private final LoggingHandler logging = new LoggingHandler(this);
+    private final TrapHandler trap = new TrapHandler(this, logging);
     private final BlockPlaceListener bpl = new BlockPlaceListener(this, mysql);
-    private final BlockBreakListener bbl = new BlockBreakListener(this, mysql, trap, logging, bpl, pdl);
+    private final PotionHandler potions = new PotionHandler(this, pdl);
+    private final ItemHandler itemHandler = new ItemHandler(this);
+    private final BlockBreakListener bbl = new BlockBreakListener(this, mysql, trap, logging, bpl, potions, itemHandler);
     private final BlockDamageListener bdl = new BlockDamageListener(bbl);
     private final FileHandler fh = new FileHandler(this, wm, bpl, trap);
 
@@ -78,18 +83,15 @@ public class FoundDiamonds extends JavaPlugin {
 
     /*
      * Changelog:
-     * Fixed potential memory leak
-     * Performance improvements
-     * More refactoring, much cleaner code
-     * Cleanlog to SQL?
-
+     * Tons of refactoring, much cleaner code.  Pull requests should be much easier in the future
+     * Added an option for awarding all player items/potions, or just the player who found the diamonds.
+     *
      */
 
 
     /*
      * TODO:
-     * Add all player or one player potions and awards.
-     *
+     * ? Refactor?
      */
 
     @Override

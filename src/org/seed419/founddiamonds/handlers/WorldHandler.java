@@ -1,28 +1,30 @@
-package org.seed419.founddiamonds;
+package org.seed419.founddiamonds.handlers;
 
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.seed419.founddiamonds.FoundDiamonds;
+import org.seed419.founddiamonds.file.Config;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-public class WorldManager {
+public class WorldHandler {
 
 
     private static FoundDiamonds fd;
 
 
-    public WorldManager(FoundDiamonds fd) {
+    public WorldHandler(FoundDiamonds fd) {
         this.fd = fd;
     }
 
     public void handleWorldMenu(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            Menu.showWorldMenu(sender);
+            MenuHandler.showWorldMenu(sender);
         } else if (args.length >= 2) {
             if (args[1].equalsIgnoreCase("list")) {
                 if (args.length == 2) {

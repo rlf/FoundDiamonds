@@ -1,8 +1,12 @@
-package org.seed419.founddiamonds;
+package org.seed419.founddiamonds.handlers;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
+import org.seed419.founddiamonds.*;
+import org.seed419.founddiamonds.file.Config;
+import org.seed419.founddiamonds.util.BlockColor;
+import org.seed419.founddiamonds.util.Format;
 
 import java.util.ArrayList;
 import java.util.Collection;

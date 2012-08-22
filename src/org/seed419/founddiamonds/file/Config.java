@@ -2,7 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.seed419.founddiamonds;
+package org.seed419.founddiamonds.file;
+
+import org.seed419.founddiamonds.FoundDiamonds;
 
 /**
  *
@@ -29,6 +31,7 @@ public class Config {
     public static String adminAlertsOnAllTrapBreaks = "Found Diamonds Configuration.Traps.Admin alerts on all trap breaks";
 
     /*Awards.Items*/
+    public static String awardAllItems = "Found Diamonds Configuration.Awards.Items.Award all players";
     public static String itemsForFindingDiamonds = "Found Diamonds Configuration.Awards.Items.Random items for finding diamonds";
     public static String chanceToGetItem = "Found Diamonds Configuration.Awards.Items.Percent of time items are given";
     public static String maxItems = "Found Diamonds Configuration.Awards.Items.Maximum number or items to give";
@@ -37,6 +40,7 @@ public class Config {
     public static String randomItem3 = "Found Diamonds Configuration.Awards.Items.Random Item 3";
 
     /*Awards.Spells*/
+    public static String awardAllPotions = "Found Diamonds Configuration.Awards.Spells.Award all players";
     public static String potionsForFindingDiamonds = "Found Diamonds Configuration.Awards.Spells.Random spells for finding diamonds";
     public static String potionStrength = "Found Diamonds Configuration.Awards.Spells.Spell strength (1-5)";
     public static String chanceToGetPotion = "Found Diamonds Configuration.Awards.Spells.Percent of time spells are casted";
@@ -57,11 +61,11 @@ public class Config {
     public static String useNick = "Found Diamonds Configuration.Broadcasts.Options.Use player nicknames";
     public static String useOreColors = "Found Diamonds Configuration.Broadcasts.Options.Use classic ore colors for ores";
 
-    /*Logging*/
-    public static String logTrapBreaks = "Found Diamonds Configuration.Logging.Trap breaks";
-    public static String logLightLevelViolations = "Found Diamonds Configuration.Logging.Light Level Violations";
-    public static String logDiamondBreaks = "Found Diamonds Configuration.Logging.Log all diamond ore breaks";
-    public static String cleanLog = "Found Diamonds Configuration.Logging.Clean log (all ores)";
+    /*LoggingHandler*/
+    public static String logTrapBreaks = "Found Diamonds Configuration.LoggingHandler.TrapHandler breaks";
+    public static String logLightLevelViolations = "Found Diamonds Configuration.LoggingHandler.Light Level Violations";
+    public static String logDiamondBreaks = "Found Diamonds Configuration.LoggingHandler.Log all diamond ore breaks";
+    public static String cleanLog = "Found Diamonds Configuration.LoggingHandler.Clean log (all ores)";
     public static String enabledWorlds = "Found Diamonds Configuration.Enabled Worlds";
 
     /*Admin Messages*/

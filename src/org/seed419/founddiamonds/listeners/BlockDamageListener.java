@@ -8,6 +8,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.seed419.founddiamonds.*;
+import org.seed419.founddiamonds.handlers.ListHandler;
 
 /**
  * Attribute Only (Public) License
