@@ -1,27 +1,18 @@
 package org.seed419.founddiamonds;
 
-import org.bukkit.ChatColor;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.file.FileHandler;
+import org.seed419.founddiamonds.file.FileUtils;
 import org.seed419.founddiamonds.handlers.*;
 import org.seed419.founddiamonds.listeners.*;
 import org.seed419.founddiamonds.metrics.MetricsLite;
 import org.seed419.founddiamonds.sql.MySQL;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.logging.Logger;
-
-/* TODO
-* Smarter trap blocks - remember material NOT just the location!  Prevents pistons and physics from tricking them.
-* Implement Item IDs as an acceptable form of entering blocks
-* Finish set menu, integrate with main menu
-* Look into pulling stats from MC client?  Or MySQL?
-* /fd top ?
-* /
 
 /*  Attribute Only (Public) License
         Version 0.a3, July 11, 2011
@@ -47,36 +38,25 @@ import java.util.logging.Logger;
 
 @license AOL v.a3 <http://aol.nexua.org>*/
 
-
-
 public class FoundDiamonds extends JavaPlugin {
 
 
-    private final static String prefix = "[FD]";
-    private final static String adminPrefix = ChatColor.RED + "[FD]";
-    private final static String debugPrefix = "[FD Debug] ";
-    private final static String loggerPrefix = "[FoundDiamonds]";
-
-    public Logger log;
-
+    private static Logger log;
+    private final FileUtils fu = new FileUtils(this);
     private final MySQL mysql = new MySQL(this);
     private final ListHandler lh = new ListHandler(this);
     private final Permissions p = new Permissions(this);
     private final PlayerDamageListener pdl = new PlayerDamageListener();
     private final WorldHandler wm = new WorldHandler(this);
-    private final LoggingHandler logging = new LoggingHandler(this);
-    private final TrapHandler trap = new TrapHandler(this, logging);
     private final BlockPlaceListener bpl = new BlockPlaceListener(this, mysql);
+    private final LoggingHandler logging = new LoggingHandler(this, fu);
+    private final TrapHandler trap = new TrapHandler(this, logging);
+    private final FileHandler fh = new FileHandler(this, wm, bpl, trap, fu);
     private final PotionHandler potions = new PotionHandler(this, pdl);
     private final ItemHandler itemHandler = new ItemHandler(this);
     private final BlockBreakListener bbl = new BlockBreakListener(this, mysql, trap, logging, bpl, potions, itemHandler);
     private final BlockDamageListener bdl = new BlockDamageListener(bbl);
-    private final FileHandler fh = new FileHandler(this, wm, bpl, trap);
     private final PistonListener pl = new PistonListener(trap);
-
-    private static PluginDescriptionFile pdf;
-    private String pluginName;
-
 
 
     /*
@@ -90,33 +70,29 @@ public class FoundDiamonds extends JavaPlugin {
 
     /*
      * TODO:
-     * ? Refactor?
      * //Fix adding worlds with spaces
      * //Trap blocks in MySQL
      * //Is cleanlogging in SQL a popular request?
      * //Move light and admin messages into separate classes for fucks sake.
-     */
+    * Smarter trap blocks - remember material NOT just the location!  Prevents pistons and physics from tricking them.
+    * Implement Item IDs as an acceptable form of entering blocks
+    * Finish set menu, integrate with main menu
+    * Look into pulling stats from MC client?  Or MySQL?
+    * /fd top ?
+     * */
 
     @Override
     public void onEnable() {
         log = this.getLogger();
-        pdf = this.getDescription();
-        pluginName = pdf.getName();
-
         fh.initFileVariables();
         fh.checkFiles();
         wm.checkWorlds();
         lh.loadAllBlocks();
-
         getCommand("fd").setExecutor(new CommandHandler(this, wm, trap));
-
         registerEvents();
-
         startMetrics();
-
         mysql.getConnection();
-
-        log.info(MessageFormat.format("[{0}] Enabled", pluginName));
+        log.info("Enabled");
     }
 
     public void registerEvents() {
@@ -132,55 +108,19 @@ public class FoundDiamonds extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        log.info(MessageFormat.format("[{0}] Saving all data...", pluginName));
-        String info = "This file stores your trap block locations.";
-        boolean temp = fh.writeBlocksToFile(fh.getTrapsFile(), trap.getTrapBlocks(), info);
-        boolean temp2 = true;
-        if (!getConfig().getBoolean(Config.mysqlEnabled)) {
-            String info5 = "This file stores blocks that won't be announced because players placed them.";
-            temp2 = fh.writeBlocksToFile(fh.getPlacedFile(), bpl.getFlatFilePlacedBlocks(), info5);
-        }
-        if (temp && temp2) {
-            log.info(MessageFormat.format("[{0}] Data successfully saved.", pluginName));
-        } else {
-            log.warning(MessageFormat.format("[{0}] Couldn't save blocks to files!", pluginName));
-            log.warning(MessageFormat.format("[{0}] You could try deleting .placed and .traps if they exist", pluginName));
-        }
-        log.info(MessageFormat.format("[{0}] Disabled", pluginName));
+        log.info("Saving all data...");
+        fh.saveFlatFileData();
+        log.info("Disabled");
     }
 
     public Logger getLog() {
         return log;
     }
 
-    public String getPluginName() {
-        return pluginName;
+    public PluginDescriptionFile getPdf() {
+        return this.getDescription();
     }
 
-    public static PluginDescriptionFile getPdf() {
-        return pdf;
-    }
-
-    public static String getPrefix() {
-        return prefix;
-    }
-
-    public static String getAdminPrefix() {
-        return adminPrefix;
-    }
-
-    public static String getDebugPrefix() {
-        return debugPrefix;
-    }
-
-    public static String getLoggerPrefix() {
-        return loggerPrefix;
-    }
-
-
-    /*
-     * Metrics
-     */
     private void startMetrics() {
         if (this.getConfig().getBoolean(Config.metrics)) {
             try {

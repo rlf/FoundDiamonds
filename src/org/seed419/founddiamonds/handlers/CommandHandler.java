@@ -9,14 +9,14 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.seed419.founddiamonds.*;
+import org.seed419.founddiamonds.FoundDiamonds;
+import org.seed419.founddiamonds.Permissions;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.file.FileHandler;
 import org.seed419.founddiamonds.util.PluginUtils;
+import org.seed419.founddiamonds.util.Prefix;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -57,7 +57,7 @@ public class CommandHandler implements CommandExecutor {
                                 || Permissions.hasPerms(player, "fd.manage.admin.list")) {
                             MenuHandler.handleAdminMenu(fd, sender, args);
                         } else {
-                            sendPermissionsMessage(player);
+                            Permissions.sendPermissionsMessage(player);
                         }
                     } else {
                         MenuHandler.handleAdminMenu(fd, sender, args);
@@ -69,7 +69,7 @@ public class CommandHandler implements CommandExecutor {
                                 || Permissions.hasPerms(player, "fd.manage.bc.list")) {
                             MenuHandler.handleBcMenu(fd, sender, args);
                         } else {
-                            sendPermissionsMessage(player);
+                            Permissions.sendPermissionsMessage(player);
                         }
                     } else {
                         MenuHandler.handleBcMenu(fd, sender, args);
@@ -86,7 +86,7 @@ public class CommandHandler implements CommandExecutor {
                                 MenuHandler.showConfig(fd, sender);
                             }
                         } else {
-                            sendPermissionsMessage(player);
+                            Permissions.sendPermissionsMessage(player);
                         }
                     }
                 } else if (arg.equalsIgnoreCase("debug")) {
@@ -100,7 +100,7 @@ public class CommandHandler implements CommandExecutor {
                                 MenuHandler.showConfig(fd, sender);
                             }
                         } else {
-                            sendPermissionsMessage(player);
+                            Permissions.sendPermissionsMessage(player);
                         }
                     }
                 } else if (arg.equalsIgnoreCase("light")) {
@@ -109,7 +109,7 @@ public class CommandHandler implements CommandExecutor {
                                 || Permissions.hasPerms(player, "fd.manage.light.list")) {
                             MenuHandler.handleLightMenu(fd, sender, args);
                         } else {
-                            sendPermissionsMessage(player);
+                            Permissions.sendPermissionsMessage(player);
                         }
                     } else {
                         MenuHandler.handleLightMenu(fd, sender, args);
@@ -120,14 +120,14 @@ public class CommandHandler implements CommandExecutor {
                         if (Permissions.hasPerms(player, "fd.reload")) {
                             fd.reloadConfig();
                             fd.saveConfig();
-                            sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " Configuration saved and reloaded.");
+                            sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " Configuration saved and reloaded.");
                         } else {
-                            sendPermissionsMessage(player);
+                            Permissions.sendPermissionsMessage(player);
                         }
                     } else {
                         fd.reloadConfig();
                         fd.saveConfig();
-                        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " Configuration saved and reloaded.");
+                        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " Configuration saved and reloaded.");
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("set")) {
@@ -135,13 +135,13 @@ public class CommandHandler implements CommandExecutor {
                         if (Permissions.hasPerms(player, "fd.toggle")) {
                             MenuHandler.handleSetMenu(fd, sender, args);
                         } else {
-                            sendPermissionsMessage(player);
+                            Permissions.sendPermissionsMessage(player);
                         }
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("toggle")) {
                     if (!Permissions.hasPerms(sender, "fd.toggle")) {
-                        sendPermissionsMessage(sender);
+                        Permissions.sendPermissionsMessage(sender);
                     } else {
                         if (args.length == 1) {
                             MenuHandler.showToggle(sender);
@@ -149,7 +149,7 @@ public class CommandHandler implements CommandExecutor {
                             arg = args[1];
                             handleToggle(sender, arg);
                         } else {
-                            sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Invalid number of arguments.");
+                            sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Invalid number of arguments.");
                             sender.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
                         }
                     }
@@ -159,10 +159,10 @@ public class CommandHandler implements CommandExecutor {
                         if (Permissions.hasPerms(player, "fd.trap")) {
                             trap.handleTrap(player, args);
                         } else {
-                            sendPermissionsMessage(player);
+                            Permissions.sendPermissionsMessage(player);
                         }
                     } else {
-                        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Can't set a trap from the console.");
+                        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Can't set a trap from the console.");
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("world")) {
@@ -170,27 +170,21 @@ public class CommandHandler implements CommandExecutor {
                         if (Permissions.hasPerms(player, "fd.world")) {
                             wm.handleWorldMenu(sender, args);
                         } else {
-                            sendPermissionsMessage(player);
+                            Permissions.sendPermissionsMessage(player);
                         }
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("version")) {
-                    MenuHandler.showVersion(sender);
+                    MenuHandler.showVersion(fd, sender);
                     return true;
                 } else {
-                        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Unrecognized command '"
+                        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized command '"
                                 + ChatColor.WHITE + args[0] + ChatColor.DARK_RED + "'");
                     return true;
                 }
             }
         }
         return false;
-    }
-
-
-    public void sendPermissionsMessage(CommandSender sender) {
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " You don't have permission to do that.");
-        fd.getLog().warning(sender.getName() + " was denied access to a command.");
     }
 
     private boolean handleToggle(CommandSender sender, String arg) {
@@ -220,10 +214,10 @@ public class CommandHandler implements CommandExecutor {
             if (!FileHandler.getCleanLog().exists()) {
                 try {
                     boolean successful = FileHandler.getCleanLog().createNewFile();
-                    if (successful) {sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_GREEN +" Cleanlog created.");}
+                    if (successful) {sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_GREEN +" Cleanlog created.");}
                     } catch (IOException ex) {
-                    sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Uh-oh...couldn't create CleanLog.txt");
-                    Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Failed to create CleanLog file.", ex);
+                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Uh-oh...couldn't create CleanLog.txt");
+                    fd.getLog().severe("Failed to create CleanLog.txt");
                 }
             }
             MenuHandler.printSaved(fd, sender);
@@ -236,7 +230,7 @@ public class CommandHandler implements CommandExecutor {
         } else if (arg.equalsIgnoreCase("2")) {
             MenuHandler.showToggle2(sender);
         } else {
-            sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Argument '" + arg + "' unrecognized.");
+            sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Argument '" + arg + "' unrecognized.");
             sender.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
             return false;
         }

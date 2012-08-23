@@ -1,8 +1,10 @@
 package org.seed419.founddiamonds;
 
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.seed419.founddiamonds.file.Config;
+import org.seed419.founddiamonds.util.Prefix;
 
 /**
  * Attribute Only (Public) License
@@ -40,6 +42,11 @@ public class Permissions {
 
     public static boolean hasPerms(CommandSender sender, String permission) {
         return (sender.hasPermission(permission) || sender.hasPermission ("fd.*") || plugin.getConfig().getBoolean(Config.opsAsFDAdmin) && sender.isOp());
+    }
+
+    public static void sendPermissionsMessage(CommandSender sender) {
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " You don't have permission to do that.");
+        plugin.getLogger().warning(sender.getName() + " was denied access to a command.");
     }
 
 }

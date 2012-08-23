@@ -3,9 +3,11 @@ package org.seed419.founddiamonds.handlers;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.seed419.founddiamonds.*;
+import org.seed419.founddiamonds.EventInformation;
+import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.file.FileHandler;
+import org.seed419.founddiamonds.file.FileUtils;
 import org.seed419.founddiamonds.util.Format;
 
 import java.io.BufferedWriter;
@@ -44,10 +46,12 @@ public class LoggingHandler {
 
 
     private FoundDiamonds fd;
+    private FileUtils fileUtils;
 
 
-    public LoggingHandler(FoundDiamonds fd) {
+    public LoggingHandler(FoundDiamonds fd, FileUtils fileUtils) {
         this.fd = fd;
+        this.fileUtils = fileUtils;
     }
 
 
@@ -69,14 +73,14 @@ public class LoggingHandler {
                     pw.println(player.getName() + " was banned from the sever per the configuration.");
                 } else if (banned && kicked) {
                     pw.println(player.getName() + " was kicked and banned from the sever per the configuration.");
-                } else if (!banned && !kicked) {
+                } else {
                     pw.println(player.getName() + " was neither kicked nor banned per the configuration.");
                 }
             }
             pw.flush();
-            FileHandler.close(pw);
+            fileUtils.close(pw);
         } catch (IOException ex) {
-            fd.getLog().severe(MessageFormat.format("[{0}] Unable to write to log file {1}", FoundDiamonds.getPrefix(), ex));
+            fd.getLog().severe(MessageFormat.format("Unable to write to log file {0}", ex));
         }
     }
 
@@ -87,9 +91,9 @@ public class LoggingHandler {
             PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(FileHandler.getLogFile(), true)));
             pw.println(lightLogMsg);
             pw.flush();
-            FileHandler.close(pw);
+            fileUtils.close(pw);
         } catch (IOException ex) {
-            fd.getLog().severe(MessageFormat.format("[{0}] Unable to write to log file {1}", FoundDiamonds.getPrefix(), ex));
+            fd.getLog().severe(MessageFormat.format("Unable to write to light level violation to log.txt file {0}", ex));
         }
     }
 
@@ -123,9 +127,9 @@ public class LoggingHandler {
             PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(FileHandler.getCleanLog(), true)));
             pw.println("[" + formattedDate + "] " + message);
             pw.flush();
-            FileHandler.close(pw);
+            fileUtils.close(pw);
         } catch (IOException ex) {
-            fd.getLog().severe(MessageFormat.format("[{0}] Unable to write to clean log {1}", FoundDiamonds.getPrefix(), ex));
+            fd.getLog().severe(MessageFormat.format("Unable to write to clean log {0}", ex));
         }
     }
 

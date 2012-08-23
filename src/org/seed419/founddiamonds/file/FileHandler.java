@@ -9,8 +9,6 @@ import org.seed419.founddiamonds.listeners.BlockPlaceListener;
 import java.io.*;
 import java.text.MessageFormat;
 import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 public class FileHandler {
@@ -22,17 +20,19 @@ public class FileHandler {
     private static File logs;
     private File traps;
     private static File cleanLog;
-    private File configFile;
+    //private File configFile;
+    private FileUtils fileUtils;
     private File placed;
     private TrapHandler trap;
     private boolean printed = false;
 
 
-    public FileHandler(FoundDiamonds f, WorldHandler wm, BlockPlaceListener bpl, TrapHandler trap) {
+    public FileHandler(FoundDiamonds f, WorldHandler wm, BlockPlaceListener bpl, TrapHandler trap, FileUtils fileUtils) {
         this.fd = f;
         this.wm = wm;
         this.trap = trap;
         this.bpl = bpl;
+        this.fileUtils = fileUtils;
     }
 
     /*For the love of FUCK do not change this*/
@@ -40,7 +40,7 @@ public class FileHandler {
         logs = new File(fd.getDataFolder(), "log.txt");
         traps = new File(fd.getDataFolder(), ".traps");
         placed = new File(fd.getDataFolder(), ".placed");
-        configFile = new File(fd.getDataFolder(), "org/seed419/founddiamonds/resources/config.yml");
+        //configFile = new File(fd.getDataFolder(), "org/seed419/founddiamonds/resources/config.yml");
         cleanLog = new File(fd.getDataFolder(), "cleanlog.txt");
     }
 
@@ -49,17 +49,17 @@ public class FileHandler {
         if (!fd.getDataFolder().exists()) {
             firstrun = true;
             try {
-                verfiyFileCreation(fd.getDataFolder().mkdirs(), "main plugin folder");
+                verfiyFileCreation(fd.getDataFolder().mkdirs(), fd.getDataFolder());
             } catch (Exception ex) {
-                fd.getLog().severe(MessageFormat.format("[{0}] Couldn't create plugins/FoundDiamonds folder", fd.getPluginName()));
+                fd.getLog().severe(MessageFormat.format("Couldn't create plugins/FoundDiamonds folder {0}", ex));
                 fd.getServer().getPluginManager().disablePlugin(fd);
             }
         }
         if (!logs.exists()) {
             try {
-                verfiyFileCreation(logs.createNewFile(), "logs.txt");
+                verfiyFileCreation(logs.createNewFile(), logs);
             } catch (Exception ex) {
-                fd.getLog().severe(MessageFormat.format("[{0}] Unable to create log file, {1}", fd.getPluginName(), ex));
+                fd.getLog().severe(MessageFormat.format("Unable to create log file, {0}", ex));
             }
         }
         if (traps.exists()) {
@@ -75,17 +75,16 @@ public class FileHandler {
         fd.saveConfig();
         if (fd.getConfig().getBoolean(Config.cleanLog)) {
             try {
-                verfiyFileCreation(cleanLog.createNewFile(), "cleanlog.txt");
+                verfiyFileCreation(cleanLog.createNewFile(), cleanLog);
             } catch (IOException ex) {
-                fd.getLog().severe(MessageFormat.format("[{0}] Unable to create log file, {1}", fd.getPluginName(), ex));
-                Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Couldn't create clean log file, ", ex);
+                fd.getLog().severe(MessageFormat.format("Unable to create log file, {0}", ex));
             }
         }
     }
 
-    public void verfiyFileCreation(boolean b, String name) {
+    public void verfiyFileCreation(boolean b, File file) {
         if (!b) {
-            fd.getLog().severe(MessageFormat.format("[{0}] Failed to create " + name + "!", fd.getPluginName()));
+            fd.getLog().severe(MessageFormat.format("Failed to create {0}!", file.getName()));
         }
     }
 
@@ -97,7 +96,7 @@ public class FileHandler {
                     if (!file.exists()) {
                         boolean success = file.createNewFile();
                         if (!success) {
-                            fd.getLog().severe(MessageFormat.format("[{0}] Couldn't create file to store blocks in", fd.getPluginName()));
+                            fd.getLog().severe(MessageFormat.format("[{0}] Couldn't create file to store blocks in", file.getName()));
                         }
                     }
                     try {
@@ -109,9 +108,9 @@ public class FileHandler {
                             out.println();
                         }
                     } catch (IOException ex) {
-                        fd.getLog().severe(MessageFormat.format("[{0}] Error writing blocks to file!", fd.getPluginName(), file.getName()));
+                        fd.getLog().severe(MessageFormat.format("Error writing blocks to {0}!", file.getName()));
                     } finally {
-                        close(out);
+                        fileUtils.close(out);
                     }
                     return true;
                 } catch (IOException ex) {
@@ -120,7 +119,7 @@ public class FileHandler {
                 }
             } else {
                 if (!printed) {
-                    fd.getLog().warning(MessageFormat.format("[{0}] Plugin folder not found.  Did you delete it?", fd.getPluginName()));
+                    fd.getLog().warning("Plugin folder not found.  Did you delete it?");
                     printed = true;
                 }
                 return false;
@@ -129,8 +128,7 @@ public class FileHandler {
             if (file.exists()) {
                 boolean deletion = file.delete();
                 if (deletion) {
-                    fd.getLog().info(MessageFormat.format("[{0}] Deleted an empty, obsolete file.", fd.getPluginName()));
-                    fd.getLog().info(MessageFormat.format("[{0}] What a kind and thoughtful developer that seed419 guy is", fd.getPluginName()));
+                    fd.getLog().info("Deleted an empty unused FoundDiamonds file, for the sake of cleanliness");
                 }
             }
             return true;
@@ -150,15 +148,15 @@ public class FileHandler {
                                 Double.parseDouble(fs[2]), Double.parseDouble(fs[3]));
                         list.add(lo);
                     } catch (Exception ex) {
-                        fd.getLog().severe(MessageFormat.format("[{0}] Invalid block in file.  Please delete the FoundDiamonds folder.", fd.getPluginName()));
+                        fd.getLog().severe(MessageFormat.format("Invalid block in file.  Please delete {0}", file.getName()));
                     }
                 }
                 strLine = b.readLine();
             }
         } catch (Exception ex) {
-            fd.getLog().severe(MessageFormat.format("[{0}] Unable to read blocks from file, {1}", fd.getPluginName(), ex));
+            fd.getLog().severe(MessageFormat.format("Problem reading from {0}.  Please delete it.", file.getName()));
         } finally {
-            close(b);
+            fileUtils.close(b);
         }
     }
 
@@ -170,23 +168,20 @@ public class FileHandler {
         return cleanLog;
     }
 
-    public File getTrapsFile() {
-        return traps;
-    }
-
-    public File getPlacedFile() {
-        return placed;
-    }
-
-    public static void close(Closeable stream) {
-        if (stream != null) {
-            try {
-                stream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(FoundDiamonds.class.getName()).log(Level.SEVERE, "Couldn't close a stream, ", ex);
-            }
+    public void saveFlatFileData() {
+        String info = "This file stores your trap block locations.";
+        boolean temp = writeBlocksToFile(traps, trap.getTrapBlocks(), info);
+        boolean temp2 = true;
+        if (!fd.getConfig().getBoolean(Config.mysqlEnabled)) {
+            String info5 = "This file stores blocks that won't be announced because players placed them.";
+            temp2 = writeBlocksToFile(placed, bpl.getFlatFilePlacedBlocks(), info5);
+        }
+        if (temp && temp2) {
+            fd.getLog().info("Data successfully saved.");
+        } else {
+            fd.getLog().warning("Couldn't save blocks to files!");
+            fd.getLog().warning("You could try deleting .placed and .traps if they exist");
         }
     }
-
 
 }

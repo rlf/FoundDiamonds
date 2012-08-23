@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.file.Config;
+import org.seed419.founddiamonds.util.Prefix;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -30,7 +31,7 @@ public class WorldHandler {
                 if (args.length == 2) {
                     printEnabledWorlds(sender);
                 } else {
-                    sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Usage: /fd world list");
+                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Usage: /fd world list");
                 }
             } else if (args[1].equalsIgnoreCase("add")) {
                 if (args.length == 3) {
@@ -44,20 +45,20 @@ public class WorldHandler {
                     String worldName = sb.toString();
                     validateWorld(sender, worldName);
                 } else {
-                    sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Usage: /fd world add <worldname>");
+                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Usage: /fd world add <worldname>");
                 }
             } else if (args[1].equalsIgnoreCase("remove")) {
                 if (fd.getConfig().getStringList(Config.enabledWorlds).contains(args[2])) {
                     List<?> worldList = fd.getConfig().getList(Config.enabledWorlds);
                     worldList.remove(args[2]);
                     fd.getConfig().set(Config.enabledWorlds, worldList);
-                    sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " World '" + args[2] +"' removed.");
+                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " World '" + args[2] +"' removed.");
                     fd.saveConfig();
                 } else {
-                    sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " World '" + args[2] +"' isn't an enabled world.");
+                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " World '" + args[2] +"' isn't an enabled world.");
                 }
             } else {
-                sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Unrecognized command.  See /fd world");
+                sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized command.  See /fd world");
             }
         }
     }
@@ -71,20 +72,20 @@ public class WorldHandler {
                 if (!worldList.contains(worldName)) {
                     worldList.add(worldName);
                     fd.getConfig().set(Config.enabledWorlds, worldList);
-                    sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " World '" + worldName + "' added.");
+                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " World '" + worldName + "' added.");
                     fd.saveConfig();
                     return;
                 } else {
-                    sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " That world is already enabled.");
+                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " That world is already enabled.");
                     return;
                 }
             }
         }
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Couldn't find a world with the name '" + worldName + "'");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Couldn't find a world with the name '" + worldName + "'");
     }
 
     public void printEnabledWorlds(CommandSender sender) {
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Enabled Worlds]");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Enabled Worlds]");
         for (Iterator<String> it = fd.getConfig().getStringList(Config.enabledWorlds).iterator(); it.hasNext();) {
             String x = it.next();
             sender.sendMessage("    - " + x);

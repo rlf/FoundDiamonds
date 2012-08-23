@@ -8,10 +8,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.Permissions;
 import org.seed419.founddiamonds.file.Config;
+import org.seed419.founddiamonds.util.Format;
+import org.seed419.founddiamonds.util.Prefix;
 
 /**
  *
@@ -33,7 +34,7 @@ public class MenuHandler {
                     || Permissions.hasPerms(player, "fd.manage.broadcast.add") || Permissions.hasPerms(player, "fd.manage.broadcast.remove")
                     || Permissions.hasPerms(player, "fd.manage.broadcast.list") || Permissions.hasPerms(player, "fd.manage.light.add")
                     || Permissions.hasPerms(player, "fd.manage.light.list") || Permissions.hasPerms(player, "fd.manage.light.remove")) {
-                player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [FoundDiamonds Main MenuHandler]");
+                player.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [FoundDiamonds Main MenuHandler]");
                 player.sendMessage("/fd " + ChatColor.RED + "{optional}");
             } else {
                 return false;
@@ -69,7 +70,7 @@ public class MenuHandler {
                 player.sendMessage(ChatColor.RED + "    world" + ChatColor.WHITE + " - Manage enabled worlds");
             }
         } else {
-            sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [FoundDiamonds Main MenuHandler]");
+            sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [FoundDiamonds Main MenuHandler]");
             sender.sendMessage("/fd " + ChatColor.RED + "<option>");
             sender.sendMessage(ChatColor.RED + "    admin" + ChatColor.WHITE + " - Manage admin message blocks");
             sender.sendMessage(ChatColor.RED + "    bc" + ChatColor.WHITE + " - Manage broadcasted blocks");
@@ -88,7 +89,7 @@ public class MenuHandler {
 
     //Toggle MenuHandler
     public static void showToggle(CommandSender sender) {
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Toggle Options 1/" + togglePages + "]");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Toggle Options 1/" + togglePages + "]");
         sender.sendMessage(ChatColor.RED + "    ops" + ChatColor.WHITE + " - OPs have all permissions");
         sender.sendMessage(ChatColor.RED + "    kick" + ChatColor.WHITE + " - Kick players on trap breaks");
         sender.sendMessage(ChatColor.RED + "    ban" + ChatColor.WHITE + " - Ban players on trap breaks");
@@ -102,7 +103,7 @@ public class MenuHandler {
     }
 
     public static void showToggle2(CommandSender sender) {
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Toggle Options 2/" + togglePages + "]");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Toggle Options 2/" + togglePages + "]");
         sender.sendMessage(ChatColor.RED + "    cleanlog" + ChatColor.WHITE + " - Clean log (all ore announcements)");
         sender.sendMessage(ChatColor.RED + "    debug" + ChatColor.WHITE + " - Toggle debug output to the console");
         //sender.sendMessage("Type /fd toggle 3 to read the next page");
@@ -112,7 +113,7 @@ public class MenuHandler {
 
     //Config menus
     public static void showConfig(FoundDiamonds fd, CommandSender sender) {
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Configuration 1/" + configPages + "]");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Configuration 1/" + configPages + "]");
         sender.sendMessage(ChatColor.RED + "    Random spells for finding diamonds: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.potionsForFindingDiamonds)));
         sender.sendMessage(ChatColor.RED + "    Spell Strength: " + ChatColor.AQUA + fd.getConfig().getInt(Config.potionStrength));
         sender.sendMessage(ChatColor.RED + "    Odds of casting spells: " + ChatColor.AQUA + fd.getConfig().getInt(Config.chanceToGetPotion) + "%");
@@ -127,7 +128,7 @@ public class MenuHandler {
     }
 
     public static void showConfig2(FoundDiamonds fd, CommandSender sender) {
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Configuration 2/" + configPages + "]");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Configuration 2/" + configPages + "]");
         sender.sendMessage(ChatColor.RED + "    Disable in creative mode: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.disableInCreative)));
         sender.sendMessage(ChatColor.RED + "    Clean Log: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.cleanLog)));
         sender.sendMessage(ChatColor.RED + "    Debug Mode: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.debug)));
@@ -143,7 +144,7 @@ public class MenuHandler {
 
     //Light Level block
     public static void showLightMenu(CommandSender sender) {
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Light Level Blocks]");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Light Level Blocks]");
         sender.sendMessage(ChatColor.RED + "    add" + ChatColor.WHITE + " - Monitor a new blocks light level");
         sender.sendMessage(ChatColor.RED + "    remove" + ChatColor.WHITE + " - Stop a block from being monitored");
         sender.sendMessage(ChatColor.RED + "    list" + ChatColor.WHITE + " - List the currently monitored blocks");
@@ -152,7 +153,7 @@ public class MenuHandler {
 
     //Admin message block menu
     public static void showAdminMenu(CommandSender sender) {
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Admin Message Blocks]");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Admin Message Blocks]");
         sender.sendMessage(ChatColor.RED + "    add" + ChatColor.WHITE + " - Add a block that will send admin messages");
         sender.sendMessage(ChatColor.RED + "    remove" + ChatColor.WHITE + " - Remove an admin message block");
         sender.sendMessage(ChatColor.RED + "    list" + ChatColor.WHITE + " - List the current admin message blocks");
@@ -160,7 +161,7 @@ public class MenuHandler {
 
     //Broadcasted block menu
     public static void showBcMenu(CommandSender sender) {
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Broadcasted Blocks]");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Broadcasted Blocks]");
         sender.sendMessage(ChatColor.RED + "    add" + ChatColor.WHITE + " - Add a new block to be broadcasted");
         sender.sendMessage(ChatColor.RED + "    remove" + ChatColor.WHITE + " - Remove a block from being broadcasted");
         sender.sendMessage(ChatColor.RED + "    list" + ChatColor.WHITE + " - List all currently broadcasted blocks");
@@ -168,7 +169,7 @@ public class MenuHandler {
 
     //World MenuHandler
     public static void showWorldMenu(CommandSender sender) {
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Worlds 1/1]");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Worlds 1/1]");
         sender.sendMessage("/fd world" + ChatColor.RED + " <option>");
         sender.sendMessage(ChatColor.RED + "    list" + ChatColor.WHITE + " - List FD enabled worlds");
         sender.sendMessage(ChatColor.RED + "    add <world>" + ChatColor.WHITE + " - Add FD to a world.");
@@ -181,7 +182,7 @@ public class MenuHandler {
     * Set MenuHandler
     */
     public static void showSetMenu(CommandSender sender) {
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Set]");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Set]");
 /*        sender.sendMessage(ChatColor.RED + "    item1 <id number>");
         sender.sendMessage(ChatColor.RED + "    item2 <id number>");
         sender.sendMessage(ChatColor.RED + "    item3 <id number>");*/
@@ -196,11 +197,11 @@ public class MenuHandler {
         } else if (args.length == 2) {
             if (args[1].equalsIgnoreCase("spellpercent")) {
                 System.out.println("spellpercent");
-                sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Usage: /fd set "
+                sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Usage: /fd set "
                         + "spellpercent <percent>");
                 return true;
             } else if (args[1].equalsIgnoreCase("itempercent")) {
-                sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Usage: /fd set "
+                sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Usage: /fd set "
                         + "itempercent <percent>");
             }
         } else if (args.length == 3) {
@@ -220,7 +221,7 @@ public class MenuHandler {
             fd.getConfig().set(configuration, percent);
             printSaved(fd, sender);
         } else {
-            sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Percentage "
+            sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Percentage "
                     + "must be between 0 and 100");
         }
     }
@@ -230,7 +231,7 @@ public class MenuHandler {
         try {
             percent = Integer.parseInt(args[2].trim());
         } catch (Exception ex) {
-            sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Invalid argument");
+            sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Invalid argument");
             return 999;
         }
         if (percent >=0 && percent <=100) {
@@ -251,20 +252,20 @@ public class MenuHandler {
             MenuHandler.showBcMenu(sender);
         } else if (args.length > 1) {
             if (args[1].equalsIgnoreCase("list")) {
-                sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Broadcasted Blocks]");
+                sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Broadcasted Blocks]");
                 ListHandler.handleListingList(sender, ListHandler.getBroadcastedBlocks());
             } else if (args[1].equalsIgnoreCase("add")) {
                 if (args.length == 2) {
-                    sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Format: /fd add bc item:data,color ex: coal ore:dark gray");
-                    sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Format: /fd add bc item:data,color ex: coal ore:dark gray");
-                    sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Data and color are optional arguments.  If color is left out");
-                    sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " FD will attempt to pick a color for you. ex: obsidian");
+                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Format: /fd add bc item:data,color ex: coal ore:dark gray");
+                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Format: /fd add bc item:data,color ex: coal ore:dark gray");
+                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Data and color are optional arguments.  If color is left out");
+                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " FD will attempt to pick a color for you. ex: obsidian");
                 }
                 ListHandler.handleAddToList(sender, args, ListHandler.getBroadcastedBlocks(), Config.broadcastedBlocks);
             } else if (args[1].equalsIgnoreCase("remove")) {
                 ListHandler.handleRemoveFromList(sender, args, ListHandler.getBroadcastedBlocks(), Config.broadcastedBlocks);
             } else {
-                sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
+                sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
             }
         }
     }
@@ -274,14 +275,14 @@ public class MenuHandler {
             MenuHandler.showAdminMenu(sender);
         } else if (args.length > 1) {
             if (args[1].equalsIgnoreCase("list")) {
-                sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Admin Message Blocks]");
+                sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Admin Message Blocks]");
                 ListHandler.handleListingList(sender, ListHandler.getAdminMessageBlocks());
             } else if (args[1].equalsIgnoreCase("add")) {
                 ListHandler.handleAddToList(sender, args, ListHandler.getAdminMessageBlocks(), Config.adminMessageBlocks);
             } else if (args[1].equalsIgnoreCase("remove")) {
                 ListHandler.handleRemoveFromList(sender, args, ListHandler.getAdminMessageBlocks(), Config.adminMessageBlocks);
             } else {
-                sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
+                sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
             }
         }
     }
@@ -291,14 +292,14 @@ public class MenuHandler {
             MenuHandler.showLightMenu(sender);
         } else if (args.length > 1) {
             if (args[1].equalsIgnoreCase("list")) {
-                sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Light-Monitored Blocks]");
+                sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Light-Monitored Blocks]");
                 ListHandler.handleListingList(sender, ListHandler.getLightLevelBlocks());
             } else if (args[1].equalsIgnoreCase("add")) {
                 ListHandler.handleAddToList(sender, args, ListHandler.getLightLevelBlocks(), Config.lightLevelBlocks);
             } else if (args[1].equalsIgnoreCase("remove")) {
                 ListHandler.handleRemoveFromList(sender, args, ListHandler.getLightLevelBlocks(), Config.lightLevelBlocks);
             } else {
-                sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
+                sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
             }
         }
     }
@@ -306,9 +307,9 @@ public class MenuHandler {
 
 
     /*Version*/
-    public static void showVersion(CommandSender sender) {
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Version]");
-        sender.sendMessage(ChatColor.DARK_GREEN + " @version:  " + ChatColor.GOLD + FoundDiamonds.getPdf().getVersion());
+    public static void showVersion(FoundDiamonds fd, CommandSender sender) {
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Version]");
+        sender.sendMessage(ChatColor.DARK_GREEN + " @version:  " + ChatColor.GOLD + fd.getPdf().getVersion());
         sender.sendMessage(ChatColor.DARK_GREEN + " @author:   " + ChatColor.GOLD + "seed419");
         sender.sendMessage(ChatColor.DARK_GREEN + " @website:  " + ChatColor.GOLD + "http://dev.bukkit.org/server-mods/founddiamonds/");
     }
@@ -318,7 +319,7 @@ public class MenuHandler {
     public static void toggleDebug(FoundDiamonds fd, CommandSender sender) {
         boolean current = !fd.getConfig().getBoolean(Config.debug);
         fd.getConfig().set(Config.debug, current);
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Debug mode is " + getPrettyMenuBoolean(current));
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Debug mode is " + getPrettyMenuBoolean(current));
     }
 
 
@@ -330,7 +331,7 @@ public class MenuHandler {
 
     public static void printSaved(FoundDiamonds fd, CommandSender sender) {
         fd.saveConfig();
-        sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " Configuration updated.");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " Configuration updated.");
     }
 
 

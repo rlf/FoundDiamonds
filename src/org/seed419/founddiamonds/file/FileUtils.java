@@ -1,6 +1,10 @@
-package org.seed419.founddiamonds.util;
+package org.seed419.founddiamonds.file;
 
-import org.bukkit.ChatColor;
+import org.seed419.founddiamonds.FoundDiamonds;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.text.MessageFormat;
 
 /**
  * Attribute Only (Public) License
@@ -26,24 +30,24 @@ import org.bukkit.ChatColor;
  *
  * @license AOL v.a3 <http://aol.nexua.org>
  */
-public class Prefix {
+public class FileUtils {
 
 
-    private final static String chatPrefix = "[FD]";
-    private final static String adminPrefix = ChatColor.RED + "[FD]";
-    private final static String debugPrefix = "[FD Debug] ";
+    private FoundDiamonds fd;
 
 
-    public static String getChatPrefix() {
-        return chatPrefix;
+    public FileUtils(FoundDiamonds fd) {
+        this.fd = fd;
     }
 
-    public static String getAdminPrefix() {
-        return adminPrefix;
-    }
 
-    public static String getDebugPrefix() {
-        return debugPrefix;
+    public void close(Closeable stream) {
+        if (stream != null) {
+            try {
+                stream.close();
+            } catch (IOException ex) {
+                fd.getLog().warning(MessageFormat.format("Failure to close a file stream, {0} ", ex));
+            }
+        }
     }
-
 }

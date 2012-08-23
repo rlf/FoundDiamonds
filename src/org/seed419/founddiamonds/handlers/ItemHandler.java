@@ -5,9 +5,9 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Format;
+import org.seed419.founddiamonds.util.Prefix;
 
 import java.util.Random;
 
@@ -63,14 +63,14 @@ public class ItemHandler {
         if (plugin.getConfig().getBoolean(Config.awardAllItems)) {
             for(Player p: plugin.getServer().getOnlinePlayers()) {
                 if (WorldHandler.isEnabledWorld(p)) {
-                    p.sendMessage(FoundDiamonds.getPrefix() + ChatColor.GRAY + " Everyone else got " + amount +
+                    p.sendMessage(Prefix.getChatPrefix() + ChatColor.GRAY + " Everyone else got " + amount +
                             " " + Format.getFormattedName(Material.getMaterial(item), amount));
                     p.getInventory().addItem(new ItemStack(item, amount));
                     p.updateInventory();
                 }
             }
         } else {
-            player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.GRAY + " You got " + amount +
+            player.sendMessage(Prefix.getChatPrefix() + ChatColor.GRAY + " You got " + amount +
                     " " + Format.getFormattedName(Material.getMaterial(item), amount));
             player.getInventory().addItem(new ItemStack(item, amount));
             player.updateInventory();

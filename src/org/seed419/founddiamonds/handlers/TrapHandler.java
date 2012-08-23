@@ -14,6 +14,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.Permissions;
+import org.seed419.founddiamonds.util.Prefix;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -82,14 +83,14 @@ public class TrapHandler {
         	}
         }
         	else {
-            player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Invalid number of arguments");
+            player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Invalid number of arguments");
             player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold ore");
             return;
         }
         if (trap != null && trap.isBlock()) {
             getTrapLocations(player, playerLoc, trap, depth);
         } else {
-            player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Unable to set a trap with '" + item + "'");
+            player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Unable to set a trap with '" + item + "'");
             player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold ore");
         }
     }
@@ -99,10 +100,10 @@ public class TrapHandler {
         int y = playerLoc.getBlockY() - depth;
         int maxHeight = player.getWorld().getMaxHeight();
         if ((y - 2) < 0) {
-            player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " I can't place a trap down there, sorry.");
+            player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " I can't place a trap down there, sorry.");
             return;
         } else if ((y - 1) > maxHeight) {
-            player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " I can't place a trap this high, sorry.");
+            player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " I can't place a trap this high, sorry.");
             return;
         }
         int z = playerLoc.getBlockZ();
@@ -131,7 +132,7 @@ public class TrapHandler {
     private void setEmeraldTrap(Player player, Block block) {
         trapBlocks.add(block.getLocation());
         block.setType(Material.EMERALD_ORE);
-        player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " Trap set using " + Material.EMERALD_ORE.name().toLowerCase().replace("_", " "));
+        player.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " Trap set using " + Material.EMERALD_ORE.name().toLowerCase().replace("_", " "));
     }
 
     private void handleTrapBlocks(Player player, Material trap, Block block1, Block block2, Block block3, Block block4) {
@@ -143,7 +144,7 @@ public class TrapHandler {
         block2.setType(trap);
         block3.setType(trap);
         block4.setType(trap);
-        player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " Trap set using " + trap.name().toLowerCase().replace("_", " "));
+        player.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " Trap set using " + trap.name().toLowerCase().replace("_", " "));
     }
 
     public boolean isTrapBlock(Location loc) {
@@ -159,13 +160,13 @@ public class TrapHandler {
         Player player = event.getPlayer();
         Block block = event.getBlock();
         if (Permissions.hasPerms(player, "fd.trap")) {
-            player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " Trap block removed");
+            player.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " Trap block removed");
             block.setType(Material.AIR);
             removeTrapBlock(block);
         } else {
             for (Player x: fd.getServer().getOnlinePlayers()) {
                 if((Permissions.hasPerms(x, "fd.trap")) || Permissions.hasPerms(x, "fd.admin")) {
-                    x.sendMessage(FoundDiamonds.getPrefix() + ChatColor.YELLOW + " " + player.getName()
+                    x.sendMessage(Prefix.getChatPrefix() + ChatColor.YELLOW + " " + player.getName()
                             + ChatColor.RED + " just triggered a trap block");
                 }
             }

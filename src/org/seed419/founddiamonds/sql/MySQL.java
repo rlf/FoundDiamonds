@@ -29,7 +29,7 @@ public class MySQL {
         try {
             this.connection = DriverManager.getConnection(url, username, password);
             createTables();
-            fd.getLog().info(FoundDiamonds.getLoggerPrefix() + " MySQL backend connected");
+            fd.getLog().info("MySQL backend connected");
         } catch (SQLException ex) {
             fd.getLog().severe("Couldn't establish mysql connection.  Check your settings and verify "
                     + "that the database is actually running.");
@@ -157,7 +157,7 @@ public class MySQL {
         try {
             return connection.isValid(3);
         } catch (SQLException e) {
-            fd.getLog().warning(FoundDiamonds.getLoggerPrefix() + " MySQL not connected.");
+            fd.getLog().warning("MySQL not connected.");
             e.printStackTrace();
             return false;
         }

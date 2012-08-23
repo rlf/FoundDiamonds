@@ -9,6 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.seed419.founddiamonds.*;
 import org.seed419.founddiamonds.handlers.ListHandler;
+import org.seed419.founddiamonds.util.Prefix;
 
 /**
  * Attribute Only (Public) License
@@ -61,7 +62,7 @@ public class BlockDamageListener implements Listener {
         if (Permissions.hasPerms(ei.getPlayer(), "fd.monitor")) {
             if (bbl.blockSeesNoLight(ei) && ei.getPlayer().getWorld().getEnvironment() != World.Environment.NETHER) {
                 event.setCancelled(true);
-                ei.getPlayer().sendMessage(FoundDiamonds.getPrefix() + ChatColor.RED + " Mining in the dark is dangerous, place a torch!");
+                ei.getPlayer().sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Mining in the dark is dangerous, place a torch!");
                 return false;
             }
         }
