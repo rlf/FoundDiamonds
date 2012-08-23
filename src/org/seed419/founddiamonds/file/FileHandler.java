@@ -10,6 +10,8 @@ import java.io.*;
 import java.text.MessageFormat;
 import java.util.Collection;
 
+import static org.seed419.founddiamonds.FoundDiamonds.getLog;
+
 
 public class FileHandler {
 
@@ -51,7 +53,7 @@ public class FileHandler {
             try {
                 verfiyFileCreation(fd.getDataFolder().mkdirs(), fd.getDataFolder());
             } catch (Exception ex) {
-                fd.getLog().severe(MessageFormat.format("Couldn't create plugins/FoundDiamonds folder {0}", ex));
+                getLog().severe(MessageFormat.format("Couldn't create plugins/FoundDiamonds folder {0}", ex));
                 fd.getServer().getPluginManager().disablePlugin(fd);
             }
         }
@@ -59,7 +61,7 @@ public class FileHandler {
             try {
                 verfiyFileCreation(logs.createNewFile(), logs);
             } catch (Exception ex) {
-                fd.getLog().severe(MessageFormat.format("Unable to create log file, {0}", ex));
+                getLog().severe(MessageFormat.format("Unable to create log file, {0}", ex));
             }
         }
         if (traps.exists()) {
@@ -77,14 +79,14 @@ public class FileHandler {
             try {
                 verfiyFileCreation(cleanLog.createNewFile(), cleanLog);
             } catch (IOException ex) {
-                fd.getLog().severe(MessageFormat.format("Unable to create log file, {0}", ex));
+                getLog().severe(MessageFormat.format("Unable to create log file, {0}", ex));
             }
         }
     }
 
     public void verfiyFileCreation(boolean b, File file) {
         if (!b) {
-            fd.getLog().severe(MessageFormat.format("Failed to create {0}!", file.getName()));
+            getLog().severe(MessageFormat.format("Failed to create {0}!", file.getName()));
         }
     }
 
@@ -96,7 +98,7 @@ public class FileHandler {
                     if (!file.exists()) {
                         boolean success = file.createNewFile();
                         if (!success) {
-                            fd.getLog().severe(MessageFormat.format("[{0}] Couldn't create file to store blocks in", file.getName()));
+                            getLog().severe(MessageFormat.format("[{0}] Couldn't create file to store blocks in", file.getName()));
                         }
                     }
                     try {
@@ -108,7 +110,7 @@ public class FileHandler {
                             out.println();
                         }
                     } catch (IOException ex) {
-                        fd.getLog().severe(MessageFormat.format("Error writing blocks to {0}!", file.getName()));
+                        getLog().severe(MessageFormat.format("Error writing blocks to {0}!", file.getName()));
                     } finally {
                         fileUtils.close(out);
                     }
@@ -119,7 +121,7 @@ public class FileHandler {
                 }
             } else {
                 if (!printed) {
-                    fd.getLog().warning("Plugin folder not found.  Did you delete it?");
+                    getLog().warning("Plugin folder not found.  Did you delete it?");
                     printed = true;
                 }
                 return false;
@@ -128,7 +130,7 @@ public class FileHandler {
             if (file.exists()) {
                 boolean deletion = file.delete();
                 if (deletion) {
-                    fd.getLog().info("Deleted an empty unused FoundDiamonds file, for the sake of cleanliness");
+                    getLog().info("Deleted an empty unused FoundDiamonds file, for the sake of cleanliness");
                 }
             }
             return true;
@@ -148,13 +150,13 @@ public class FileHandler {
                                 Double.parseDouble(fs[2]), Double.parseDouble(fs[3]));
                         list.add(lo);
                     } catch (Exception ex) {
-                        fd.getLog().severe(MessageFormat.format("Invalid block in file.  Please delete {0}", file.getName()));
+                        getLog().severe(MessageFormat.format("Invalid block in file.  Please delete {0}", file.getName()));
                     }
                 }
                 strLine = b.readLine();
             }
         } catch (Exception ex) {
-            fd.getLog().severe(MessageFormat.format("Problem reading from {0}.  Please delete it.", file.getName()));
+            getLog().severe(MessageFormat.format("Problem reading from {0}.  Please delete it.", file.getName()));
         } finally {
             fileUtils.close(b);
         }
@@ -177,10 +179,10 @@ public class FileHandler {
             temp2 = writeBlocksToFile(placed, bpl.getFlatFilePlacedBlocks(), info5);
         }
         if (temp && temp2) {
-            fd.getLog().info("Data successfully saved.");
+            getLog().info("Data successfully saved.");
         } else {
-            fd.getLog().warning("Couldn't save blocks to files!");
-            fd.getLog().warning("You could try deleting .placed and .traps if they exist");
+            getLog().warning("Couldn't save blocks to files!");
+            getLog().warning("You could try deleting .placed and .traps if they exist");
         }
     }
 
