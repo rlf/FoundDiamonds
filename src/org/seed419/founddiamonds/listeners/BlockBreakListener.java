@@ -33,7 +33,7 @@ public class BlockBreakListener implements Listener  {
     private boolean consoleReceived;
     private boolean debug;
 
-
+    //TODO refactor, call seperate classes for these events.
     public BlockBreakListener(FoundDiamonds fd) {
         this.fd = fd;
     }
