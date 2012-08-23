@@ -16,7 +16,7 @@ import java.util.List;
 public class WorldHandler {
 
 
-    private static FoundDiamonds fd;
+    private FoundDiamonds fd;
 
 
     public WorldHandler(FoundDiamonds fd) {
@@ -25,7 +25,7 @@ public class WorldHandler {
 
     public void handleWorldMenu(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            MenuHandler.showWorldMenu(sender);
+            fd.getMenuHandler().showWorldMenu(sender);
         } else if (args.length >= 2) {
             if (args[1].equalsIgnoreCase("list")) {
                 if (args.length == 2) {
@@ -108,7 +108,7 @@ public class WorldHandler {
         fd.saveConfig();
     }
 
-    public static boolean isEnabledWorld(Player player) {
+    public boolean isEnabledWorld(Player player) {
         return fd.getConfig().getList(Config.enabledWorlds).contains(player.getWorld().getName());
     }
 

@@ -4,7 +4,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.util.Prefix;
@@ -38,21 +38,21 @@ import java.util.Random;
 public class ItemHandler {
 
 
-    private JavaPlugin plugin;
+    private FoundDiamonds fd;
 
 
-    public ItemHandler(JavaPlugin plugin) {
-        this.plugin = plugin;
+    public ItemHandler(FoundDiamonds fd) {
+        this.fd = fd;
     }
 
     public void handleRandomItems(Player player, int randomNumber) {
         int randomItem;
         if (randomNumber < 50) {
-            randomItem = plugin.getConfig().getInt(Config.randomItem1);
+            randomItem = fd.getConfig().getInt(Config.randomItem1);
         } else if (randomNumber >= 50 && randomNumber < 100) {
-            randomItem = plugin.getConfig().getInt(Config.randomItem2);
+            randomItem = fd.getConfig().getInt(Config.randomItem2);
         } else {
-            randomItem = plugin.getConfig().getInt(Config.randomItem3);
+            randomItem = fd.getConfig().getInt(Config.randomItem3);
         }
         int amount = getRandomItemAmount();
         giveItems(player, randomItem, amount);
@@ -60,9 +60,9 @@ public class ItemHandler {
 
     @SuppressWarnings("deprecation")
     private void giveItems(Player player, int item, int amount) {
-        if (plugin.getConfig().getBoolean(Config.awardAllItems)) {
-            for(Player p: plugin.getServer().getOnlinePlayers()) {
-                if (WorldHandler.isEnabledWorld(p)) {
+        if (fd.getConfig().getBoolean(Config.awardAllItems)) {
+            for(Player p: fd.getServer().getOnlinePlayers()) {
+                if (fd.getWorldHandler().isEnabledWorld(p)) {
                     p.sendMessage(Prefix.getChatPrefix() + ChatColor.GRAY + " Everyone else got " + amount +
                             " " + Format.getFormattedName(Material.getMaterial(item), amount));
                     p.getInventory().addItem(new ItemStack(item, amount));
@@ -79,6 +79,6 @@ public class ItemHandler {
 
     private int getRandomItemAmount(){
         Random rand = new Random();
-        return rand.nextInt(plugin.getConfig().getInt(Config.maxItems)) + 1;
+        return rand.nextInt(fd.getConfig().getInt(Config.maxItems)) + 1;
     }
 }

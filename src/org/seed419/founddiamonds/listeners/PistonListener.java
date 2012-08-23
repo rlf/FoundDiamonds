@@ -5,7 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
-import org.seed419.founddiamonds.handlers.TrapHandler;
+import org.seed419.founddiamonds.FoundDiamonds;
 
 /**
  * Attribute Only (Public) License
@@ -34,17 +34,17 @@ import org.seed419.founddiamonds.handlers.TrapHandler;
 public class PistonListener implements Listener {
 
 
-    public TrapHandler trap;
+    private FoundDiamonds fd;
 
 
-    public PistonListener(TrapHandler trap) {
-        this.trap = trap;
+    public PistonListener(FoundDiamonds fd) {
+        this.fd = fd;
     }
 
 
     @EventHandler
     void onPistonRetract(BlockPistonRetractEvent event) {
-        if (trap.isTrapBlock(event.getRetractLocation())) {
+        if (fd.getTrapHandler().isTrapBlock(event.getRetractLocation())) {
             event.setCancelled(true);
         }
     }
@@ -52,7 +52,7 @@ public class PistonListener implements Listener {
     @EventHandler
     void onPistonExtend(BlockPistonExtendEvent event) {
         for (Block x : event.getBlocks()) {
-            if (trap.isTrapBlock(x.getLocation())) {
+            if (fd.getTrapHandler().isTrapBlock(x.getLocation())) {
                 event.setCancelled(true);
             }
         }

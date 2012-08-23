@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.seed419.founddiamonds.handlers;
 
 import org.bukkit.ChatColor;
@@ -11,9 +7,8 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.FoundDiamonds;
-import org.seed419.founddiamonds.Permissions;
+import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Prefix;
 
 import java.util.HashSet;
@@ -27,14 +22,12 @@ public class TrapHandler {
 
 
     private FoundDiamonds fd;
-    private LoggingHandler logging;
     private final Set<Location> trapBlocks = new HashSet<Location>();
 
 
 
-    public TrapHandler(FoundDiamonds fd, LoggingHandler logging) {
+    public TrapHandler(FoundDiamonds fd) {
         this.fd = fd;
-        this.logging = logging;
     }
 
 
@@ -159,13 +152,13 @@ public class TrapHandler {
         event.setCancelled(true);
         Player player = event.getPlayer();
         Block block = event.getBlock();
-        if (Permissions.hasPerms(player, "fd.trap")) {
+        if (fd.getPermissions().hasPerm(player, "fd.trap")) {
             player.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " Trap block removed");
             block.setType(Material.AIR);
             removeTrapBlock(block);
         } else {
             for (Player x: fd.getServer().getOnlinePlayers()) {
-                if((Permissions.hasPerms(x, "fd.trap")) || Permissions.hasPerms(x, "fd.admin")) {
+                if((fd.getPermissions().hasPerm(x, "fd.trap")) || fd.getPermissions().hasPerm(x, "fd.admin")) {
                     x.sendMessage(Prefix.getChatPrefix() + ChatColor.YELLOW + " " + player.getName()
                             + ChatColor.RED + " just triggered a trap block");
                 }
@@ -181,7 +174,7 @@ public class TrapHandler {
                 banned = true;
             }
             if((fd.getConfig().getBoolean(Config.logTrapBreaks))) {
-                logging.handleLogging(player, block, true, kicked, banned);
+                fd.getLoggingHandler().handleLogging(player, block, true, kicked, banned);
             }
         }
     }

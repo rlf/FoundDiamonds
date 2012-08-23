@@ -7,7 +7,6 @@ import org.seed419.founddiamonds.EventInformation;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.file.FileHandler;
-import org.seed419.founddiamonds.file.FileUtils;
 import org.seed419.founddiamonds.util.Format;
 
 import java.io.BufferedWriter;
@@ -46,12 +45,10 @@ public class LoggingHandler {
 
 
     private FoundDiamonds fd;
-    private FileUtils fileUtils;
 
 
-    public LoggingHandler(FoundDiamonds fd, FileUtils fileUtils) {
+    public LoggingHandler(FoundDiamonds fd) {
         this.fd = fd;
-        this.fileUtils = fileUtils;
     }
 
 
@@ -78,7 +75,7 @@ public class LoggingHandler {
                 }
             }
             pw.flush();
-            fileUtils.close(pw);
+            fd.getFileUtils().close(pw);
         } catch (IOException ex) {
             fd.getLog().severe(MessageFormat.format("Unable to write to log file {0}", ex));
         }
@@ -91,7 +88,7 @@ public class LoggingHandler {
             PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(FileHandler.getLogFile(), true)));
             pw.println(lightLogMsg);
             pw.flush();
-            fileUtils.close(pw);
+            fd.getFileUtils().close(pw);
         } catch (IOException ex) {
             fd.getLog().severe(MessageFormat.format("Unable to write to light level violation to log.txt file {0}", ex));
         }
@@ -127,7 +124,7 @@ public class LoggingHandler {
             PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(FileHandler.getCleanLog(), true)));
             pw.println("[" + formattedDate + "] " + message);
             pw.flush();
-            fileUtils.close(pw);
+            fd.getFileUtils().close(pw);
         } catch (IOException ex) {
             fd.getLog().severe(MessageFormat.format("Unable to write to clean log {0}", ex));
         }

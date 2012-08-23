@@ -27,13 +27,13 @@ permissions:
     default: false
     children:
       fd.manage.admin.add: true
-      fd.manage.broadcast.add: true
-      fd.manage.light.add: true
       fd.manage.admin.remove: true
-      fd.manage.broadcast.remove: true
-      fd.manage.light.remove: true
       fd.manage.admin.list: true
+      fd.manage.broadcast.add: true
+      fd.manage.broadcast.remove: true
       fd.manage.broadcast.list: true
+      fd.manage.light.add: true
+      fd.manage.light.remove: true
       fd.manage.light.list: true
       fd.manage.toggle: true
       fd.manage.config: true

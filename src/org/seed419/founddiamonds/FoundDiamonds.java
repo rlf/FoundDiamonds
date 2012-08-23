@@ -41,22 +41,23 @@ import java.util.logging.Logger;
 public class FoundDiamonds extends JavaPlugin {
 
 
-    private static Logger log;
-    private final FileUtils fu = new FileUtils(this);
+    private Logger log;
+    private final BlockPlaceListener blockPlaceListener = new BlockPlaceListener(this);
+    private final BlockBreakListener blockBreakListener = new BlockBreakListener(this);
+    private final BlockDamageListener blockDamageListener = new BlockDamageListener(this);
+    private final PlayerDamageListener playerDamageListener = new PlayerDamageListener();
+    private final PistonListener pistonListener = new PistonListener(this);
+    private final FileUtils fileUtils = new FileUtils(this);
     private final MySQL mysql = new MySQL(this);
-    private final ListHandler lh = new ListHandler(this);
-    private final Permissions p = new Permissions(this);
-    private final PlayerDamageListener pdl = new PlayerDamageListener();
-    private final WorldHandler wm = new WorldHandler(this);
-    private final BlockPlaceListener bpl = new BlockPlaceListener(this, mysql);
-    private final LoggingHandler logging = new LoggingHandler(this, fu);
-    private final TrapHandler trap = new TrapHandler(this, logging);
-    private final FileHandler fh = new FileHandler(this, wm, bpl, trap, fu);
-    private final PotionHandler potions = new PotionHandler(this, pdl);
+    private final ListHandler listHandler = new ListHandler(this);
+    private final Permissions permissions = new Permissions(this);
+    private final WorldHandler worldHandler = new WorldHandler(this);
+    private final LoggingHandler loggingHandler = new LoggingHandler(this);
+    private final TrapHandler trapHandler = new TrapHandler(this);
+    private final FileHandler fileHandler = new FileHandler(this);
+    private final PotionHandler potionHandler = new PotionHandler(this);
     private final ItemHandler itemHandler = new ItemHandler(this);
-    private final BlockBreakListener bbl = new BlockBreakListener(this, mysql, trap, logging, bpl, potions, itemHandler);
-    private final BlockDamageListener bdl = new BlockDamageListener(bbl);
-    private final PistonListener pl = new PistonListener(trap);
+    private final MenuHandler menuHandler = new MenuHandler(this);
 
 
     /*
@@ -66,6 +67,7 @@ public class FoundDiamonds extends JavaPlugin {
      * Removed config option for admin alerts on trap breaks.  Why would admins not want to know about this?
      * Pistons can no longer fool trap blocks.
      * Improved a few redundant and sloppy areas of code.  Should help with memory/performance.
+     * Fixed permissions bug with world management
      */
 
 
@@ -85,36 +87,96 @@ public class FoundDiamonds extends JavaPlugin {
     @Override
     public void onEnable() {
         log = this.getLogger();
-        fh.initFileVariables();
-        fh.checkFiles();
-        wm.checkWorlds();
-        lh.loadAllBlocks();
-        getCommand("fd").setExecutor(new CommandHandler(this, wm, trap));
+        fileHandler.initFileVariables();
+        fileHandler.checkFiles();
+        worldHandler.checkWorlds();
+        listHandler.loadAllBlocks();
+        getCommand("fd").setExecutor(new CommandHandler(this));
         registerEvents();
         startMetrics();
         mysql.getConnection();
         log.info("Enabled");
     }
 
-    public void registerEvents() {
-        final PluginManager pm = getServer().getPluginManager();
-        if (getConfig().getBoolean(Config.potionsForFindingDiamonds)) {
-            pm.registerEvents(pdl, this);
-        }
-        pm.registerEvents(bbl, this);
-        pm.registerEvents(bpl, this);
-        pm.registerEvents(bdl, this);
-        pm.registerEvents(pl, this);
-    }
-
     @Override
     public void onDisable() {
         log.info("Saving all data...");
-        fh.saveFlatFileData();
+        fileHandler.saveFlatFileData();
         log.info("Disabled");
     }
 
-    public static Logger getLog() {
+    public void registerEvents() {
+        final PluginManager pm = getServer().getPluginManager();
+        if (getConfig().getBoolean(Config.potionsForFindingDiamonds)) {
+            pm.registerEvents(playerDamageListener, this);
+        }
+        pm.registerEvents(blockBreakListener, this);
+        pm.registerEvents(blockPlaceListener, this);
+        pm.registerEvents(blockDamageListener, this);
+        pm.registerEvents(pistonListener, this);
+    }
+
+    public Permissions getPermissions() {
+        return permissions;
+    }
+
+    public FileUtils getFileUtils() {
+        return fileUtils;
+    }
+
+    public MySQL getMySQL() {
+        return mysql;
+    }
+
+    public LoggingHandler getLoggingHandler() {
+        return loggingHandler;
+    }
+
+    public TrapHandler getTrapHandler() {
+        return trapHandler;
+    }
+
+    public BlockPlaceListener getBlockPlaceListener() {
+        return blockPlaceListener;
+    }
+
+    public WorldHandler getWorldHandler() {
+        return worldHandler;
+    }
+
+    public PlayerDamageListener getPlayerDamageListener() {
+        return playerDamageListener;
+    }
+
+    public FileHandler getFileHandler() {
+        return fileHandler;
+    }
+
+    public PotionHandler getPotionHandler() {
+        return potionHandler;
+    }
+
+    public ItemHandler getItemHandler() {
+        return itemHandler;
+    }
+
+    public BlockBreakListener getBlockBreakListener() {
+        return blockBreakListener;
+    }
+
+    public BlockDamageListener getBlockDamageListener() {
+        return blockDamageListener;
+    }
+
+    public PistonListener getPistonListener() {
+        return pistonListener;
+    }
+
+    public MenuHandler getMenuHandler() {
+        return menuHandler;
+    }
+
+    public Logger getLog() {
         return log;
     }
 
@@ -130,5 +192,4 @@ public class FoundDiamonds extends JavaPlugin {
             } catch (IOException e) {}
         }
     }
-
 }

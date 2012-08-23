@@ -38,11 +38,11 @@ import org.seed419.founddiamonds.util.Prefix;
 public class BlockDamageListener implements Listener {
 
 
-    private BlockBreakListener bbl;
+    private FoundDiamonds fd;
 
 
-    public BlockDamageListener(BlockBreakListener bbl) {
-        this.bbl = bbl;
+    public BlockDamageListener(FoundDiamonds fd) {
+        this.fd = fd;
     }
 
 
@@ -59,8 +59,8 @@ public class BlockDamageListener implements Listener {
     }
 
     private boolean isValidLightLevel(EventInformation ei, BlockDamageEvent event) {
-        if (Permissions.hasPerms(ei.getPlayer(), "fd.monitor")) {
-            if (bbl.blockSeesNoLight(ei) && ei.getPlayer().getWorld().getEnvironment() != World.Environment.NETHER) {
+        if (fd.getPermissions().hasPerm(ei.getPlayer(), "fd.monitor")) {
+            if (fd.getBlockBreakListener().blockSeesNoLight(ei) && ei.getPlayer().getWorld().getEnvironment() != World.Environment.NETHER) {
                 event.setCancelled(true);
                 ei.getPlayer().sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Mining in the dark is dangerous, place a torch!");
                 return false;

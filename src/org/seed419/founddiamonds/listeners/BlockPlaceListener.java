@@ -5,11 +5,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.seed419.founddiamonds.*;
+import org.seed419.founddiamonds.FoundDiamonds;
+import org.seed419.founddiamonds.Node;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.handlers.ListHandler;
-import org.seed419.founddiamonds.handlers.WorldHandler;
-import org.seed419.founddiamonds.sql.MySQL;
 
 import java.util.HashSet;
 
@@ -42,18 +41,16 @@ public class BlockPlaceListener implements Listener {
 
     private HashSet<Location> placed = new HashSet<Location>();
     private FoundDiamonds fd;
-    private MySQL mysql;
 
 
-    public BlockPlaceListener(FoundDiamonds fd, MySQL mysql) {
+    public BlockPlaceListener(FoundDiamonds fd) {
         this.fd = fd;
-        this.mysql = mysql;
     }
 
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        if (WorldHandler.isEnabledWorld(event.getPlayer())) {
+        if (fd.getWorldHandler().isEnabledWorld(event.getPlayer())) {
             if (isMonitoredBlock(event)) {
                 addBlock(event);
             }
@@ -62,7 +59,7 @@ public class BlockPlaceListener implements Listener {
 
     public void addBlock(BlockPlaceEvent event) {
         if (fd.getConfig().getBoolean(Config.mysqlEnabled)) {
-            mysql.updatePlacedBlockinSQL(event.getBlock().getLocation());
+            fd.getMySQL().updatePlacedBlockinSQL(event.getBlock().getLocation());
         } else {
             placed.add(event.getBlock().getLocation());
         }

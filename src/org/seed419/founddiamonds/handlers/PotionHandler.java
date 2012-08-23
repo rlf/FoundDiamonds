@@ -6,7 +6,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.file.Config;
-import org.seed419.founddiamonds.listeners.PlayerDamageListener;
 import org.seed419.founddiamonds.util.Prefix;
 
 /**
@@ -37,12 +36,10 @@ public class PotionHandler {
 
 
     private FoundDiamonds fd;
-    private PlayerDamageListener pdl;
+    //TODO Move potion hashmap into this class?
 
-
-    public PotionHandler(FoundDiamonds fd, PlayerDamageListener pdl) {
+    public PotionHandler(FoundDiamonds fd) {
         this.fd = fd;
-        this.pdl = pdl;
     }
 
     public void handleRandomPotions(Player player, int randomNumber) {
@@ -80,10 +77,10 @@ public class PotionHandler {
     private void givePotions(Player player, PotionEffect potion, String potionMsg) {
         if (fd.getConfig().getBoolean(Config.awardAllPotions)) {
             for (Player p : fd.getServer().getOnlinePlayers()) {
-                if (!p.hasPotionEffect(potion.getType()) && WorldHandler.isEnabledWorld(p)) {
+                if (!p.hasPotionEffect(potion.getType()) && fd.getWorldHandler().isEnabledWorld(p)) {
                     p.addPotionEffect(potion);
                     if (potion.getType() == PotionEffectType.JUMP) {
-                        pdl.addJumpPotionPlayer(p);
+                        fd.getPlayerDamageListener().addJumpPotionPlayer(p);
                     }
                     p.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " " + potionMsg);
                 }
@@ -92,7 +89,7 @@ public class PotionHandler {
         } else {
             player.addPotionEffect(potion);
             if (potion.getType() == PotionEffectType.JUMP) {
-                pdl.addJumpPotionPlayer(player);
+                fd.getPlayerDamageListener().addJumpPotionPlayer(player);
             }
             player.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " " + potionMsg);
         }

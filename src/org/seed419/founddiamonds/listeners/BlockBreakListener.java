@@ -13,10 +13,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.seed419.founddiamonds.EventInformation;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.Node;
-import org.seed419.founddiamonds.Permissions;
 import org.seed419.founddiamonds.file.Config;
-import org.seed419.founddiamonds.handlers.*;
-import org.seed419.founddiamonds.sql.MySQL;
+import org.seed419.founddiamonds.handlers.ListHandler;
 import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.util.PluginUtils;
 import org.seed419.founddiamonds.util.Prefix;
@@ -25,33 +23,19 @@ import java.text.DecimalFormat;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class BlockBreakListener implements Listener  {
 
 
     private FoundDiamonds fd;
-    private MySQL mysql;
-    private TrapHandler trap;
-    private LoggingHandler logging;
-    private BlockPlaceListener bpl;
-    private PotionHandler potions;
-    private ItemHandler items;
-    private static final Logger log = Logger.getLogger("FoundDiamonds");
     private HashSet<Location> cantAnnounce = new HashSet<Location>();
     private List<Player> recievedAdminMessage = new LinkedList<Player>();
     private boolean consoleReceived;
     private boolean debug;
 
 
-    public BlockBreakListener(FoundDiamonds instance, MySQL mysql, TrapHandler trap, LoggingHandler logging, BlockPlaceListener bpl, PotionHandler potions, ItemHandler items) {
-        this.mysql = mysql;
-        this.fd = instance;
-        this.trap = trap;
-        this.logging = logging;
-        this.bpl = bpl;
-        this.potions = potions;
-        this.items = items;
+    public BlockBreakListener(FoundDiamonds fd) {
+        this.fd = fd;
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -59,29 +43,29 @@ public class BlockBreakListener implements Listener  {
 
         debug = fd.getConfig().getBoolean(Config.debug);
 
-        if (!WorldHandler.isEnabledWorld(event.getPlayer())) {
-            if (debug) {log.info(Prefix.getDebugPrefix() + " Cancelling: User is not in a FD enabled world.");}
+        if (!fd.getWorldHandler().isEnabledWorld(event.getPlayer())) {
+            if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + " Cancelling: User is not in a FD enabled world.");}
             return;
         }
 
         if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) { return; }
 
-        if (trap.isTrapBlock(event.getBlock().getLocation())) {
-            trap.handleTrapBlockBreak(event);
+        if (fd.getTrapHandler().isTrapBlock(event.getBlock().getLocation())) {
+            fd.getTrapHandler().handleTrapBlockBreak(event);
             return;
         }
 
         if (!isValidGameMode(event.getPlayer())) {
-            if (debug) { log.info(Prefix.getDebugPrefix() + " Cancelling: User is in creative mode."); }
+            if (debug) { fd.getLog().info(Prefix.getDebugPrefix() + " Cancelling: User is in creative mode."); }
             return;
         }
 
         Material mat = event.getBlock().getType();
 
-        if (Permissions.hasPerms(event.getPlayer(), "fd.broadcast")) {
+        if (fd.getPermissions().hasPerm(event.getPlayer(), "fd.broadcast")) {
             if (!isAnnounceable(event.getBlock().getLocation())) {
                 removeAnnouncedOrPlacedBlock(event.getBlock().getLocation());
-                if (debug) {log.info(Prefix.getDebugPrefix() + " Cancelling: Block already announced or placed.  Removing block from memory.");}
+                if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + " Cancelling: Block already announced or placed.  Removing block from memory.");}
                 return;
             }
             Node broadcastNode = Node.getNodeByMaterial(ListHandler.getBroadcastedBlocks(), mat);
@@ -102,7 +86,7 @@ public class BlockBreakListener implements Listener  {
         // Worry about logging here.  Right now this only logs diamond ore
         if (mat == Material.DIAMOND_ORE) {
             if (fd.getConfig().getBoolean(Config.logDiamondBreaks)) {
-                logging.handleLogging(event.getPlayer(), event.getBlock(), false, false, false);
+                fd.getLoggingHandler().handleLogging(event.getPlayer(), event.getBlock(), false, false, false);
             }
         }
 
@@ -115,9 +99,9 @@ public class BlockBreakListener implements Listener  {
 
     public void removeAnnouncedOrPlacedBlock(Location loc) {
         if (fd.getConfig().getBoolean(Config.mysqlEnabled)) {
-            mysql.removePlacedBlock(loc);
-        } else if (bpl.getFlatFilePlacedBlocks().contains(loc)) {
-            bpl.getFlatFilePlacedBlocks().remove(loc);
+            fd.getMySQL().removePlacedBlock(loc);
+        } else if (fd.getBlockPlaceListener().getFlatFilePlacedBlocks().contains(loc)) {
+            fd.getBlockPlaceListener().getFlatFilePlacedBlocks().remove(loc);
         }
         if (cantAnnounce.contains(loc)) {
             cantAnnounce.remove(loc);
@@ -136,12 +120,12 @@ public class BlockBreakListener implements Listener  {
         fd.getServer().getConsoleSender().sendMessage(adminMessage);
         consoleReceived = true;
         for (Player y : fd.getServer().getOnlinePlayers()) {
-            if (Permissions.hasPerms(y, "fd.admin") && y != adminEvent.getPlayer()) {
+            if (fd.getPermissions().hasPerm(y, "fd.admin") && y != adminEvent.getPlayer()) {
                 y.sendMessage(adminMessage);
                 recievedAdminMessage.add(y);
-                if (debug) {log.info(Prefix.getDebugPrefix() + "Sent admin message to " + y.getName());}
+                if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + "Sent admin message to " + y.getName());}
             } else {
-                if (debug) {log.info(Prefix.getDebugPrefix() + y.getName() + " doesn't have the permission fd.admin");}
+                if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + y.getName() + " doesn't have the permission fd.admin");}
             }
         }
     }
@@ -153,15 +137,15 @@ public class BlockBreakListener implements Listener  {
                 + ChatColor.WHITE +  lightLevel;
         fd.getServer().getConsoleSender().sendMessage(lightAdminMessage);
         for (Player y : fd.getServer().getOnlinePlayers()) {
-            if (Permissions.hasPerms(y, "fd.admin")) {
+            if (fd.getPermissions().hasPerm(y, "fd.admin")) {
                 if (y != ei.getPlayer()) {
                     y.sendMessage(lightAdminMessage);
-                    if (debug) {log.info(Prefix.getDebugPrefix() + "Sent admin message to " + y.getName());}
+                    if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + "Sent admin message to " + y.getName());}
                 } else {
-                    if (debug) {log.info(Prefix.getDebugPrefix() +y.getName() + " was not sent an admin message because it was them who was denied mining.");}
+                    if (debug) {fd.getLog().info(Prefix.getDebugPrefix() +y.getName() + " was not sent an admin message because it was them who was denied mining.");}
                 }
             } else {
-                if (debug) {log.info(Prefix.getDebugPrefix() + y.getName() + " doesn't have the permission fd.admin");}
+                if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + y.getName() + " doesn't have the permission fd.admin");}
             }
         }
     }
@@ -175,7 +159,7 @@ public class BlockBreakListener implements Listener  {
                 if (randomInt <= fd.getConfig().getInt(Config.chanceToGetPotion)) {
                     int randomNumber = (int)(Math.random()*225);
                     if (randomNumber >= 0 && randomNumber <= 225) {
-                        potions.handleRandomPotions(ei.getPlayer(), randomNumber);
+                        fd.getPotionHandler().handleRandomPotions(ei.getPlayer(), randomNumber);
                     }
                 }
             }
@@ -187,7 +171,7 @@ public class BlockBreakListener implements Listener  {
                 if (randomInt <= fd.getConfig().getInt(Config.chanceToGetItem)) {
                     int randomNumber = (int)(Math.random()*150);
                     if (randomNumber >= 0 && randomNumber <= 150) {
-                        items.handleRandomItems(ei.getPlayer(), randomNumber);
+                        fd.getItemHandler().handleRandomItems(ei.getPlayer(), randomNumber);
                     }
                 }
             }
@@ -208,20 +192,20 @@ public class BlockBreakListener implements Listener  {
         }
 
         for (Player x : fd.getServer().getOnlinePlayers()) {
-            if (Permissions.hasPerms(x,"fd.broadcast") && WorldHandler.isEnabledWorld(x)) {
+            if (fd.getPermissions().hasPerm(x, "fd.broadcast") && fd.getWorldHandler().isEnabledWorld(x)) {
                 if (!recievedAdminMessage.contains(x)) {
                     x.sendMessage(formatted);
-                    if (debug) {log.info(Prefix.getDebugPrefix() + "Sent broadcast to " + x.getName());}
+                    if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + "Sent broadcast to " + x.getName());}
                 } else if (debug) {
-                    log.info(Prefix.getDebugPrefix() + x.getName() + "recieved an admin message already, so not broadcasting to " + x.getName());
+                    fd.getLog().info(Prefix.getDebugPrefix() + x.getName() + "recieved an admin message already, so not broadcasting to " + x.getName());
                 }
             } else {
                 if (debug) {
                     if (!x.hasPermission("fd.broadcast")) {
-                        log.info(Prefix.getDebugPrefix() + x.getName() + " does not have permission 'fd.broadcast'.  Not broadcasting to " + x.getName());
+                        fd.getLog().info(Prefix.getDebugPrefix() + x.getName() + " does not have permission 'fd.broadcast'.  Not broadcasting to " + x.getName());
                     }
-                    if (!WorldHandler.isEnabledWorld(x)) {
-                        log.info(Prefix.getDebugPrefix() + x.getName() + " is not in an enabled world, so not broadcasting to  " + x.getName());
+                    if (!fd.getWorldHandler().isEnabledWorld(x)) {
+                        fd.getLog().info(Prefix.getDebugPrefix() + x.getName() + " is not in an enabled world, so not broadcasting to  " + x.getName());
                     }
                 }
             }
@@ -229,7 +213,7 @@ public class BlockBreakListener implements Listener  {
 
         //write to log if cleanlogging.
         if (fd.getConfig().getBoolean(Config.cleanLog)) {
-            logging.writeToCleanLog(ei, playerName);
+            fd.getLoggingHandler().writeToCleanLog(ei, playerName);
         }
     }
 
@@ -252,9 +236,9 @@ public class BlockBreakListener implements Listener  {
 
     public boolean isAnnounceable(Location loc) {
         if (fd.getConfig().getBoolean(Config.mysqlEnabled)) {
-            return !mysql.blockWasPlaced(loc) && !cantAnnounce.contains(loc);
+            return !fd.getMySQL().blockWasPlaced(loc) && !cantAnnounce.contains(loc);
         } else {
-            return !cantAnnounce.contains(loc) && !bpl.getFlatFilePlacedBlocks().contains(loc);
+            return !cantAnnounce.contains(loc) && !fd.getBlockPlaceListener().getFlatFilePlacedBlocks().contains(loc);
         }
     }
 
@@ -281,7 +265,7 @@ public class BlockBreakListener implements Listener  {
             }
             if (lightLevel > levelToDisableAt) {
                 if (debug) {
-                    log.info(Prefix.getDebugPrefix() + " " + ei.getPlayer().getName() + " just mined "
+                    fd.getLog().info(Prefix.getDebugPrefix() + " " + ei.getPlayer().getName() + " just mined "
                             + Format.getFormattedName(ei.getMaterial(), 1) + " at light level " + highestLevel
                             + ".  We are disabling ore mining at light level " + formattedLightLevel + " or "
                             + percentage + "%");
@@ -291,12 +275,12 @@ public class BlockBreakListener implements Listener  {
         }
         sendLightAdminMessage(ei, highestLevel);
         if ((fd.getConfig().getBoolean(Config.logLightLevelViolations))) {
-            logging.logLightLevelViolation(ei, highestLevel);
+            fd.getLoggingHandler().logLightLevelViolation(ei, highestLevel);
         }
         if (debug) {
-            log.info(Prefix.getDebugPrefix() + ei.getPlayer().getName() + " was denied mining "
+            fd.getLog().info(Prefix.getDebugPrefix() + ei.getPlayer().getName() + " was denied mining "
                     + Format.getFormattedName(ei.getMaterial(), 1) + " at light level " + highestLevel
-                    + ".  We are disabling ore mining at light level "  + formattedLightLevel + " or " + percentage
+                    + ".  We are disabling ore mining at light level " + formattedLightLevel + " or " + percentage
                     + "%");
         }
         return true;
