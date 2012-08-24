@@ -68,6 +68,7 @@ public class FoundDiamonds extends JavaPlugin {
      * Pistons can no longer fool trap blocks.
      * Improved a few redundant and sloppy areas of code.  Should help with memory/performance.
      * Fixed permissions bug with world management
+     * Prevented setting traps with really nonsense stuff like lava, sand, torches, etc
      */
 
 

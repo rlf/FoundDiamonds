@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.seed419.founddiamonds.handlers;
 
 import org.bukkit.ChatColor;
@@ -12,10 +8,6 @@ import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.util.Prefix;
 
-/**
- *
- * @author seed419
- */
 public class MenuHandler {
 
 
@@ -32,38 +24,37 @@ public class MenuHandler {
     public void printMainMenu(CommandSender sender) {
         if (fd.getPermissions().hasAnyMenuPerm(sender)) {
             sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [FoundDiamonds Main Menu]");
-            sender.sendMessage("/fd " + ChatColor.RED + "{optional}");
+            sender.sendMessage("/fd " + ChatColor.RED + "[argument] {optional}");
+            if (fd.getPermissions().hasAdminManagementPerm(sender)) {
+                sender.sendMessage(ChatColor.RED + "    admin" + ChatColor.WHITE + " - Manage admin message blocks");
+            }
+            if (fd.getPermissions().hasBroadcastManagementPerm(sender)) {
+                sender.sendMessage(ChatColor.RED + "    bc" + ChatColor.WHITE + " - Manage broadcasted blocks");
+            }
+            if (fd.getPermissions().hasConfigPerm(sender)) {
+                sender.sendMessage(ChatColor.RED + "    config" + ChatColor.WHITE + " - View the configuration file");
+            }
+            if (fd.getPermissions().hasLightManagementPerm(sender)) {
+                sender.sendMessage(ChatColor.RED + "    light" + ChatColor.WHITE + " - Manage light-monitored blocks");
+            }
+            if (fd.getPermissions().hasReloadPerm(sender)) {
+                sender.sendMessage(ChatColor.RED + "    reload" + ChatColor.WHITE + " - Reload the configuration file");
+            }
+            if (fd.getPermissions().hasTogglePerm(sender)) {
+                sender.sendMessage(ChatColor.RED + "    set" + ChatColor.WHITE + " - Modify values in the config");
+                sender.sendMessage(ChatColor.RED + "    toggle" + ChatColor.WHITE + " - Toggle options in the configuration");
+            }
+            if (fd.getPermissions().hasTrapPerm(sender)) {
+                sender.sendMessage(ChatColor.RED + "    trap {item} {depth}" + ChatColor.WHITE + " - Set a trap block");
+            }
+            if (fd.getPermissions().hasWorldManagementPerm(sender)) {
+                sender.sendMessage(ChatColor.RED + "    world" + ChatColor.WHITE + " - Manage enabled worlds");
+            }
+            if (fd.getPermissions().hasAnyMenuPerm(sender)) {
+                sender.sendMessage(ChatColor.RED + "    version" + ChatColor.WHITE + " - View version information");
+            }
         } else {
             fd.getPermissions().sendPermissionsMessage(sender);
-            return;
-        }
-        if (fd.getPermissions().hasAdminManagementPerm(sender)) {
-            sender.sendMessage(ChatColor.RED + "    admin" + ChatColor.WHITE + " - Manage admin message blocks");
-        }
-        if (fd.getPermissions().hasBroadcastManagementPerm(sender)) {
-            sender.sendMessage(ChatColor.RED + "    bc" + ChatColor.WHITE + " - Manage broadcasted blocks");
-        }
-        if (fd.getPermissions().hasConfigPerm(sender)) {
-            sender.sendMessage(ChatColor.RED + "    config" + ChatColor.WHITE + " - View the configuration file");
-        }
-        if (fd.getPermissions().hasLightManagementPerm(sender)) {
-            sender.sendMessage(ChatColor.RED + "    light" + ChatColor.WHITE + " - Manage light-monitored blocks");
-        }
-        if (fd.getPermissions().hasReloadPerm(sender)) {
-            sender.sendMessage(ChatColor.RED + "    reload" + ChatColor.WHITE + " - Reload the configuration file");
-        }
-        if (fd.getPermissions().hasTogglePerm(sender)) {
-            sender.sendMessage(ChatColor.RED + "    set" + ChatColor.WHITE + " - Modify values in the config");
-            sender.sendMessage(ChatColor.RED + "    toggle" + ChatColor.WHITE + " - Toggle options in the configuration");
-        }
-        if (fd.getPermissions().hasTrapPerm(sender)) {
-            sender.sendMessage(ChatColor.RED + "    trap {item} {depth}" + ChatColor.WHITE + " - Set a trap block");
-        }
-        if (fd.getPermissions().hasWorldManagementPerm(sender)) {
-            sender.sendMessage(ChatColor.RED + "    world" + ChatColor.WHITE + " - Manage enabled worlds");
-        }
-        if (fd.getPermissions().hasAnyMenuPerm(sender)) {
-            sender.sendMessage(ChatColor.RED + "    version" + ChatColor.WHITE + " - View version information");
         }
     }
 

@@ -14,10 +14,6 @@ import org.seed419.founddiamonds.util.Prefix;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- *
- * @author seed419
- */
 public class TrapHandler {
 
 
@@ -25,11 +21,9 @@ public class TrapHandler {
     private final Set<Location> trapBlocks = new HashSet<Location>();
 
 
-
     public TrapHandler(FoundDiamonds fd) {
         this.fd = fd;
     }
-
 
     public void handleTrap(Player player, String[] args) {
         Location playerLoc = player.getLocation();
@@ -46,7 +40,7 @@ public class TrapHandler {
             	try {
             		depth = Integer.parseInt(args[1]);
             	}catch(NumberFormatException ex) {
-            		player.sendMessage(ChatColor.RED + "Please specifiy a valid number as depth");
+            		player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + "Invalid arguments");
             		return;
             	}
             	item = "Diamond ore";
@@ -59,7 +53,7 @@ public class TrapHandler {
             	try {
             		depth = Integer.parseInt(args[2]);
             	}catch(NumberFormatException ex) {
-               		player.sendMessage(ChatColor.RED + "Please specifiy a valid number as depth");
+               		player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + "Invalid arguments");
             		return;
             	}
             	item = args[1];
@@ -71,20 +65,24 @@ public class TrapHandler {
             try {
         		depth = Integer.parseInt(args[3]);
         	}catch(NumberFormatException ex) {
-           		player.sendMessage(ChatColor.RED + "Please specifiy a valid number as depth");
+           		player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + "Invalid arguments");
         		return;
         	}
-        }
-        	else {
+        } else {
             player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Invalid number of arguments");
             player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold ore");
             return;
         }
         if (trap != null && trap.isBlock()) {
-            getTrapLocations(player, playerLoc, trap, depth);
+            if (isSensibleTrapBlock(trap)) {
+                getTrapLocations(player, playerLoc, trap, depth);
+            } else {
+                player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + "Unable to set a trap with " + item);
+                player.sendMessage(ChatColor.RED + "Surely you can use a more sensible block for a trap.");
+            }
         } else {
             player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Unable to set a trap with '" + item + "'");
-            player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold ore");
+            player.sendMessage(ChatColor.RED + "Is it a valid trap block? Try /fd trap gold ore");
         }
     }
 
@@ -119,6 +117,26 @@ public class TrapHandler {
             Block block3 = world.getBlockAt(x , y - 2, z);
             Block block4 = world.getBlockAt(x -1, y - 1, z);
             handleTrapBlocks(player, trap, block1, block2, block3, block4);
+        }
+    }
+
+    private boolean isSensibleTrapBlock(Material trap) {
+        switch (trap) {
+            case TORCH:
+            case GRAVEL:
+            case SAND:
+            case DIRT:
+            case GRASS:
+            case VINE:
+            case LEAVES:
+            case DEAD_BUSH:
+            case REDSTONE_TORCH_ON:
+            case REDSTONE_TORCH_OFF:
+            case WATER:
+            case LAVA:
+                return false;
+            default:
+                return true;
         }
     }
 
