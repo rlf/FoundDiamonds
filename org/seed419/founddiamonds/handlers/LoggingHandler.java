@@ -16,7 +16,6 @@ import java.io.PrintWriter;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
 /**
  * Attribute Only (Public) License
  * Version 0.a3, July 11, 2011
