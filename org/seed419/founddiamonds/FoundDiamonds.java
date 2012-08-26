@@ -59,31 +59,41 @@ public class FoundDiamonds extends JavaPlugin {
     private final ItemHandler itemHandler = new ItemHandler(this);
     private final MenuHandler menuHandler = new MenuHandler(this);
 
+   /*
+   TODO:
+    Remove the command logging in PluginUtils that I just fucking implemented.
+    Fix CommandHandler for new Permissions
+    MenuHandler set area?
+    Trap blocks in MySQL
+    Is cleanlogging in SQL a popular request?
+    Move light and admin messages into separate classes for fucks sake.
+    Smarter trap blocks - remember material NOT just the location!  Prevents pistons and physics from tricking them.
+    Implement Item IDs as an acceptable form of entering blocks
+    Finish set menu, integrate with main menu
+    Look into pulling stats from MC client?  Or MySQL?
+    fd top ?
+    */
 
-    /*
-     * Changelog:
-     * Tons of refactoring, much cleaner code.  Pull requests and maintenance should be much easier in the future
-     * Added an option for awarding all players items/potions, or just the player who found the diamonds.
-     * Removed config option for admin alerts on trap breaks.  Why would admins not want to know about this?
-     * Pistons can no longer fool trap blocks.
-     * Improved a few redundant and sloppy areas of code.  Should help with memory/performance.
-     * Fixed permissions bug with world management
-     * Prevented setting traps with really nonsense stuff like lava, sand, torches, etc
-     */
+   /*
+   Changelog:
+    Tons of refactoring, much cleaner code.  Pull requests and maintenance should be much easier in the future
+    Added an option for awarding all players items/potions, or just the player who found the diamonds.
+    Fixed adding and removing worlds with spaces in their names.
+    Removed config option for admin alerts on trap breaks.  Why would admins not want to know about this?
+    Pistons can no longer fool trap blocks.
+    Improved a few redundant and sloppy areas of code.  Generic memory/performance enhancements.
+    Fixed permissions bug with world management.
+    Prevented setting traps with really nonsense stuff like lava, sand, torches, etc
+    Removed @prefix@ from the default config.  It seems a bit excessive...(although it will still work if you want it)
+    Organized Main class with 3 stages to assist in organized development.
+    */
 
 
-    /*
-     * TODO:
-     * //Fix adding worlds with spaces
-     * //Trap blocks in MySQL
-     * //Is cleanlogging in SQL a popular request?
-     * //Move light and admin messages into separate classes for fucks sake.
-    * Smarter trap blocks - remember material NOT just the location!  Prevents pistons and physics from tricking them.
-    * Implement Item IDs as an acceptable form of entering blocks
-    * Finish set menu, integrate with main menu
-    * Look into pulling stats from MC client?  Or MySQL?
-    * /fd top ?
-     * */
+   /*
+   Test:
+    Potions for single person
+    Remove the command logging in PluginUtils that I just fucking implemented.
+    */
 
     @Override
     public void onEnable() {

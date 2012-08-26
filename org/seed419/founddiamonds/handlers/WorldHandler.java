@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.file.Config;
+import org.seed419.founddiamonds.util.PluginUtils;
 import org.seed419.founddiamonds.util.Prefix;
 
 import java.util.Collection;
@@ -26,36 +27,25 @@ public class WorldHandler {
     public void handleWorldMenu(CommandSender sender, String[] args) {
         if (args.length == 1) {
             fd.getMenuHandler().showWorldMenu(sender);
-        } else if (args.length >= 2) {
+        } else if (args.length > 1) {
             if (args[1].equalsIgnoreCase("list")) {
-                if (args.length == 2) {
-                    printEnabledWorlds(sender);
-                } else {
-                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Usage: /fd world list");
-                }
+                printEnabledWorlds(sender);
             } else if (args[1].equalsIgnoreCase("add")) {
-                if (args.length == 3) {
-                    String worldName = args[2];
-                    validateWorld(sender, worldName);
-                } else if (args.length == 4) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(args[2]);
-                    sb.append(" ");
-                    sb.append(args[3]);
-                    String worldName = sb.toString();
+                if (args.length > 2) {
+                    String worldName = PluginUtils.getArgs2Plus(args);
                     validateWorld(sender, worldName);
                 } else {
                     sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Usage: /fd world add <worldname>");
                 }
             } else if (args[1].equalsIgnoreCase("remove")) {
-                if (fd.getConfig().getStringList(Config.enabledWorlds).contains(args[2])) {
+                if (fd.getConfig().getStringList(Config.enabledWorlds).contains(PluginUtils.getArgs2Plus(args))) {
                     List<?> worldList = fd.getConfig().getList(Config.enabledWorlds);
-                    worldList.remove(args[2]);
+                    worldList.remove(PluginUtils.getArgs2Plus(args));
                     fd.getConfig().set(Config.enabledWorlds, worldList);
-                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " World '" + args[2] +"' removed.");
+                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " World '" + PluginUtils.getArgs2Plus(args) +"' removed.");
                     fd.saveConfig();
                 } else {
-                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " World '" + args[2] +"' isn't an enabled world.");
+                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " World '" + PluginUtils.getArgs2Plus(args) +"' isn't an enabled world.");
                 }
             } else {
                 sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized command.  See /fd world");

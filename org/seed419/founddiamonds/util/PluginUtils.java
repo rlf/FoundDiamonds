@@ -44,6 +44,15 @@ public class PluginUtils {
         plugin.getLogger().info("[PLAYER_COMMAND] " + player.getName() + ": /" + cmd);
     }
 
+    public static String getArgs2Plus(String[] args) {
+        StringBuilder sb = new StringBuilder();
+        args[0] = ""; args[1] = "";
+        for (String x : args) {
+            sb.append(x).append(" ");
+        }
+        return sb.toString().trim();
+    }
+
     public static boolean isRedstone(Block m) {
         return (m.getType() == Material.REDSTONE_ORE || m.getType() == Material.GLOWING_REDSTONE_ORE);
     }

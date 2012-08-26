@@ -35,7 +35,7 @@ Found Diamonds Configuration:
   Broadcasts:
     Broadcasted Blocks:
     Options:
-      Message: "@Prefix@ @Player@ found @Number@ @BlockName@"
+      Message: "@Player@ found @Number@ @BlockName@"
       Use player nicknames: false
       Use classic ore colors for ores: true
   Logging:

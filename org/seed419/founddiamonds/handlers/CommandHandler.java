@@ -12,7 +12,6 @@ import org.bukkit.entity.Player;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.file.FileHandler;
-import org.seed419.founddiamonds.util.PluginUtils;
 import org.seed419.founddiamonds.util.Prefix;
 
 import java.io.IOException;
@@ -42,7 +41,6 @@ public class CommandHandler implements CommandExecutor {
         Player player = null;
         if (sender instanceof Player) {
             player = (Player) sender;
-            PluginUtils.logCommandToConsole(fd, player, commandLabel, args);
         }
         if (((commandLabel.equalsIgnoreCase("fd")) || commandLabel.equalsIgnoreCase("founddiamonds"))) {
             if (args.length == 0) {

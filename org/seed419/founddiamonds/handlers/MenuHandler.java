@@ -24,7 +24,10 @@ public class MenuHandler {
     public void printMainMenu(CommandSender sender) {
         if (fd.getPermissions().hasAnyMenuPerm(sender)) {
             sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [FoundDiamonds Main Menu]");
-            sender.sendMessage("/fd " + ChatColor.RED + "[argument] {optional}");
+            System.out.println("Sent first message");
+            sender.sendMessage("I'm now sending the second message right after this...");
+            sender.sendMessage("fo  /fd " + ChatColor.RED + "[argument] {optional}");
+            System.out.println("Send second message");
             if (fd.getPermissions().hasAdminManagementPerm(sender)) {
                 sender.sendMessage(ChatColor.RED + "    admin" + ChatColor.WHITE + " - Manage admin message blocks");
             }
