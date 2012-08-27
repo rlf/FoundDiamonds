@@ -8,7 +8,7 @@ Found Diamonds Configuration:
   Traps:
     Kick players on trap break: true
     Ban players on trap break: false
-    Kick message: You broke a FoundDiamonds trap block.
+    Kick message: You triggered trap block.
   Awards:
     Items:
       Random items for finding diamonds: false
@@ -36,7 +36,7 @@ Found Diamonds Configuration:
     Broadcasted Blocks:
     Options:
       Message: "@Player@ found @Number@ @BlockName@"
-      Use player nicknames: false
+      Use player nicknames: true
       Use classic ore colors for ores: true
   Logging:
     Trap breaks: true

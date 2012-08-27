@@ -40,7 +40,7 @@ public class Permissions {
     }
 
     public boolean hasPerm(CommandSender sender, String permission) {
-        return (sender.hasPermission(permission) || fd.getConfig().getBoolean(Config.opsAsFDAdmin) && sender.isOp());
+        return (sender.hasPermission(permission) || (fd.getConfig().getBoolean(Config.opsAsFDAdmin) && sender.isOp()));
     }
 
     public boolean hasAnyMenuPerm(CommandSender sender) {
@@ -51,6 +51,13 @@ public class Permissions {
                 || hasPerm(sender, "fd.manage.light.list") || hasPerm(sender, "fd.manage.light.remove") || hasPerm(sender, "fd.trap"));
     }
 
+    public boolean hasBroadcastPerm(CommandSender sender) {
+        return hasPerm(sender, "fd.broadcast");
+    }
+
+    public boolean hasMonitorPerm(CommandSender sender) {
+        return hasPerm(sender, "fd.monitor");
+    }
     public boolean hasAdminManagementPerm(CommandSender sender) {
         return hasPerm(sender, "fd.manage.admin.add") || hasPerm(sender, "fd.manage.admin.remove")
                 || hasPerm(sender, "fd.manage.admin.list");

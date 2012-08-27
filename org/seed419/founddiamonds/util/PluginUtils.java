@@ -44,6 +44,14 @@ public class PluginUtils {
         plugin.getLogger().info("[PLAYER_COMMAND] " + player.getName() + ": /" + cmd);
     }
 
+    public static String getArgs1Plus(String[] args) {
+        StringBuilder sb = new StringBuilder();
+        args[0] = "";;
+        for (String x : args) {
+            sb.append(x).append(" ");
+        }
+        return sb.toString().trim();
+    }
     public static String getArgs2Plus(String[] args) {
         StringBuilder sb = new StringBuilder();
         args[0] = ""; args[1] = "";
@@ -70,5 +78,9 @@ public class PluginUtils {
             }
         }
         return new String(charArray);
+    }
+
+    public static void debug(String message) {
+
     }
 }

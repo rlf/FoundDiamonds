@@ -18,14 +18,14 @@ import java.util.List;
 public class ListHandler {
 
 
-    private static FoundDiamonds fd;
-    private static final List<Node> broadcastedBlocks = new ArrayList<Node>();
-    private static final List<Node> adminMessageBlocks = new ArrayList<Node>();
-    private static final List<Node> lightLevelBlocks = new ArrayList<Node>();
+    private FoundDiamonds fd;
+    private List<Node> broadcastedBlocks = new ArrayList<Node>();
+    private List<Node> adminMessageBlocks = new ArrayList<Node>();
+    private List<Node> lightLevelBlocks = new ArrayList<Node>();
 
 
-    public ListHandler(FoundDiamonds instance) {
-        this.fd = instance;
+    public ListHandler(FoundDiamonds fd) {
+        this.fd = fd;
     }
 
     public void loadAllBlocks() {
@@ -34,18 +34,18 @@ public class ListHandler {
         loadBlocksFromConfig(lightLevelBlocks, Config.lightLevelBlocks);
     }
 
-    public static List<?> getVersatileList(String configLoc) {
-        return fd.getConfig().getList(configLoc);
+    public void createList(List<Node> list, String configLoc) {
+        if (configLoc.equals(Config.broadcastedBlocks)) {
+            loadDefaults();
+        } else {
+            fd.getConfig().set(configLoc, new HashSet<String>());
+        }
+        writeListToConfig(list, configLoc);
     }
 
-    public static void loadBlocksFromConfig(List<Node> list, String configLoc) {
+    public void loadBlocksFromConfig(List<Node> list, String configLoc) {
         if (fd.getConfig().getList(configLoc) == null) {
-            if (configLoc.equals(Config.broadcastedBlocks)) {
-                loadDefaults();
-            } else {
-                fd.getConfig().set(configLoc, new HashSet<String>());
-            }
-            updateListInConfig(list, configLoc);
+            createList(list, configLoc);
         } else {
             List<String> thelist = fd.getConfig().getStringList(configLoc);
             for (String x : thelist) {
@@ -53,14 +53,10 @@ public class ListHandler {
                 Material matchAttempt= null;
                 try {
                     matchAttempt = Material.matchMaterial(bi[0]);
-                } catch (Exception ex) {
-                    fd.getLog().severe(" Unable to match material '" + bi[0] + "'");
-                }
-                if (matchAttempt != null) {
-                    if (matchAttempt.isBlock()) {
+                    if (matchAttempt != null && matchAttempt.isBlock()) {
                         try {
-                            String re = bi[1].replace(" ","_").toUpperCase();
-                            ChatColor color = ChatColor.valueOf(re);
+                            String parsedColor = bi[1].replace(" ","_").toUpperCase();
+                            ChatColor color = ChatColor.valueOf(parsedColor);
                             if (color == null) {
                                 color = BlockColor.getBlockColor(matchAttempt);
                             }
@@ -70,20 +66,19 @@ public class ListHandler {
                         } catch (Exception ex) {
                             fd.getLog().severe(" Unable to match color '" + bi[1] + "'");
                         }
-
                     } else {
-                        fd.getLog().warning(" Unable to add " + x + " because it is not a block!");
+                        fd.getLog().warning(" Unable to add " + bi[0]);
+                        fd.getLog().warning(" Check the FD wiki for valid names.");
                     }
-                } else {
-                    fd.getLog().warning(" Unable to add " + x
-                            + ".  Unrecognized block.  See bukkit material enum for valid block names.");
+                } catch (Exception ex) {
+                    fd.getLog().severe(" Unable to match material '" + bi[0] + "'");
                 }
             }
         }
     }
 
 
-    public static void loadDefaults() {
+    public void loadDefaults() {
         fd.getLog().info("Adding broadcast defaults...");
         broadcastedBlocks.add(new Node(Material.DIAMOND_ORE, ChatColor.AQUA));
         fd.getLog().info("Diamond Ore added");
@@ -102,17 +97,16 @@ public class ListHandler {
         fd.getLog().info("Emerald Ore added");
     }
 
-    public static void updateListInConfig(Collection<Node> list, String configLoc) {
+    public void writeListToConfig(Collection<Node> list, String configLoc) {
         List<String> temp = new ArrayList<String>();
         for (Node x : list) {
             temp.add(x.toString());
-            if (fd.getConfig().getBoolean(Config.debug)) {fd.getLog().info(Prefix.getDebugPrefix() + x.toString());}
         }
         fd.getConfig().set(configLoc, temp);
         fd.saveConfig();
     }
 
-    public static void handleAddToList(CommandSender sender, String[] args, List<Node> list, String configString) {
+    public void handleAddToList(CommandSender sender, String[] args, List<Node> list, String configString) {
         if (args.length == 2) {
             sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Format is: item:data,color");
             sender.sendMessage(ChatColor.RED + " Color is an optional argument.");
@@ -129,19 +123,19 @@ public class ListHandler {
                     sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " Added " + block.getColor()
                             + Format.material(block.getMaterial()));
                 } else {
-                    removeMaterialFromList(block.getMaterial(), list, configString);
+                    removeMaterialFromList(block.getMaterial(), list);
                     list.add(block);
                     sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " Updated " + block.getColor()
                             + Format.material(block.getMaterial()));
                 }
-                updateListInConfig(list, configString);
+                writeListToConfig(list, configString);
             } else {
                 sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unable to add block.  Please check your format.");
             }
         }
     }
 
-    public static void handleRemoveFromList(CommandSender sender, String[] args, List<Node> list, String configString) {
+    public void handleRemoveFromList(CommandSender sender, String[] args, List<Node> list, String configString) {
         if (args.length == 2) {
             sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Simply type the name of the block you want to remove");
             sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " It unfortunely must match bukkit's material enum");
@@ -149,16 +143,16 @@ public class ListHandler {
         } else if (args.length > 2) {
             StringBuilder sb = new StringBuilder();
             for (int i = 2; i < args.length; i++) {
-                sb.append(args[i] + " ");
+                sb.append(args[i]).append(" ");
             }
             Material matToRemove = Material.matchMaterial(sb.toString().trim());
             if (matToRemove == null) {
                 sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized material");
             } else {
                 ChatColor color = getNodeColor(matToRemove,  list);
-                if (removeMaterialFromList(matToRemove, list, configString)) {
+                if (removeMaterialFromList(matToRemove, list)) {
                     sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Removed " + color + Format.material(matToRemove));
-                    updateListInConfig(list, configString);
+                    writeListToConfig(list, configString);
                 } else {
                     sender.sendMessage(Prefix.getChatPrefix() + " "  + ChatColor.WHITE + Format.material(matToRemove) + ChatColor.DARK_RED + " isn't listed.");
                 }
@@ -166,7 +160,7 @@ public class ListHandler {
         }
     }
 
-    public static void handleListingList(CommandSender sender, List<Node> list) {
+    public void handleListingList(CommandSender sender, List<Node> list) {
         for (Node x : list) {
             sender.sendMessage(x.getColor() + Format.capitalize(Format.material(x.getMaterial())));
         }
@@ -181,7 +175,7 @@ public class ListHandler {
         return null;
     }
 
-    public static boolean removeMaterialFromList(Material mat, List<Node> list, String configString) {
+    public static boolean removeMaterialFromList(Material mat, List<Node> list) {
         for (Node x : list) {
             if (x.getMaterial() == mat) {
                 list.remove(x);
@@ -191,15 +185,15 @@ public class ListHandler {
         return false;
     }
 
-    public static List<Node> getBroadcastedBlocks() {
+    public List<Node> getBroadcastedBlocks() {
         return broadcastedBlocks;
     }
 
-    public static List<Node> getAdminMessageBlocks() {
+    public List<Node> getAdminMessageBlocks() {
         return adminMessageBlocks;
     }
 
-    public static  List<Node> getLightLevelBlocks() {
+    public  List<Node> getLightLevelBlocks() {
         return lightLevelBlocks;
     }
 }

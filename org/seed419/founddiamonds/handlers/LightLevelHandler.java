@@ -1,5 +1,20 @@
 package org.seed419.founddiamonds.handlers;
 
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockDamageEvent;
+import org.seed419.founddiamonds.EventInformation;
+import org.seed419.founddiamonds.FoundDiamonds;
+import org.seed419.founddiamonds.Node;
+import org.seed419.founddiamonds.file.Config;
+import org.seed419.founddiamonds.util.Format;
+import org.seed419.founddiamonds.util.Prefix;
+
+import java.text.DecimalFormat;
+
 /**
  * Attribute Only (Public) License
  * Version 0.a3, July 11, 2011
@@ -25,4 +40,80 @@ package org.seed419.founddiamonds.handlers;
  * @license AOL v.a3 <http://aol.nexua.org>
  */
 public class LightLevelHandler {
+
+
+    private FoundDiamonds fd;
+
+
+    public LightLevelHandler(FoundDiamonds fd) {
+        this.fd = fd;
+    }
+
+
+    private boolean isValidLightLevel(EventInformation ei, BlockDamageEvent event) {
+        if (fd.getPermissions().hasPerm(ei.getPlayer(), "fd.monitor")) {
+            if (fd.getBlockBreakListener().blockSeesNoLight(ei) && ei.getPlayer().getWorld().getEnvironment() != World.Environment.NETHER) {
+                event.setCancelled(true);
+                ei.getPlayer().sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Mining in the dark is dangerous, place a torch!");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void sendLightAdminMessage(EventInformation ei, int lightLevel) {
+        String lightAdminMessage = Prefix.getAdminPrefix() + " " + ChatColor.YELLOW + ei.getPlayer().getName() +
+                ChatColor.GRAY +" was denied mining " + ei.getColor() +
+                Format.getFormattedName(ei.getMaterial(), 1) + ChatColor.GRAY + " at" + " light level "
+                + ChatColor.WHITE +  lightLevel;
+        fd.getServer().getConsoleSender().sendMessage(lightAdminMessage);
+        for (Player y : fd.getServer().getOnlinePlayers()) {
+            if (fd.getPermissions().hasPerm(y, "fd.admin")) {
+                if (y != ei.getPlayer()) {
+                    y.sendMessage(lightAdminMessage);
+                    if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + "Sent admin message to " + y.getName());}
+                } else {
+                    if (debug) {fd.getLog().info(Prefix.getDebugPrefix() +y.getName() + " was not sent an admin message because it was them who was denied mining.");}
+                }
+            } else {
+                if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + y.getName() + " doesn't have the permission fd.admin");}
+            }
+        }
+    }
+
+    public boolean blockSeesNoLight(EventInformation ei) {
+        double percentage = Double.parseDouble(fd.getConfig().getString(Config.percentOfLightRequired).replaceAll("%", ""));
+        double levelToDisableAt = percentage / 15.0;
+        DecimalFormat dform = new DecimalFormat("#.##");
+        String formattedLightLevel = dform.format(levelToDisableAt);
+        int lightLevel = 0;
+        int highestLevel = 0;
+        for (BlockFace y : BlockFace.values()) {
+            lightLevel = ei.getBlock().getRelative(y).getLightLevel();
+            if (lightLevel > highestLevel) {
+                highestLevel = lightLevel;
+            }
+            if (lightLevel > levelToDisableAt) {
+                if (debug) {
+                    fd.getLog().info(Prefix.getDebugPrefix() + " " + ei.getPlayer().getName() + " just mined "
+                            + Format.getFormattedName(ei.getMaterial(), 1) + " at light level " + highestLevel
+                            + ".  We are disabling ore mining at light level " + formattedLightLevel + " or "
+                            + percentage + "%");
+                }
+                return false;
+            }
+        }
+        sendLightAdminMessage(ei, highestLevel);
+        if ((fd.getConfig().getBoolean(Config.logLightLevelViolations))) {
+            fd.getLoggingHandler().logLightLevelViolation(ei, highestLevel);
+        }
+        if (debug) {
+            fd.getLog().info(Prefix.getDebugPrefix() + ei.getPlayer().getName() + " was denied mining "
+                    + Format.getFormattedName(ei.getMaterial(), 1) + " at light level " + highestLevel
+                    + ".  We are disabling ore mining at light level " + formattedLightLevel + " or " + percentage
+                    + "%");
+        }
+        return true;
+    }
+
 }

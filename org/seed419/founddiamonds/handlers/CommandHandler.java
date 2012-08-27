@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.seed419.founddiamonds.handlers;
 
 import org.bukkit.ChatColor;
@@ -12,14 +8,11 @@ import org.bukkit.entity.Player;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.file.FileHandler;
+import org.seed419.founddiamonds.util.PluginUtils;
 import org.seed419.founddiamonds.util.Prefix;
 
 import java.io.IOException;
 
-/**
- *
- * @author seed419
- */
 public class CommandHandler implements CommandExecutor {
 
 
@@ -30,12 +23,6 @@ public class CommandHandler implements CommandExecutor {
         this.fd = fd;
     }
 
-    //TODO better Permissions functionality will fix this
-
-    //TODO IE Has any permission, has light permission, has broadcast permission, etc;
-
-
-
  @Override
     public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
         Player player = null;
@@ -44,102 +31,77 @@ public class CommandHandler implements CommandExecutor {
         }
         if (((commandLabel.equalsIgnoreCase("fd")) || commandLabel.equalsIgnoreCase("founddiamonds"))) {
             if (args.length == 0) {
-                fd.getMenuHandler().printMainMenu(sender);
+                if (fd.getPermissions().hasAnyMenuPerm(sender)) {
+                    fd.getMenuHandler().printMainMenu(sender);
+                } else {
+                    fd.getPermissions().sendPermissionsMessage(sender);
+                }
                 return true;
             } else {
                 String arg = args[0];
                 if (arg.equalsIgnoreCase("admin")) {
-                    if (sender instanceof Player) {
-                        if (fd.getPermissions().hasPerm(player, "fd.manage.admin.add") || fd.getPermissions().hasPerm(player, "fd.manage.admin.remove")
-                                || fd.getPermissions().hasPerm(player, "fd.manage.admin.list")) {
-                            fd.getMenuHandler().handleAdminMenu(fd, sender, args);
-                        } else {
-                            fd.getPermissions().sendPermissionsMessage(player);
-                        }
-                    } else {
+                    if (fd.getPermissions().hasAdminManagementPerm(sender)) {
                         fd.getMenuHandler().handleAdminMenu(fd, sender, args);
+                    } else {
+                        fd.getPermissions().sendPermissionsMessage(sender);
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("bc") || arg.equalsIgnoreCase("broadcast")) {
-                    if (sender instanceof Player) {
-                        if (fd.getPermissions().hasPerm(player, "fd.manage.bc.add") || fd.getPermissions().hasPerm(player, "fd.manage.bc.remove")
-                                || fd.getPermissions().hasPerm(player, "fd.manage.bc.list")) {
-                            fd.getMenuHandler().handleBcMenu(fd, sender, args);
-                        } else {
-                            fd.getPermissions().sendPermissionsMessage(player);
-                        }
-                    } else {
+                    if (fd.getPermissions().hasBroadcastManagementPerm(sender)) {
                         fd.getMenuHandler().handleBcMenu(fd, sender, args);
+                    } else {
+                        fd.getPermissions().sendPermissionsMessage(sender);
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("config")) {
-                    if (sender instanceof Player) {
-                        if (fd.getPermissions().hasPerm(player, "fd.config")) {
-                            if (args.length == 2) {
-                                if (args[1].equalsIgnoreCase("2")) {
-                                    fd.getMenuHandler().showConfig2(fd, sender);
-                                }
-                            } else {
-                                fd.getMenuHandler().showConfig(fd, sender);
+                    if (fd.getPermissions().hasConfigPerm(sender)) {
+                        if (args.length == 2) {
+                            if (args[1].equalsIgnoreCase("2")) {
+                                fd.getMenuHandler().showConfig2(fd, sender);
                             }
                         } else {
-                            fd.getPermissions().sendPermissionsMessage(player);
-                        }
-                    }
-                } else if (arg.equalsIgnoreCase("debug")) {
-                    if (sender instanceof Player) {
-                        if (fd.getPermissions().hasPerm(player, "fd.toggle")) {
-                            if (args.length == 2) {
-                                if (args[1].equalsIgnoreCase("2")) {
-                                    fd.getMenuHandler().showConfig2(fd, sender);
-                                }
-                            } else {
-                                fd.getMenuHandler().showConfig(fd, sender);
-                            }
-                        } else {
-                            fd.getPermissions().sendPermissionsMessage(player);
-                        }
-                    }
-                } else if (arg.equalsIgnoreCase("light")) {
-                    if (sender instanceof Player) {
-                        if (fd.getPermissions().hasPerm(player, "fd.manage.light.add") || fd.getPermissions().hasPerm(player, "fd.manage.light.remove")
-                                || fd.getPermissions().hasPerm(player, "fd.manage.light.list")) {
-                            fd.getMenuHandler().handleLightMenu(fd, sender, args);
-                        } else {
-                            fd.getPermissions().sendPermissionsMessage(player);
+                            fd.getMenuHandler().showConfig(fd, sender);
                         }
                     } else {
+                        fd.getPermissions().sendPermissionsMessage(sender);
+                    }
+                } else if (arg.equalsIgnoreCase("debug")) {
+                    if (fd.getPermissions().hasTogglePerm(sender)) {
+                        if (args.length == 2) {
+                            if (args[1].equalsIgnoreCase("2")) {
+                                fd.getMenuHandler().showConfig2(fd, sender);
+                            }
+                        } else {
+                            fd.getMenuHandler().showConfig(fd, sender);
+                        }
+                    } else {
+                        fd.getPermissions().sendPermissionsMessage(sender);
+                    }
+                } else if (arg.equalsIgnoreCase("light")) {
+                    if (fd.getPermissions().hasLightManagementPerm(sender)) {
                         fd.getMenuHandler().handleLightMenu(fd, sender, args);
+                    } else {
+                        fd.getPermissions().sendPermissionsMessage(sender);
                     }
                     return true;
                } else if (arg.equalsIgnoreCase("reload")) {
-                    if (sender instanceof Player) {
-                        if (fd.getPermissions().hasPerm(player, "fd.reload")) {
-                            fd.reloadConfig();
-                            fd.saveConfig();
-                            sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " Configuration saved and reloaded.");
-                        } else {
-                            fd.getPermissions().sendPermissionsMessage(player);
-                        }
-                    } else {
+                    if (fd.getPermissions().hasReloadPerm(sender)) {
                         fd.reloadConfig();
                         fd.saveConfig();
                         sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " Configuration saved and reloaded.");
+                    } else {
+                        fd.getPermissions().sendPermissionsMessage(sender);
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("set")) {
-                    if (sender instanceof Player) {
-                        if (fd.getPermissions().hasPerm(player, "fd.toggle")) {
-                            fd.getMenuHandler().handleSetMenu(fd, sender, args);
-                        } else {
-                            fd.getPermissions().sendPermissionsMessage(player);
-                        }
+                    if (fd.getPermissions().hasTogglePerm(sender)) {
+                        fd.getMenuHandler().handleSetMenu(fd, sender, args);
+                    } else {
+                        fd.getPermissions().sendPermissionsMessage(sender);
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("toggle")) {
-                    if (!fd.getPermissions().hasPerm(sender, "fd.toggle")) {
-                        fd.getPermissions().sendPermissionsMessage(sender);
-                    } else {
+                    if (fd.getPermissions().hasTogglePerm(sender)) {
                         if (args.length == 1) {
                             fd.getMenuHandler().showToggle(sender);
                         } else  if (args.length == 2) {
@@ -149,35 +111,40 @@ public class CommandHandler implements CommandExecutor {
                             sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Invalid number of arguments.");
                             sender.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");
                         }
+                    } else {
+                        fd.getPermissions().sendPermissionsMessage(sender);
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("trap")) {
                     if (sender instanceof Player) {
-                        if (fd.getPermissions().hasPerm(player, "fd.trap")) {
+                        if (fd.getPermissions().hasTrapPerm(sender)) {
                             fd.getTrapHandler().handleTrap(player, args);
                         } else {
-                            fd.getPermissions().sendPermissionsMessage(player);
+                            fd.getPermissions().sendPermissionsMessage(sender);
                         }
                     } else {
-                        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Can't set a trap from the console.");
+                        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Can't set traps from the console.");
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("world")) {
-                    if (sender instanceof Player) {
-                        if (fd.getPermissions().hasPerm(player, "fd.world")) {
-                            fd.getWorldHandler().handleWorldMenu(sender, args);
-                        } else {
-                            fd.getPermissions().sendPermissionsMessage(player);
-                        }
+                    if (fd.getPermissions().hasWorldManagementPerm(sender)) {
+                        fd.getWorldHandler().handleWorldMenu(sender, args);
+                    } else {
+                        fd.getPermissions().sendPermissionsMessage(sender);
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("version")) {
-                    fd.getMenuHandler().showVersion(fd, sender);
+                    if (fd.getPermissions().hasAnyMenuPerm(sender)) {
+                        fd.getMenuHandler().showVersion(fd, sender);
+                    } else {
+                        fd.getPermissions().sendPermissionsMessage(sender);
+                    }
                     return true;
                 } else {
-                        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized command '"
-                                + ChatColor.WHITE + args[0] + ChatColor.DARK_RED + "'");
-                    return true;
+                    if (fd.getPermissions().hasAnyMenuPerm(sender)) {
+                        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized argument '"
+                                + ChatColor.WHITE + PluginUtils.getArgs1Plus(args) + ChatColor.DARK_RED + "'");
+                    }
                 }
             }
         }

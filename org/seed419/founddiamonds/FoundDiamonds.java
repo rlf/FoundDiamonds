@@ -46,6 +46,9 @@ public class FoundDiamonds extends JavaPlugin {
     private final BlockBreakListener blockBreakListener = new BlockBreakListener(this);
     private final BlockDamageListener blockDamageListener = new BlockDamageListener(this);
     private final PlayerDamageListener playerDamageListener = new PlayerDamageListener();
+    private final BroadcastHandler broadcastHandler = new BroadcastHandler(this);
+    private final AdminMessageHandler adminMessageHandler = new AdminMessageHandler(this);
+    private final LightLevelHandler lightLevelHandler = new LightLevelHandler(this);
     private final PistonListener pistonListener = new PistonListener(this);
     private final FileUtils fileUtils = new FileUtils(this);
     private final MySQL mysql = new MySQL(this);
@@ -61,8 +64,8 @@ public class FoundDiamonds extends JavaPlugin {
 
    /*
    TODO:
-    Remove the command logging in PluginUtils that I just fucking implemented.
-    Fix CommandHandler for new Permissions
+    Fix nodes for file, maybe store those in sql?
+    Breaking trap blocks crashes the client? O.O
     MenuHandler set area?
     Trap blocks in MySQL
     Is cleanlogging in SQL a popular request?
@@ -84,6 +87,7 @@ public class FoundDiamonds extends JavaPlugin {
     Improved a few redundant and sloppy areas of code.  Generic memory/performance enhancements.
     Fixed permissions bug with world management.
     Prevented setting traps with really nonsense stuff like lava, sand, torches, etc
+    Removed logging commands to console because bukkit apparently does this natively now.
     Removed @prefix@ from the default config.  It seems a bit excessive...(although it will still work if you want it)
     Organized Main class with 3 stages to assist in organized development.
     */
@@ -91,8 +95,7 @@ public class FoundDiamonds extends JavaPlugin {
 
    /*
    Test:
-    Potions for single person
-    Remove the command logging in PluginUtils that I just fucking implemented.
+    Items and potions for single person,
     */
 
     @Override
@@ -187,6 +190,21 @@ public class FoundDiamonds extends JavaPlugin {
         return menuHandler;
     }
 
+    public ListHandler getListHandler() {
+        return listHandler;
+    }
+
+    public BroadcastHandler getBroadcastHandler() {
+        return broadcastHandler;
+    }
+
+    public AdminMessageHandler getAdminMessageHandler() {
+        return adminMessageHandler;
+    }
+
+    public LightLevelHandler getLightLevelHandler() {
+        return lightLevelHandler;
+    }
     public Logger getLog() {
         return log;
     }

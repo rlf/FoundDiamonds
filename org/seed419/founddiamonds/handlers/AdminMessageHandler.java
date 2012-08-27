@@ -1,5 +1,12 @@
 package org.seed419.founddiamonds.handlers;
 
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.seed419.founddiamonds.EventInformation;
+import org.seed419.founddiamonds.FoundDiamonds;
+import org.seed419.founddiamonds.util.Format;
+import org.seed419.founddiamonds.util.Prefix;
+
 /**
  * Attribute Only (Public) License
  * Version 0.a3, July 11, 2011
@@ -26,6 +33,30 @@ package org.seed419.founddiamonds.handlers;
  */
 public class AdminMessageHandler {
 
-    //Unimplemented.  Seriously, who uses these fucking things?
 
+    private FoundDiamonds fd;
+
+
+    public AdminMessageHandler(FoundDiamonds fd) {
+        this.fd = fd;
+    }
+
+
+    public void sendAdminMessage(EventInformation adminEvent) {
+        String adminMessage = Prefix.getAdminPrefix() + " " + ChatColor.YELLOW + adminEvent.getPlayer().getName() +
+                ChatColor.DARK_RED + " just found " + adminEvent.getColor() +
+                (adminEvent.getTotal() == 500 ? "over 500 " :String.valueOf(adminEvent.getTotal())) + " " +
+                Format.getFormattedName(adminEvent.getMaterial(), adminEvent.getTotal());
+        fd.getServer().getConsoleSender().sendMessage(adminMessage);
+        consoleReceived = true;
+        for (Player y : fd.getServer().getOnlinePlayers()) {
+            if (fd.getPermissions().hasPerm(y, "fd.admin") && y != adminEvent.getPlayer()) {
+                y.sendMessage(adminMessage);
+                recievedAdminMessage.add(y);
+                if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + "Sent admin message to " + y.getName());}
+            } else {
+                if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + y.getName() + " doesn't have the permission fd.admin");}
+            }
+        }
+    }
 }

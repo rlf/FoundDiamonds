@@ -15,7 +15,6 @@ public class FileHandler {
     private static File logs;
     private File traps;
     private static File cleanLog;
-    //private File configFile;
     private File placed;
     private boolean printed = false;
 
@@ -24,12 +23,10 @@ public class FileHandler {
         this.fd = f;
     }
 
-    /*For the love of FUCK do not change this*/
     public void initFileVariables() {
         logs = new File(fd.getDataFolder(), "log.txt");
         traps = new File(fd.getDataFolder(), ".traps");
         placed = new File(fd.getDataFolder(), ".placed");
-        //configFile = new File(fd.getDataFolder(), "org/seed419/founddiamonds/resources/config.yml");
         cleanLog = new File(fd.getDataFolder(), "cleanlog.txt");
     }
 
