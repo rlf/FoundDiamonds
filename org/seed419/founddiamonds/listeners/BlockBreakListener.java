@@ -15,16 +15,13 @@ import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Prefix;
 
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 
 public class BlockBreakListener implements Listener  {
 
 
     private FoundDiamonds fd;
     private HashSet<Location> cantAnnounce = new HashSet<Location>();
-    private List<Player> recievedAdminMessage = new LinkedList<Player>();
-    private boolean consoleReceived;
+    private boolean consoleReceived = false;
     private boolean debug;
 
     //TODO refactor, call seperate classes for these events.  Still needs work.
@@ -41,30 +38,17 @@ public class BlockBreakListener implements Listener  {
     Finally, broadcast the block.
      */
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(final BlockBreakEvent event) {
 
         final Player player = event.getPlayer();
 
-        if (!fd.getWorldHandler().isEnabledWorld(player)) {
-            if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + "Cancelling: Player is not in a FoundDiamonds enabled world.");}
-            return;
-        }
+        if (!fd.getWorldHandler().isEnabledWorld(player)) { return; }
 
         debug = fd.getConfig().getBoolean(Config.debug);
         final Location loc = event.getBlock().getLocation();
 
-        if (fd.getTrapHandler().isTrapBlock(loc)) {
-            fd.getTrapHandler().handleTrapBlockBreak(event);
-            return;
-        }
-
-        if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) { return; }
-
-        if (!isValidGameMode(player)) {
-            if (debug) { fd.getLog().info(Prefix.getDebugPrefix() + "Cancelling: Player is in creative mode."); }
-            return;
-        }
+        if (!isValidGameMode(player)) { return; }
 
         if (!isAnnounceable(loc)) {
             removeAnnouncedOrPlacedBlock(loc);
@@ -72,19 +56,22 @@ public class BlockBreakListener implements Listener  {
             return;
         }
 
-        if (fd.getPermissions().hasBroadcastPerm(player)) {
-            Node broadcastNode = Node.getNodeByMaterial(fd.getListHandler().getBroadcastedBlocks(), mat);
-            if (broadcastNode != null) {
-                EventInformation broadcastEvent = new EventInformation(this, event, broadcastNode, true);
-                fd.getBroadcastHandler().handleBroadcast(broadcastEvent);
-            }
-        }
+        final Material mat = event.getBlock().getType();
 
         if (fd.getPermissions().hasMonitorPerm(player)) {
             Node adminNode = Node.getNodeByMaterial(fd.getListHandler().getAdminMessageBlocks(), mat);
             if (adminNode != null) {
-                    EventInformation adminEvent = new EventInformation(this, event, adminNode, true);
-                    fd.getAdminMessageHandler().sendAdminMessage(adminEvent);
+                EventInformation adminEvent = new EventInformation(this, event, adminNode, true);
+                fd.getAdminMessageHandler().sendAdminMessage(adminEvent);
+                consoleReceived = true;
+            }
+        }
+
+        if (fd.getPermissions().hasBroadcastPerm(player)) {
+            Node broadcastNode = Node.getNodeByMaterial(fd.getListHandler().getBroadcastedBlocks(), mat);
+            if (broadcastNode != null) {
+                EventInformation broadcastEvent = new EventInformation(this, event, broadcastNode, true);
+                fd.getBroadcastHandler().handleBroadcast(broadcastEvent, consoleReceived);
             }
         }
 
@@ -96,7 +83,7 @@ public class BlockBreakListener implements Listener  {
         }
 
         //reset message checks after successful event
-        recievedAdminMessage.clear();
+        fd.getAdminMessageHandler().getRecievedAdminMessage().clear();
         consoleReceived = false;
     }
 

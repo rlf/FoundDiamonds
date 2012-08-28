@@ -1,9 +1,10 @@
 package org.seed419.founddiamonds.listeners;
 
+import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.seed419.founddiamonds.FoundDiamonds;
 
 /**
@@ -30,20 +31,23 @@ import org.seed419.founddiamonds.FoundDiamonds;
  *
  * @license AOL v.a3 <http://aol.nexua.org>
  */
-public class BlockDamageListener implements Listener {
+public class TrapListener implements Listener {
 
 
     private FoundDiamonds fd;
 
 
-    public BlockDamageListener(FoundDiamonds fd) {
+    public TrapListener(FoundDiamonds fd) {
         this.fd = fd;
     }
 
-
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onBlockDamage(final BlockDamageEvent event) {
-        if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) { return; }
+    @EventHandler(priority = EventPriority.HIGHEST)
+    void onBlockBreak(BlockBreakEvent event) {
+        if (!fd.getWorldHandler().isEnabledWorld(event.getPlayer())) { return; }
+        final Location loc = event.getBlock().getLocation();
+        if (fd.getTrapHandler().isTrapBlock(loc)) {
+            fd.getTrapHandler().handleTrapBlockBreak(event);
+        }
     }
 
 }

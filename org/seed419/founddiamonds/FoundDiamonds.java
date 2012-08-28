@@ -61,6 +61,7 @@ public class FoundDiamonds extends JavaPlugin {
     private final PotionHandler potionHandler = new PotionHandler(this);
     private final ItemHandler itemHandler = new ItemHandler(this);
     private final MenuHandler menuHandler = new MenuHandler(this);
+    private final MapHandler mapHandler = new MapHandler(this);
 
    /*
    TODO:

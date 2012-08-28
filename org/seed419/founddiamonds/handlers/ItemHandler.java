@@ -9,8 +9,6 @@ import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.util.Prefix;
 
-import java.util.Random;
-
 /**
  * Attribute Only (Public) License
  * Version 0.a3, July 11, 2011
@@ -45,16 +43,16 @@ public class ItemHandler {
         this.fd = fd;
     }
 
-    public void handleRandomItems(Player player, int randomNumber) {
-        int randomItem;
+    public void handleRandomItems(Player player, short randomNumber) {
+        short randomItem;
         if (randomNumber < 50) {
-            randomItem = fd.getConfig().getInt(Config.randomItem1);
+            randomItem = (short) fd.getConfig().getInt(Config.randomItem1);
         } else if (randomNumber >= 50 && randomNumber < 100) {
-            randomItem = fd.getConfig().getInt(Config.randomItem2);
+            randomItem = (short) fd.getConfig().getInt(Config.randomItem2);
         } else {
-            randomItem = fd.getConfig().getInt(Config.randomItem3);
+            randomItem = (short) fd.getConfig().getInt(Config.randomItem3);
         }
-        int amount = getRandomItemAmount();
+        short amount = getRandomItemAmount();
         giveItems(player, randomItem, amount);
     }
 
@@ -77,8 +75,8 @@ public class ItemHandler {
         }
     }
 
-    private int getRandomItemAmount(){
-        Random rand = new Random();
-        return rand.nextInt(fd.getConfig().getInt(Config.maxItems)) + 1;
+    private short getRandomItemAmount(){
+        short s = 1;
+        return (short)(fd.getConfig().getInt(Config.maxItems));
     }
 }

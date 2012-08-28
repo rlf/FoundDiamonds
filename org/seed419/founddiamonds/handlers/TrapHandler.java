@@ -86,7 +86,7 @@ public class TrapHandler {
         }
     }
 
-    private void getTrapLocations(Player player, Location playerLoc, Material trap, int depth) {
+    private void getTrapLocations(Player player, final Location playerLoc, Material trap, int depth) {
         int x = playerLoc.getBlockX();
         int y = playerLoc.getBlockY() - depth;
         int maxHeight = player.getWorld().getMaxHeight();

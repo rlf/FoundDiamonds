@@ -43,24 +43,24 @@ public class BroadcastHandler {
         this.fd = fd;
     }
 
-    public void handleBroadcast(EventInformation ei) {
+    public void handleBroadcast(EventInformation ei, boolean console) {
+        broadcastFoundBlock(ei, console);
         if (ei.getMaterial() == Material.DIAMOND_ORE) {
             if (fd.getConfig().getBoolean(Config.potionsForFindingDiamonds)) {
-                int randomInt = (int) (Math.random()*100);
+                short randomInt = (short) (Math.random()*100);
                 if (randomInt <= fd.getConfig().getInt(Config.chanceToGetPotion)) {
-                    int randomNumber = (int)(Math.random()*225);
+                    short randomNumber = (short)(Math.random()*225);
                     if (randomNumber >= 0 && randomNumber <= 225) {
                         fd.getPotionHandler().handleRandomPotions(ei.getPlayer(), randomNumber);
                     }
                 }
             }
         }
-        broadcastFoundBlock(ei);
         if (ei.getMaterial() == Material.DIAMOND_ORE) {
             if (fd.getConfig().getBoolean(Config.itemsForFindingDiamonds)) {
-                int randomInt = (int) (Math.random()*100);
+                short randomInt = (short) (Math.random()*100);
                 if (randomInt <= fd.getConfig().getInt(Config.chanceToGetItem)) {
-                    int randomNumber = (int)(Math.random()*150);
+                    short randomNumber = (short)(Math.random()*150);
                     if (randomNumber >= 0 && randomNumber <= 150) {
                         fd.getItemHandler().handleRandomItems(ei.getPlayer(), randomNumber);
                     }
@@ -70,7 +70,7 @@ public class BroadcastHandler {
     }
 
 
-    private void broadcastFoundBlock(EventInformation ei) {
+    private void broadcastFoundBlock(EventInformation ei, boolean consoleReceived) {
         String playerName = getBroadcastName(ei.getPlayer());
         String matName = Format.getFormattedName(ei.getMaterial(), ei.getTotal());
         String message = fd.getConfig().getString(Config.bcMessage).replace("@Prefix@", Prefix.getChatPrefix() + ei.getColor()).replace("@Player@",
@@ -85,25 +85,12 @@ public class BroadcastHandler {
 
         for (Player x : fd.getServer().getOnlinePlayers()) {
             if (fd.getPermissions().hasPerm(x, "fd.broadcast") && fd.getWorldHandler().isEnabledWorld(x)) {
-                if (!recievedAdminMessage.contains(x)) {
+                if (!fd.getAdminMessageHandler().getRecievedAdminMessage().contains(x.getName())) {
                     x.sendMessage(formatted);
-                    if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + "Sent broadcast to " + x.getName());}
-                } else if (debug) {
-                    fd.getLog().info(Prefix.getDebugPrefix() + x.getName() + "recieved an admin message already, so not broadcasting to " + x.getName());
-                }
-            } else {
-                if (debug) {
-                    if (!x.hasPermission("fd.broadcast")) {
-                        fd.getLog().info(Prefix.getDebugPrefix() + x.getName() + " does not have permission 'fd.broadcast'.  Not broadcasting to " + x.getName());
-                    }
-                    if (!fd.getWorldHandler().isEnabledWorld(x)) {
-                        fd.getLog().info(Prefix.getDebugPrefix() + x.getName() + " is not in an enabled world, so not broadcasting to  " + x.getName());
-                    }
                 }
             }
         }
 
-        //write to log if cleanlogging.
         if (fd.getConfig().getBoolean(Config.cleanLog)) {
             fd.getLoggingHandler().writeToCleanLog(ei, playerName);
         }

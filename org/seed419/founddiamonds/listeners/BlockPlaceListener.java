@@ -8,7 +8,6 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.Node;
 import org.seed419.founddiamonds.file.Config;
-import org.seed419.founddiamonds.handlers.ListHandler;
 
 import java.util.HashSet;
 
@@ -66,18 +65,18 @@ public class BlockPlaceListener implements Listener {
     }
 
     public boolean isMonitoredBlock(BlockPlaceEvent event) {
-        for (Node x : ListHandler.getBroadcastedBlocks()) {
+        for (Node x : fd.getListHandler().getBroadcastedBlocks()) {
             if (x.getMaterial() == event.getBlockPlaced().getType()) {
                 return true;
             }
         }
-        for (Node x : ListHandler.getAdminMessageBlocks()) {
+        for (Node x : fd.getListHandler().getAdminMessageBlocks()) {
             if (x.getMaterial() == event.getBlockPlaced().getType()) {
                 return true;
             }
         }
 
-        for (Node x : ListHandler.getLightLevelBlocks()) {
+        for (Node x : fd.getListHandler().getLightLevelBlocks()) {
             if (x.getMaterial() == event.getBlockPlaced().getType()) {
                 return true;
             }

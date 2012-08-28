@@ -1,14 +1,12 @@
 package org.seed419.founddiamonds.handlers;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.seed419.founddiamonds.EventInformation;
 import org.seed419.founddiamonds.FoundDiamonds;
-import org.seed419.founddiamonds.Node;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.util.Prefix;
@@ -52,7 +50,7 @@ public class LightLevelHandler {
 
     private boolean isValidLightLevel(EventInformation ei, BlockDamageEvent event) {
         if (fd.getPermissions().hasPerm(ei.getPlayer(), "fd.monitor")) {
-            if (fd.getBlockBreakListener().blockSeesNoLight(ei) && ei.getPlayer().getWorld().getEnvironment() != World.Environment.NETHER) {
+            if (fd.getLightLevelHandler().blockSeesNoLight(ei) && ei.getPlayer().getWorld().getEnvironment() != World.Environment.NETHER) {
                 event.setCancelled(true);
                 ei.getPlayer().sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Mining in the dark is dangerous, place a torch!");
                 return false;
@@ -71,12 +69,12 @@ public class LightLevelHandler {
             if (fd.getPermissions().hasPerm(y, "fd.admin")) {
                 if (y != ei.getPlayer()) {
                     y.sendMessage(lightAdminMessage);
-                    if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + "Sent admin message to " + y.getName());}
+                    //if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + "Sent admin message to " + y.getName());}
                 } else {
-                    if (debug) {fd.getLog().info(Prefix.getDebugPrefix() +y.getName() + " was not sent an admin message because it was them who was denied mining.");}
+                    //if (debug) {fd.getLog().info(Prefix.getDebugPrefix() +y.getName() + " was not sent an admin message because it was them who was denied mining.");}
                 }
             } else {
-                if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + y.getName() + " doesn't have the permission fd.admin");}
+               // if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + y.getName() + " doesn't have the permission fd.admin");}
             }
         }
     }
@@ -94,12 +92,12 @@ public class LightLevelHandler {
                 highestLevel = lightLevel;
             }
             if (lightLevel > levelToDisableAt) {
-                if (debug) {
+/*                if (debug) {
                     fd.getLog().info(Prefix.getDebugPrefix() + " " + ei.getPlayer().getName() + " just mined "
                             + Format.getFormattedName(ei.getMaterial(), 1) + " at light level " + highestLevel
                             + ".  We are disabling ore mining at light level " + formattedLightLevel + " or "
                             + percentage + "%");
-                }
+                }*/
                 return false;
             }
         }
@@ -107,12 +105,12 @@ public class LightLevelHandler {
         if ((fd.getConfig().getBoolean(Config.logLightLevelViolations))) {
             fd.getLoggingHandler().logLightLevelViolation(ei, highestLevel);
         }
-        if (debug) {
+/*        if (debug) {
             fd.getLog().info(Prefix.getDebugPrefix() + ei.getPlayer().getName() + " was denied mining "
                     + Format.getFormattedName(ei.getMaterial(), 1) + " at light level " + highestLevel
                     + ".  We are disabling ore mining at light level " + formattedLightLevel + " or " + percentage
                     + "%");
-        }
+        }*/
         return true;
     }
 

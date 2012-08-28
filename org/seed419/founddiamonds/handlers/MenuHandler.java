@@ -201,7 +201,7 @@ public class MenuHandler {
         } else if (args.length > 1) {
             if (args[1].equalsIgnoreCase("list")) {
                 sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Broadcasted Blocks]");
-                fd.getListHandler().handleListingList(sender, ListHandler.getBroadcastedBlocks());
+                fd.getListHandler().handleListingList(sender, fd.getListHandler().getBroadcastedBlocks());
             } else if (args[1].equalsIgnoreCase("add")) {
                 if (args.length == 2) {
                     sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Format: /fd bc add item:data,color ex: coal ore,dark gray");
@@ -209,9 +209,9 @@ public class MenuHandler {
                     sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Ex: /fd bc add coal ore,gray");
                     return;
                 }
-                fd.getListHandler().handleAddToList(sender, args, ListHandler.getBroadcastedBlocks(), Config.broadcastedBlocks);
+                fd.getListHandler().handleAddToList(sender, args, fd.getListHandler().getBroadcastedBlocks(), Config.broadcastedBlocks);
             } else if (args[1].equalsIgnoreCase("remove")) {
-                fd.getListHandler().handleRemoveFromList(sender, args, ListHandler.getBroadcastedBlocks(), Config.broadcastedBlocks);
+                fd.getListHandler().handleRemoveFromList(sender, args, fd.getListHandler().getBroadcastedBlocks(), Config.broadcastedBlocks);
             } else {
                 sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
             }
@@ -224,11 +224,11 @@ public class MenuHandler {
         } else if (args.length > 1) {
             if (args[1].equalsIgnoreCase("list")) {
                 sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Admin Message Blocks]");
-                fd.getListHandler().handleListingList(sender, ListHandler.getAdminMessageBlocks());
+                fd.getListHandler().handleListingList(sender, fd.getListHandler().getAdminMessageBlocks());
             } else if (args[1].equalsIgnoreCase("add")) {
-                fd.getListHandler().handleAddToList(sender, args, ListHandler.getAdminMessageBlocks(), Config.adminMessageBlocks);
+                fd.getListHandler().handleAddToList(sender, args, fd.getListHandler().getAdminMessageBlocks(), Config.adminMessageBlocks);
             } else if (args[1].equalsIgnoreCase("remove")) {
-                fd.getListHandler().handleRemoveFromList(sender, args, ListHandler.getAdminMessageBlocks(), Config.adminMessageBlocks);
+                fd.getListHandler().handleRemoveFromList(sender, args, fd.getListHandler().getAdminMessageBlocks(), Config.adminMessageBlocks);
             } else {
                 sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
             }
@@ -241,11 +241,11 @@ public class MenuHandler {
         } else if (args.length > 1) {
             if (args[1].equalsIgnoreCase("list")) {
                 sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Light-Monitored Blocks]");
-                fd.getListHandler().handleListingList(sender, ListHandler.getLightLevelBlocks());
+                fd.getListHandler().handleListingList(sender, fd.getListHandler().getLightLevelBlocks());
             } else if (args[1].equalsIgnoreCase("add")) {
-                fd.getListHandler().handleAddToList(sender, args, ListHandler.getLightLevelBlocks(), Config.lightLevelBlocks);
+                fd.getListHandler().handleAddToList(sender, args, fd.getListHandler().getLightLevelBlocks(), Config.lightLevelBlocks);
             } else if (args[1].equalsIgnoreCase("remove")) {
-                fd.getListHandler().handleRemoveFromList(sender, args, ListHandler.getLightLevelBlocks(), Config.lightLevelBlocks);
+                fd.getListHandler().handleRemoveFromList(sender, args, fd.getListHandler().getLightLevelBlocks(), Config.lightLevelBlocks);
             } else {
                 sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
             }

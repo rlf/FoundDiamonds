@@ -1,10 +1,10 @@
-package org.seed419.founddiamonds.listeners;
+package org.seed419.founddiamonds.handlers;
 
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.ChatColor;
+import org.bukkit.inventory.ItemStack;
 import org.seed419.founddiamonds.FoundDiamonds;
+
+import java.util.HashMap;
 
 /**
  * Attribute Only (Public) License
@@ -30,20 +30,16 @@ import org.seed419.founddiamonds.FoundDiamonds;
  *
  * @license AOL v.a3 <http://aol.nexua.org>
  */
-public class BlockDamageListener implements Listener {
+public class MapHandler {
 
 
     private FoundDiamonds fd;
+    private HashMap<ItemStack,ChatColor> broadcastedBlocks = new HashMap<ItemStack,ChatColor>();
+    private HashMap<ItemStack,ChatColor> adminMessageBlocks = new HashMap<ItemStack,ChatColor>();
+    private HashMap<ItemStack,ChatColor> lightLevelBlocks = new HashMap<ItemStack,ChatColor>();
 
 
-    public BlockDamageListener(FoundDiamonds fd) {
+    public MapHandler(FoundDiamonds fd) {
         this.fd = fd;
     }
-
-
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onBlockDamage(final BlockDamageEvent event) {
-        if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) { return; }
-    }
-
 }

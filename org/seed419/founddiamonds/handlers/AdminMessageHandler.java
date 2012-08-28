@@ -7,6 +7,8 @@ import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.util.Prefix;
 
+import java.util.HashSet;
+
 /**
  * Attribute Only (Public) License
  * Version 0.a3, July 11, 2011
@@ -35,6 +37,8 @@ public class AdminMessageHandler {
 
 
     private FoundDiamonds fd;
+    private HashSet<String> recievedAdminMessage = new HashSet<String>();
+
 
 
     public AdminMessageHandler(FoundDiamonds fd) {
@@ -48,15 +52,15 @@ public class AdminMessageHandler {
                 (adminEvent.getTotal() == 500 ? "over 500 " :String.valueOf(adminEvent.getTotal())) + " " +
                 Format.getFormattedName(adminEvent.getMaterial(), adminEvent.getTotal());
         fd.getServer().getConsoleSender().sendMessage(adminMessage);
-        consoleReceived = true;
         for (Player y : fd.getServer().getOnlinePlayers()) {
             if (fd.getPermissions().hasPerm(y, "fd.admin") && y != adminEvent.getPlayer()) {
                 y.sendMessage(adminMessage);
-                recievedAdminMessage.add(y);
-                if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + "Sent admin message to " + y.getName());}
-            } else {
-                if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + y.getName() + " doesn't have the permission fd.admin");}
+                recievedAdminMessage.add(y.getName());
             }
         }
+    }
+
+    public HashSet<String> getRecievedAdminMessage() {
+        return recievedAdminMessage;
     }
 }

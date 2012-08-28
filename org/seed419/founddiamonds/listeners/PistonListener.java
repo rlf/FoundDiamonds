@@ -43,14 +43,14 @@ public class PistonListener implements Listener {
 
 
     @EventHandler
-    void onPistonRetract(BlockPistonRetractEvent event) {
+    void onPistonRetract(final BlockPistonRetractEvent event) {
         if (fd.getTrapHandler().isTrapBlock(event.getRetractLocation())) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler
-    void onPistonExtend(BlockPistonExtendEvent event) {
+    void onPistonExtend(final BlockPistonExtendEvent event) {
         for (Block x : event.getBlocks()) {
             if (fd.getTrapHandler().isTrapBlock(x.getLocation())) {
                 event.setCancelled(true);
