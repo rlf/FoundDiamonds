@@ -65,17 +65,12 @@ public class FoundDiamonds extends JavaPlugin {
 
    /*
    TODO:
-    Fix nodes for file, maybe store those in sql?
+    Fix nodes for files.
     Breaking trap blocks crashes the client? O.O
     MenuHandler set area?
-    Trap blocks in MySQL
+    Is there a point to putting trap blocks in SQL?
     Is cleanlogging in SQL a popular request?
-    Move light and admin messages into separate classes for fucks sake.
-    Smarter trap blocks - remember material NOT just the location!  Prevents pistons and physics from tricking them.
     Implement Item IDs as an acceptable form of entering blocks
-    Finish set menu, integrate with main menu
-    Look into pulling stats from MC client?  Or MySQL?
-    fd top ?
     */
 
    /*
@@ -96,7 +91,9 @@ public class FoundDiamonds extends JavaPlugin {
 
    /*
    Test:
+    Basically everything...
     Items and potions for single person,
+    Move light and admin messages into separate classes for fucks sake.
     */
 
     @Override
