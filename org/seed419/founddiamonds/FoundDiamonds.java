@@ -43,7 +43,7 @@ public class FoundDiamonds extends JavaPlugin {
 
     private Logger log;
     private final BlockPlaceListener blockPlaceListener = new BlockPlaceListener(this);
-    private final BlockBreakListener blockBreakListener = new BlockBreakListener(this);
+    private final AnnouncementListener blockBreakListener = new AnnouncementListener(this);
     private final BlockDamageListener blockDamageListener = new BlockDamageListener(this);
     private final PlayerDamageListener playerDamageListener = new PlayerDamageListener();
     private final PistonListener pistonListener = new PistonListener(this);

@@ -1,6 +1,5 @@
 package org.seed419.founddiamonds.listeners;
 
-import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -16,7 +15,7 @@ import org.seed419.founddiamonds.util.Prefix;
 
 import java.util.HashSet;
 
-public class BlockBreakListener implements Listener  {
+public class AnnouncementListener implements Listener  {
 
 
     private FoundDiamonds fd;
@@ -25,14 +24,12 @@ public class BlockBreakListener implements Listener  {
     private boolean debug;
 
     //TODO refactor, call seperate classes for these events.  Still needs work.
-    public BlockBreakListener(FoundDiamonds fd) {
+    public AnnouncementListener(FoundDiamonds fd) {
         this.fd = fd;
     }
 
     /*
     Check for enabled world
-    Check for trap (could be any block, no exploits.)
-    Check for mcMMO fake event
     Check for creative mode
     Check to see if the block is placed, or announceable.
     Finally, broadcast the block.
@@ -48,7 +45,7 @@ public class BlockBreakListener implements Listener  {
         debug = fd.getConfig().getBoolean(Config.debug);
         final Location loc = event.getBlock().getLocation();
 
-        if (!isValidGameMode(player)) { return; }
+        if (!fd.getWorldHandler().isValidGameMode(player)) { return; }
 
         if (!isAnnounceable(loc)) {
             removeAnnouncedOrPlacedBlock(loc);
@@ -81,7 +78,6 @@ public class BlockBreakListener implements Listener  {
                 fd.getLoggingHandler().handleLogging(event.getPlayer(), event.getBlock(), false, false, false);
             }
         }
-
         //reset message checks after successful event
         fd.getAdminMessageHandler().getRecievedAdminMessage().clear();
         consoleReceived = false;
@@ -96,10 +92,6 @@ public class BlockBreakListener implements Listener  {
         if (cantAnnounce.contains(loc)) {
             cantAnnounce.remove(loc);
         }
-    }
-
-    private boolean isValidGameMode(Player player) {
-        return !((player.getGameMode() == GameMode.CREATIVE) && (fd.getConfig().getBoolean(Config.disableInCreative)));
     }
 
     public boolean isAnnounceable(Location loc) {

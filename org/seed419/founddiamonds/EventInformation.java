@@ -12,7 +12,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
-import org.seed419.founddiamonds.listeners.BlockBreakListener;
+import org.seed419.founddiamonds.listeners.AnnouncementListener;
 import org.seed419.founddiamonds.util.PluginUtils;
 
 import java.util.HashSet;
@@ -32,14 +32,14 @@ public class EventInformation {
             BlockFace.SOUTH_EAST, BlockFace.SOUTH_WEST, BlockFace.NORTH_EAST, BlockFace.NORTH_WEST, BlockFace.UP};
     private final BlockFace[] LowerFaces = {BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH,
             BlockFace.SOUTH_EAST, BlockFace.SOUTH_WEST, BlockFace.NORTH_EAST, BlockFace.NORTH_WEST, BlockFace.DOWN};
-    private BlockBreakListener bbl;
+    private AnnouncementListener bbl;
     private int total;
     private Node node;
     private Block block;
     private Player player;
 
 
-    public EventInformation(BlockBreakListener bbl, BlockBreakEvent event, Node node, boolean total) {
+    public EventInformation(AnnouncementListener bbl, BlockBreakEvent event, Node node, boolean total) {
         this.bbl = bbl;
         this.block = event.getBlock();
         if (total) {this.total =  getTotalBlocks(this.block);}

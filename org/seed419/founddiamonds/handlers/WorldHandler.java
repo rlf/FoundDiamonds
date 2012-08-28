@@ -1,6 +1,7 @@
 package org.seed419.founddiamonds.handlers;
 
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -102,4 +103,7 @@ public class WorldHandler {
         return fd.getConfig().getList(Config.enabledWorlds).contains(player.getWorld().getName());
     }
 
+    public boolean isValidGameMode(Player player) {
+        return !((player.getGameMode() == GameMode.CREATIVE) && (fd.getConfig().getBoolean(Config.disableInCreative)));
+    }
 }

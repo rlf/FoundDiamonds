@@ -11,8 +11,6 @@ import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.util.Prefix;
 
-import java.text.DecimalFormat;
-
 /**
  * Attribute Only (Public) License
  * Version 0.a3, July 11, 2011
@@ -48,7 +46,7 @@ public class LightLevelHandler {
     }
 
 
-    private boolean isValidLightLevel(EventInformation ei, BlockDamageEvent event) {
+    public boolean isValidLightLevel(EventInformation ei, BlockDamageEvent event) {
         if (fd.getPermissions().hasPerm(ei.getPlayer(), "fd.monitor")) {
             if (fd.getLightLevelHandler().blockSeesNoLight(ei) && ei.getPlayer().getWorld().getEnvironment() != World.Environment.NETHER) {
                 event.setCancelled(true);
@@ -69,12 +67,7 @@ public class LightLevelHandler {
             if (fd.getPermissions().hasPerm(y, "fd.admin")) {
                 if (y != ei.getPlayer()) {
                     y.sendMessage(lightAdminMessage);
-                    //if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + "Sent admin message to " + y.getName());}
-                } else {
-                    //if (debug) {fd.getLog().info(Prefix.getDebugPrefix() +y.getName() + " was not sent an admin message because it was them who was denied mining.");}
                 }
-            } else {
-               // if (debug) {fd.getLog().info(Prefix.getDebugPrefix() + y.getName() + " doesn't have the permission fd.admin");}
             }
         }
     }
@@ -82,8 +75,6 @@ public class LightLevelHandler {
     public boolean blockSeesNoLight(EventInformation ei) {
         double percentage = Double.parseDouble(fd.getConfig().getString(Config.percentOfLightRequired).replaceAll("%", ""));
         double levelToDisableAt = percentage / 15.0;
-        DecimalFormat dform = new DecimalFormat("#.##");
-        String formattedLightLevel = dform.format(levelToDisableAt);
         int lightLevel = 0;
         int highestLevel = 0;
         for (BlockFace y : BlockFace.values()) {
@@ -92,12 +83,6 @@ public class LightLevelHandler {
                 highestLevel = lightLevel;
             }
             if (lightLevel > levelToDisableAt) {
-/*                if (debug) {
-                    fd.getLog().info(Prefix.getDebugPrefix() + " " + ei.getPlayer().getName() + " just mined "
-                            + Format.getFormattedName(ei.getMaterial(), 1) + " at light level " + highestLevel
-                            + ".  We are disabling ore mining at light level " + formattedLightLevel + " or "
-                            + percentage + "%");
-                }*/
                 return false;
             }
         }
@@ -105,12 +90,6 @@ public class LightLevelHandler {
         if ((fd.getConfig().getBoolean(Config.logLightLevelViolations))) {
             fd.getLoggingHandler().logLightLevelViolation(ei, highestLevel);
         }
-/*        if (debug) {
-            fd.getLog().info(Prefix.getDebugPrefix() + ei.getPlayer().getName() + " was denied mining "
-                    + Format.getFormattedName(ei.getMaterial(), 1) + " at light level " + highestLevel
-                    + ".  We are disabling ore mining at light level " + formattedLightLevel + " or " + percentage
-                    + "%");
-        }*/
         return true;
     }
 
