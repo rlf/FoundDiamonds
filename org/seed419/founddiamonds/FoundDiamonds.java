@@ -46,10 +46,11 @@ public class FoundDiamonds extends JavaPlugin {
     private final BlockBreakListener blockBreakListener = new BlockBreakListener(this);
     private final BlockDamageListener blockDamageListener = new BlockDamageListener(this);
     private final PlayerDamageListener playerDamageListener = new PlayerDamageListener();
+    private final PistonListener pistonListener = new PistonListener(this);
+    private final TrapListener trapListener = new TrapListener(this);
     private final BroadcastHandler broadcastHandler = new BroadcastHandler(this);
     private final AdminMessageHandler adminMessageHandler = new AdminMessageHandler(this);
     private final LightLevelHandler lightLevelHandler = new LightLevelHandler(this);
-    private final PistonListener pistonListener = new PistonListener(this);
     private final FileUtils fileUtils = new FileUtils(this);
     private final MySQL mysql = new MySQL(this);
     private final ListHandler listHandler = new ListHandler(this);
@@ -92,6 +93,7 @@ public class FoundDiamonds extends JavaPlugin {
    /*
    Test:
     Basically everything...
+    Admin messages don't work
     Items and potions for single person,
     Move light and admin messages into separate classes for fucks sake.
     */
@@ -126,6 +128,7 @@ public class FoundDiamonds extends JavaPlugin {
         pm.registerEvents(blockPlaceListener, this);
         pm.registerEvents(blockDamageListener, this);
         pm.registerEvents(pistonListener, this);
+        pm.registerEvents(trapListener, this);
     }
 
     public Permissions getPermissions() {

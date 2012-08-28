@@ -29,7 +29,7 @@ public class TrapHandler {
         Location playerLoc = player.getLocation();
         Material trap;
         String item;
-        int depth=0;
+        int depth = 0;
         if (args.length == 1) {
             trap = Material.DIAMOND_ORE;
             item = "Diamond ore";
@@ -184,7 +184,9 @@ public class TrapHandler {
             boolean banned = false;
             boolean kicked = false;
             if (fd.getConfig().getBoolean(Config.kickOnTrapBreak)) {
-                player.kickPlayer(fd.getConfig().getString(Config.kickMessage));
+                //TEST attempted fix for client crash.
+                String kickMessage = fd.getConfig().getString(Config.kickMessage);
+                player.kickPlayer(kickMessage);
                 kicked = true;
             }
             if (fd.getConfig().getBoolean(Config.banOnTrapBreak)) {

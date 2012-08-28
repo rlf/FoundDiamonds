@@ -42,11 +42,12 @@ public class TrapListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    void onBlockBreak(BlockBreakEvent event) {
+    void onBlockBreak(final BlockBreakEvent event) {
         if (!fd.getWorldHandler().isEnabledWorld(event.getPlayer())) { return; }
         final Location loc = event.getBlock().getLocation();
         if (fd.getTrapHandler().isTrapBlock(loc)) {
             fd.getTrapHandler().handleTrapBlockBreak(event);
+            event.setCancelled(true);
         }
     }
 

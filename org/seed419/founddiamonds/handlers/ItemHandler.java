@@ -43,16 +43,16 @@ public class ItemHandler {
         this.fd = fd;
     }
 
-    public void handleRandomItems(Player player, short randomNumber) {
-        short randomItem;
+    public void handleRandomItems(Player player, int randomNumber) {
+        int randomItem;
         if (randomNumber < 50) {
-            randomItem = (short) fd.getConfig().getInt(Config.randomItem1);
+            randomItem = fd.getConfig().getInt(Config.randomItem1);
         } else if (randomNumber >= 50 && randomNumber < 100) {
-            randomItem = (short) fd.getConfig().getInt(Config.randomItem2);
+            randomItem = fd.getConfig().getInt(Config.randomItem2);
         } else {
-            randomItem = (short) fd.getConfig().getInt(Config.randomItem3);
+            randomItem = fd.getConfig().getInt(Config.randomItem3);
         }
-        short amount = getRandomItemAmount();
+        int amount = getRandomItemAmount();
         giveItems(player, randomItem, amount);
     }
 
@@ -75,8 +75,7 @@ public class ItemHandler {
         }
     }
 
-    private short getRandomItemAmount(){
-        short s = 1;
-        return (short)(fd.getConfig().getInt(Config.maxItems));
+    private int getRandomItemAmount(){
+        return ((fd.getConfig().getInt(Config.maxItems)) + 1);
     }
 }
