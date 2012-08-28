@@ -32,6 +32,7 @@ public class Prefix {
     private final static String chatPrefix = "[FD]";
     private final static String adminPrefix = ChatColor.RED + "[FD]";
     private final static String debugPrefix = "[FD Debug] ";
+    private final static String loggingPrefix = "[FoundDiamonds] ";
 
 
     public static String getChatPrefix() {
@@ -46,4 +47,7 @@ public class Prefix {
         return debugPrefix;
     }
 
+    public static String getLoggingPrefix() {
+        return loggingPrefix;
+    }
 }

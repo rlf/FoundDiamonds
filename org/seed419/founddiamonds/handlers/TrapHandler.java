@@ -175,14 +175,14 @@ public class TrapHandler {
             block.setType(Material.AIR);
             removeTrapBlock(block);
         } else {
-            String trapMessage = ChatColor.YELLOW + " " + player.getName()
+            String trapMessage = ChatColor.YELLOW + player.getName()
                     + ChatColor.RED + " just triggered a trap block";
             for (Player x: fd.getServer().getOnlinePlayers()) {
                 if((fd.getPermissions().hasPerm(x, "fd.trap")) || fd.getPermissions().hasPerm(x, "fd.admin")) {
                     x.sendMessage(trapMessage);
                 }
             }
-            fd.getLog().info(trapMessage);
+            fd.getServer().getConsoleSender().sendMessage(Prefix.getLoggingPrefix() + trapMessage);
             boolean banned = false;
             boolean kicked = false;
             if (fd.getConfig().getBoolean(Config.kickOnTrapBreak)) {
