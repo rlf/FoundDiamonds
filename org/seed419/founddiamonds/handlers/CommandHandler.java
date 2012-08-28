@@ -7,7 +7,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.file.Config;
-import org.seed419.founddiamonds.file.FileHandler;
 import org.seed419.founddiamonds.util.PluginUtils;
 import org.seed419.founddiamonds.util.Prefix;
 
@@ -175,9 +174,9 @@ public class CommandHandler implements CommandExecutor {
             fd.getMenuHandler().printSaved(fd, sender);
         } else if (arg.equalsIgnoreCase("cleanlog")) {
             fd.getConfig().set(Config.cleanLog, !fd.getConfig().getBoolean(Config.cleanLog));
-            if (!FileHandler.getCleanLog().exists()) {
+            if (!fd.getFileHandler().getCleanLog().exists()) {
                 try {
-                    boolean successful = FileHandler.getCleanLog().createNewFile();
+                    boolean successful = fd.getFileHandler().getCleanLog().createNewFile();
                     if (successful) {sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_GREEN +" Cleanlog created.");}
                     } catch (IOException ex) {
                     sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Uh-oh...couldn't create CleanLog.txt");

@@ -47,11 +47,11 @@ public class Config {
     public final static String useNick = "Found Diamonds Configuration.Broadcasts.Options.Use player nicknames";
     public final static String useOreColors = "Found Diamonds Configuration.Broadcasts.Options.Use classic ore colors for ores";
 
-    /*LoggingHandler*/
-    public final static String logTrapBreaks = "Found Diamonds Configuration.LoggingHandler.TrapHandler breaks";
-    public final static String logLightLevelViolations = "Found Diamonds Configuration.LoggingHandler.Light Level Violations";
-    public final static String logDiamondBreaks = "Found Diamonds Configuration.LoggingHandler.Log all diamond ore breaks";
-    public final static String cleanLog = "Found Diamonds Configuration.LoggingHandler.Clean log (all ores)";
+    /*Logging*/
+    public final static String logTrapBreaks = "Found Diamonds Configuration.Logging.Trap breaks";
+    public final static String logLightLevelViolations = "Found Diamonds Configuration.Logging.Light Level Violations";
+    public final static String logDiamondBreaks = "Found Diamonds Configuration.Logging.Log all diamond ore breaks";
+    public final static String cleanLog = "Found Diamonds Configuration.Logging.Clean log (all ores)";
     public final static String enabledWorlds = "Found Diamonds Configuration.Enabled Worlds";
 
     /*Admin Messages*/

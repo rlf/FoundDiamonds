@@ -12,9 +12,9 @@ public class FileHandler {
 
     //todo this clearly still need testing and refactoring
     private FoundDiamonds fd;
-    private static File logs;
+    private File logs;
     private File traps;
-    private static File cleanLog;
+    private File cleanLog;
     private File placed;
     private boolean printed = false;
 
@@ -146,11 +146,11 @@ public class FileHandler {
         }
     }
 
-    public static File getLogFile() {
+    public File getLogFile() {
         return logs;
     }
 
-    public static File getCleanLog() {
+    public File getCleanLog() {
         return cleanLog;
     }
 

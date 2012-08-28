@@ -6,7 +6,6 @@ import org.bukkit.entity.Player;
 import org.seed419.founddiamonds.EventInformation;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.file.Config;
-import org.seed419.founddiamonds.file.FileHandler;
 import org.seed419.founddiamonds.util.Format;
 
 import java.io.BufferedWriter;
@@ -53,7 +52,7 @@ public class LoggingHandler {
 
     public void handleLogging(Player player, Block block, boolean trapBlock, boolean kicked, boolean banned) {
         try {
-            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(FileHandler.getLogFile(), true)));
+            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fd.getFileHandler().getLogFile(), true)));
             pw.print("[" + getFormattedDate() + "]");
             if (trapBlock) {
                 pw.print(" [TRAP BLOCK]");
@@ -84,7 +83,7 @@ public class LoggingHandler {
         String lightLogMsg = "[" + getFormattedDate() + "]" + " " + ei.getPlayer().getName() + " was denied mining "
                 + Format.getFormattedName(ei.getMaterial(), 1) + " at" + " light level " +  lightLevel;
         try {
-            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(FileHandler.getLogFile(), true)));
+            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fd.getFileHandler().getLogFile(), true)));
             pw.println(lightLogMsg);
             pw.flush();
             fd.getFileUtils().close(pw);
@@ -120,7 +119,7 @@ public class LoggingHandler {
             }
         }
         try {
-            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(FileHandler.getCleanLog(), true)));
+            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fd.getFileHandler().getCleanLog(), true)));
             pw.println("[" + formattedDate + "] " + message);
             pw.flush();
             fd.getFileUtils().close(pw);
