@@ -175,16 +175,17 @@ public class TrapHandler {
             block.setType(Material.AIR);
             removeTrapBlock(block);
         } else {
+            String trapMessage = Prefix.getChatPrefix() + ChatColor.YELLOW + " " + player.getName()
+                    + ChatColor.RED + " just triggered a trap block";
             for (Player x: fd.getServer().getOnlinePlayers()) {
                 if((fd.getPermissions().hasPerm(x, "fd.trap")) || fd.getPermissions().hasPerm(x, "fd.admin")) {
-                    x.sendMessage(Prefix.getChatPrefix() + ChatColor.YELLOW + " " + player.getName()
-                            + ChatColor.RED + " just triggered a trap block");
+                    x.sendMessage(trapMessage);
                 }
             }
+            fd.getServer().getConsoleSender().sendMessage(trapMessage);
             boolean banned = false;
             boolean kicked = false;
             if (fd.getConfig().getBoolean(Config.kickOnTrapBreak)) {
-                //TEST attempted fix for client crash.
                 String kickMessage = fd.getConfig().getString(Config.kickMessage);
                 player.kickPlayer(kickMessage);
                 kicked = true;

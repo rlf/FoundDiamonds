@@ -87,6 +87,7 @@ public class FoundDiamonds extends JavaPlugin {
     Removed logging commands to console because bukkit apparently does this natively now.
     Removed @prefix@ from the default config.  It seems a bit excessive...(although it will still work if you want it)
     Organized Main class with 3 stages to assist in organized development.
+    Fixed triggering trap blocks from crashing the client when kicked.
     */
 
 
