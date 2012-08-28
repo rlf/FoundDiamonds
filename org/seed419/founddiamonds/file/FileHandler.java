@@ -146,14 +146,6 @@ public class FileHandler {
         }
     }
 
-    public File getLogFile() {
-        return logs;
-    }
-
-    public File getCleanLog() {
-        return cleanLog;
-    }
-
     public void saveFlatFileData() {
         String info = "This file stores your trap block locations.";
         boolean temp = writeBlocksToFile(traps, fd.getTrapHandler().getTrapBlocks(), info);
@@ -170,4 +162,11 @@ public class FileHandler {
         }
     }
 
+    public File getLogFile() {
+        return logs;
+    }
+
+    public File getCleanLog() {
+        return cleanLog;
+    }
 }

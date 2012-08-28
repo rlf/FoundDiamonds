@@ -64,10 +64,14 @@ public class FoundDiamonds extends JavaPlugin {
     private final MenuHandler menuHandler = new MenuHandler(this);
     private final MapHandler mapHandler = new MapHandler(this);
 
+    /*
+    Bugs:
+    If a block is both broadcasted and using admin messages, the total will be incorrectly reported.  Is this an issue?
+     */
+
    /*
    TODO:
     Fix nodes for files.
-    Breaking trap blocks crashes the client? O.O
     MenuHandler set area?
     Is there a point to putting trap blocks in SQL?
     Is cleanlogging in SQL a popular request?
@@ -88,15 +92,14 @@ public class FoundDiamonds extends JavaPlugin {
     Removed @prefix@ from the default config.  It seems a bit excessive...(although it will still work if you want it)
     Organized Main class with 3 stages to assist in organized development.
     Fixed triggering trap blocks from crashing the client when kicked.
+    Traps, broadcasts, and admin messages have been tested and are working.
     */
 
 
    /*
    Test:
-    Basically everything...
-    Admin messages don't work
+    Light level - mcMMO exploit - material data saving in files (bet that doesn't work)
     Items and potions for single person,
-    Move light and admin messages into separate classes for fucks sake.
     */
 
     @Override
@@ -122,9 +125,7 @@ public class FoundDiamonds extends JavaPlugin {
 
     public void registerEvents() {
         final PluginManager pm = getServer().getPluginManager();
-        if (getConfig().getBoolean(Config.potionsForFindingDiamonds)) {
-            pm.registerEvents(playerDamageListener, this);
-        }
+        pm.registerEvents(playerDamageListener, this);
         pm.registerEvents(blockBreakListener, this);
         pm.registerEvents(blockPlaceListener, this);
         pm.registerEvents(blockDamageListener, this);
@@ -176,18 +177,6 @@ public class FoundDiamonds extends JavaPlugin {
         return itemHandler;
     }
 
-    public BlockBreakListener getBlockBreakListener() {
-        return blockBreakListener;
-    }
-
-    public BlockDamageListener getBlockDamageListener() {
-        return blockDamageListener;
-    }
-
-    public PistonListener getPistonListener() {
-        return pistonListener;
-    }
-
     public MenuHandler getMenuHandler() {
         return menuHandler;
     }
@@ -216,7 +205,7 @@ public class FoundDiamonds extends JavaPlugin {
     }
 
     private void startMetrics() {
-        if (this.getConfig().getBoolean(Config.metrics)) {
+        if (getConfig().getBoolean(Config.metrics)) {
             try {
                 MetricsLite metrics = new MetricsLite(this);
                 metrics.start();
