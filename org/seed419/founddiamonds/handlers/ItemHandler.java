@@ -43,7 +43,17 @@ public class ItemHandler {
         this.fd = fd;
     }
 
-    public void handleRandomItems(Player player, int randomNumber) {
+    public void handleRandomItems(final Player player) {
+        int randomInt = (int) (Math.random()*100);
+        if (randomInt <= fd.getConfig().getInt(Config.chanceToGetItem)) {
+            int randomNumber = (int)(Math.random()*150);
+            if (randomNumber >= 0 && randomNumber <= 150) {
+                selectRandomItem(player, randomNumber);
+            }
+        }
+    }
+
+    private void selectRandomItem(Player player, int randomNumber) {
         int randomItem;
         if (randomNumber < 50) {
             randomItem = fd.getConfig().getInt(Config.randomItem1);

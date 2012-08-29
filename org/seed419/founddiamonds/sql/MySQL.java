@@ -52,7 +52,7 @@ public class MySQL {
                 + "PRIMARY KEY (`world`,`x`,`y`,`z`)) ENGINE=MyISAM DEFAULT CHARSET=latin1");
     }
 /*
-    public void updateUser(EventInformation ei) {
+    public void updateUser(BlockCounter ei) {
         if (isConnected()) {
             try {
                 Statement s = connection.createStatement();
@@ -80,7 +80,6 @@ public class MySQL {
                 PreparedStatement ps = getPreparedStatement(query, loc);
                 ResultSet rs = ps.executeQuery();
                 if (rs.next()) {
-                    System.out.println("block was placed");
                     return true;
                 }
             } catch (SQLException ex) {
@@ -184,7 +183,7 @@ public class MySQL {
         }
     }
 
-    private String getBlockName(EventInformation ei) {
+    private String getBlockName(BlockCounter ei) {
         switch (ei.getMaterial()) {
             case DIAMOND_ORE:
                 return "diamond";

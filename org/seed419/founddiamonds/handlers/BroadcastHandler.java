@@ -2,8 +2,9 @@ package org.seed419.founddiamonds.handlers;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.seed419.founddiamonds.EventInformation;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.seed419.founddiamonds.FoundDiamonds;
+import org.seed419.founddiamonds.Node;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.util.PluginUtils;
@@ -43,46 +44,28 @@ public class BroadcastHandler {
         this.fd = fd;
     }
 
-    public void handleBroadcast(EventInformation ei, boolean console) {
-        broadcastFoundBlock(ei, console);
-        if (ei.getMaterial() == Material.DIAMOND_ORE) {
+    public void handleBroadcast(final BlockBreakEvent event, final Node node, final Player player) {
+        final int blockTotal = fd.getBlockCounter().getTotalBlocks(event.getBlock());
+        broadcastFoundBlock(player, node, blockTotal);
+        if (node.getMaterial() == Material.DIAMOND_ORE) {
             if (fd.getConfig().getBoolean(Config.potionsForFindingDiamonds)) {
-                short randomInt = (short) (Math.random()*100);
-                if (randomInt <= fd.getConfig().getInt(Config.chanceToGetPotion)) {
-                    short randomNumber = (short)(Math.random()*225);
-                    if (randomNumber >= 0 && randomNumber <= 225) {
-                        fd.getPotionHandler().handleRandomPotions(ei.getPlayer(), randomNumber);
-                    }
-                }
+                fd.getPotionHandler().handlePotions(player);
             }
-        }
-        if (ei.getMaterial() == Material.DIAMOND_ORE) {
             if (fd.getConfig().getBoolean(Config.itemsForFindingDiamonds)) {
-                short randomInt = (short) (Math.random()*100);
-                if (randomInt <= fd.getConfig().getInt(Config.chanceToGetItem)) {
-                    short randomNumber = (short)(Math.random()*150);
-                    if (randomNumber >= 0 && randomNumber <= 150) {
-                        fd.getItemHandler().handleRandomItems(ei.getPlayer(), randomNumber);
-                    }
-                }
+                fd.getItemHandler().handleRandomItems(player);
             }
         }
     }
 
 
-    private void broadcastFoundBlock(EventInformation ei, boolean consoleReceived) {
-        String playerName = getBroadcastName(ei.getPlayer());
-        String matName = Format.getFormattedName(ei.getMaterial(), ei.getTotal());
-        String message = fd.getConfig().getString(Config.bcMessage).replace("@Prefix@", Prefix.getChatPrefix() + ei.getColor()).replace("@Player@",
-                playerName +  (fd.getConfig().getBoolean(Config.useOreColors) ? ei.getColor() : "")).replace("@Number@",
-                (ei.getTotal() == 500 ? "over 500" :String.valueOf(ei.getTotal()))).replace("@BlockName@", matName);
+    private void broadcastFoundBlock(final Player player, final Node node, final int blockTotal) {
+        String playerName = getBroadcastName(player);
+        String matName = Format.getFormattedName(node.getMaterial(), blockTotal);
+        String message = fd.getConfig().getString(Config.bcMessage).replace("@Prefix@", Prefix.getChatPrefix() + node.getColor()).replace("@Player@",
+                playerName +  (fd.getConfig().getBoolean(Config.useOreColors) ? node : "")).replace("@Number@",
+                (blockTotal) == 500 ? "over 500" :String.valueOf(blockTotal)).replace("@BlockName@", matName);
         String formatted = PluginUtils.customTranslateAlternateColorCodes('&', message);
-
-        //Prevent redunant output to the console if an admin message was already sent.
-        if (!consoleReceived) {
-            fd.getServer().getConsoleSender().sendMessage(formatted);
-        }
-
+        fd.getServer().getConsoleSender().sendMessage(formatted);
         for (Player x : fd.getServer().getOnlinePlayers()) {
             if (fd.getPermissions().hasPerm(x, "fd.broadcast") && fd.getWorldHandler().isEnabledWorld(x)) {
                 if (!fd.getAdminMessageHandler().getRecievedAdminMessage().contains(x.getName())) {
@@ -92,7 +75,7 @@ public class BroadcastHandler {
         }
 
         if (fd.getConfig().getBoolean(Config.cleanLog)) {
-            fd.getLoggingHandler().writeToCleanLog(ei, playerName);
+            fd.getLoggingHandler().writeToCleanLog(node, blockTotal, playerName);
         }
     }
 

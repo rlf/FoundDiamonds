@@ -45,11 +45,12 @@ public class FoundDiamonds extends JavaPlugin {
     private final BlockPlaceListener blockPlaceListener = new BlockPlaceListener(this);
     private final AnnouncementListener blockBreakListener = new AnnouncementListener(this);
     private final BlockDamageListener blockDamageListener = new BlockDamageListener(this);
-    private final PlayerDamageListener playerDamageListener = new PlayerDamageListener();
+    private final PlayerDamageListener playerDamageListener = new PlayerDamageListener(this);
     private final PistonListener pistonListener = new PistonListener(this);
     private final TrapListener trapListener = new TrapListener(this);
     private final BroadcastHandler broadcastHandler = new BroadcastHandler(this);
     private final AdminMessageHandler adminMessageHandler = new AdminMessageHandler(this);
+    private final LightLevelListener lightLevelListener = new LightLevelListener(this);
     private final LightLevelHandler lightLevelHandler = new LightLevelHandler(this);
     private final FileUtils fileUtils = new FileUtils(this);
     private final MySQL mysql = new MySQL(this);
@@ -62,11 +63,11 @@ public class FoundDiamonds extends JavaPlugin {
     private final PotionHandler potionHandler = new PotionHandler(this);
     private final ItemHandler itemHandler = new ItemHandler(this);
     private final MenuHandler menuHandler = new MenuHandler(this);
+    private final BlockCounter blockTotal = new BlockCounter(this);
     private final MapHandler mapHandler = new MapHandler(this);
 
     /*
     Bugs:
-    If a block is both broadcasted and using admin messages, the total will be incorrectly reported.  Is this an issue?
      */
 
    /*
@@ -100,6 +101,7 @@ public class FoundDiamonds extends JavaPlugin {
    Test:
     Light level - mcMMO exploit - material data saving in files (bet that doesn't work)
     Items and potions for single person,
+    If a block is both broadcasted and using admin messages, the total will be incorrectly reported.  Is this an issue?
     */
 
     @Override
@@ -131,6 +133,7 @@ public class FoundDiamonds extends JavaPlugin {
         pm.registerEvents(blockDamageListener, this);
         pm.registerEvents(pistonListener, this);
         pm.registerEvents(trapListener, this);
+        pm.registerEvents(lightLevelListener, this);
     }
 
     public Permissions getPermissions() {
@@ -196,6 +199,11 @@ public class FoundDiamonds extends JavaPlugin {
     public LightLevelHandler getLightLevelHandler() {
         return lightLevelHandler;
     }
+
+    public BlockCounter getBlockCounter() {
+        return blockTotal;
+    }
+
     public Logger getLog() {
         return log;
     }

@@ -4,9 +4,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
-import org.seed419.founddiamonds.EventInformation;
+import org.seed419.founddiamonds.BlockCounter;
 import org.seed419.founddiamonds.FoundDiamonds;
+import org.seed419.founddiamonds.Node;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.util.Prefix;
@@ -39,14 +41,19 @@ public class LightLevelHandler {
 
 
     private FoundDiamonds fd;
-
+    //TODO Refactor...this sucks.
 
     public LightLevelHandler(FoundDiamonds fd) {
         this.fd = fd;
     }
 
 
-    public boolean isValidLightLevel(EventInformation ei, BlockDamageEvent event) {
+    public void handleLightLevelMonitor(final BlockBreakEvent event, final Node node, final Player player) {
+
+    }
+
+
+    public boolean isValidLightLevel(BlockCounter ei, BlockDamageEvent event) {
         if (fd.getPermissions().hasPerm(ei.getPlayer(), "fd.monitor")) {
             if (fd.getLightLevelHandler().blockSeesNoLight(ei) && ei.getPlayer().getWorld().getEnvironment() != World.Environment.NETHER) {
                 event.setCancelled(true);
@@ -57,7 +64,7 @@ public class LightLevelHandler {
         return true;
     }
 
-    public void sendLightAdminMessage(EventInformation ei, int lightLevel) {
+    public void sendLightAdminMessage(BlockCounter ei, int lightLevel) {
         String lightAdminMessage = Prefix.getAdminPrefix() + " " + ChatColor.YELLOW + ei.getPlayer().getName() +
                 ChatColor.GRAY +" was denied mining " + ei.getColor() +
                 Format.getFormattedName(ei.getMaterial(), 1) + ChatColor.GRAY + " at" + " light level "
@@ -72,10 +79,10 @@ public class LightLevelHandler {
         }
     }
 
-    public boolean blockSeesNoLight(EventInformation ei) {
+    public boolean blockSeesNoLight(BlockCounter ei) {
         double percentage = Double.parseDouble(fd.getConfig().getString(Config.percentOfLightRequired).replaceAll("%", ""));
         double levelToDisableAt = percentage / 15.0;
-        int lightLevel = 0;
+        int lightLevel;
         int highestLevel = 0;
         for (BlockFace y : BlockFace.values()) {
             lightLevel = ei.getBlock().getRelative(y).getLightLevel();

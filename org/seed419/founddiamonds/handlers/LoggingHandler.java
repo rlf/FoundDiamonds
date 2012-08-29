@@ -3,8 +3,8 @@ package org.seed419.founddiamonds.handlers;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.seed419.founddiamonds.EventInformation;
 import org.seed419.founddiamonds.FoundDiamonds;
+import org.seed419.founddiamonds.Node;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Format;
 
@@ -79,9 +79,9 @@ public class LoggingHandler {
         }
     }
 
-    public void logLightLevelViolation(EventInformation ei,  int lightLevel) {
-        String lightLogMsg = "[" + getFormattedDate() + "]" + " " + ei.getPlayer().getName() + " was denied mining "
-                + Format.getFormattedName(ei.getMaterial(), 1) + " at" + " light level " +  lightLevel;
+    public void logLightLevelViolation(final Node node, final Player player, final int lightLevel) {
+        String lightLogMsg = "[" + getFormattedDate() + "]" + " " + player.getName() + " was denied mining "
+                + Format.getFormattedName(node.getMaterial(), 1) + " at" + " light level " +  lightLevel;
         try {
             PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fd.getFileHandler().getLogFile(), true)));
             pw.println(lightLogMsg);
@@ -92,30 +92,30 @@ public class LoggingHandler {
         }
     }
 
-    public void writeToCleanLog(EventInformation ei, String playerName) {
+    public void writeToCleanLog(final Node node, final int blockTotal, final String playerName) {
         String formattedDate = getFormattedDate();
         String message;
-        if (ei.getMaterial() == Material.GLOWING_REDSTONE_ORE || ei.getMaterial() == Material.REDSTONE_ORE) {
-            if (ei.getTotal() > 1) {
+        if (node.getMaterial() == Material.GLOWING_REDSTONE_ORE || node.getMaterial() == Material.REDSTONE_ORE) {
+            if (blockTotal > 1) {
                 message = fd.getConfig().getString(Config.bcMessage).replace("@Player@", playerName
-                ).replace("@Number@", String.valueOf(ei.getTotal())).replace("@BlockName@", "redstone ores");
+                ).replace("@Number@", String.valueOf(blockTotal)).replace("@BlockName@", "redstone ores");
             } else {
                 message = fd.getConfig().getString(Config.bcMessage).replace("@Player@", playerName
-                ).replace("@Number@", String.valueOf(ei.getTotal())).replace("@BlockName@", "redstone ore");
+                ).replace("@Number@", String.valueOf(blockTotal)).replace("@BlockName@", "redstone ore");
             }
-        } else if (ei.getMaterial() == Material.OBSIDIAN) {
+        } else if (node.getMaterial() == Material.OBSIDIAN) {
             message = fd.getConfig().getString(Config.bcMessage).replace("@Player@", playerName
-            ).replace("@Number@", String.valueOf(ei.getTotal())).replace("@BlockName@", "obsidian");
+            ).replace("@Number@", String.valueOf(blockTotal)).replace("@BlockName@", "obsidian");
         } else {
-            String blockName = Format.getFormattedName(ei.getMaterial(), ei.getTotal());
-            if (ei.getTotal() > 1) {
+            String blockName = Format.getFormattedName(node.getMaterial(), blockTotal);
+            if (blockTotal > 1) {
                 message = fd.getConfig().getString(Config.bcMessage).replace("@Player@", playerName
-                ).replace("@Number@", String.valueOf(ei.getTotal())).replace("@BlockName@", blockName +
-                        (ei.getMaterial() == Material.DIAMOND_ORE ? "s!" : "s"));
+                ).replace("@Number@", String.valueOf(blockTotal)).replace("@BlockName@", blockName +
+                        (node.getMaterial() == Material.DIAMOND_ORE ? "s!" : "s"));
             } else {
                 message = fd.getConfig().getString(Config.bcMessage).replace("@Player@", playerName
-                ).replace("@Number@", String.valueOf(ei.getTotal())).replace("@BlockName@", blockName +
-                        (ei.getMaterial() == Material.DIAMOND_ORE ? "!" : ""));
+                ).replace("@Number@", String.valueOf(blockTotal)).replace("@BlockName@", blockName +
+                        (node.getMaterial() == Material.DIAMOND_ORE ? "!" : ""));
             }
         }
         try {

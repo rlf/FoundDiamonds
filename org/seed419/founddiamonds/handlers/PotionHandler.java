@@ -8,6 +8,8 @@ import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Prefix;
 
+import java.util.HashMap;
+
 /**
  * Attribute Only (Public) License
  * Version 0.a3, July 11, 2011
@@ -36,13 +38,24 @@ public class PotionHandler {
 
 
     private FoundDiamonds fd;
-    //TODO Move potion hashmap into this class?
+    private final HashMap<String, Boolean> jumpPotion = new HashMap<String,Boolean>();
+
 
     public PotionHandler(FoundDiamonds fd) {
         this.fd = fd;
     }
 
-    public void handleRandomPotions(Player player, int randomNumber) {
+    public void handlePotions(final Player player) {
+        int randomInt = (int) (Math.random()*100);
+        if (randomInt <= fd.getConfig().getInt(Config.chanceToGetPotion)) {
+            int randomNumber = (int)(Math.random()*225);
+            if (randomNumber >= 0 && randomNumber <= 225) {
+                selectRandomPotion(player, randomNumber);
+            }
+        }
+    }
+
+    private void selectRandomPotion(Player player, int randomNumber) {
         PotionEffect potion;
         String potionMessage;
         int strength = fd.getConfig().getInt(Config.potionStrength);
@@ -80,7 +93,7 @@ public class PotionHandler {
                 if (!p.hasPotionEffect(potion.getType()) && fd.getWorldHandler().isEnabledWorld(p)) {
                     p.addPotionEffect(potion);
                     if (potion.getType() == PotionEffectType.JUMP) {
-                        fd.getPlayerDamageListener().addJumpPotionPlayer(p);
+                        jumpPotion.put(p.getName(), true);
                     }
                     p.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " " + potionMsg);
                 }
@@ -89,7 +102,7 @@ public class PotionHandler {
         } else {
             player.addPotionEffect(potion);
             if (potion.getType() == PotionEffectType.JUMP) {
-                fd.getPlayerDamageListener().addJumpPotionPlayer(player);
+                jumpPotion.put(player.getName(), true);
             }
             player.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " " + potionMsg);
         }
@@ -115,5 +128,12 @@ public class PotionHandler {
         }
     }
 
-
+    public boolean playerHasJumpPotion(final Player player) {
+        if (jumpPotion.containsKey(player.getName()) && jumpPotion.get(player.getName()) && player.hasPotionEffect(PotionEffectType.JUMP)) {
+            return true;
+        } else {
+            jumpPotion.put(player.getName(), false);
+            return false;
+        }
+    }
 }

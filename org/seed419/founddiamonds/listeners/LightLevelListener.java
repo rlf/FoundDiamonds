@@ -1,17 +1,14 @@
 package org.seed419.founddiamonds.listeners;
 
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.seed419.founddiamonds.EventInformation;
+import org.seed419.founddiamonds.BlockCounter;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.Node;
-import org.seed419.founddiamonds.file.Config;
-import org.seed419.founddiamonds.util.Prefix;
 
 /**
  * Attribute Only (Public) License
@@ -60,17 +57,7 @@ public class LightLevelListener implements Listener {
         if (fd.getPermissions().hasMonitorPerm(player)) {
             Node lightNode = Node.getNodeByMaterial(fd.getListHandler().getLightLevelBlocks(), mat);
             if (lightNode != null) {
-
-            }
-        }
-
-
-        if (fd.getPermissions().hasMonitorPerm(player)) {
-            Node adminNode = Node.getNodeByMaterial(fd.getListHandler().getAdminMessageBlocks(), mat);
-            if (adminNode != null) {
-                EventInformation adminEvent = new EventInformation(this, event, adminNode, true);
-                fd.getAdminMessageHandler().sendAdminMessage(adminEvent);
-                consoleReceived = true;
+                fd.getLightLevelHandler().
             }
         }
     }

@@ -2,8 +2,9 @@ package org.seed419.founddiamonds.handlers;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.seed419.founddiamonds.EventInformation;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.seed419.founddiamonds.FoundDiamonds;
+import org.seed419.founddiamonds.Node;
 import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.util.Prefix;
 
@@ -46,14 +47,14 @@ public class AdminMessageHandler {
     }
 
 
-    public void sendAdminMessage(EventInformation adminEvent) {
-        String adminMessage = Prefix.getAdminPrefix() + " " + ChatColor.YELLOW + adminEvent.getPlayer().getName() +
-                ChatColor.DARK_RED + " just found " + adminEvent.getColor() +
-                (adminEvent.getTotal() == 500 ? "over 500 " :String.valueOf(adminEvent.getTotal())) + " " +
-                Format.getFormattedName(adminEvent.getMaterial(), adminEvent.getTotal());
+    public void sendAdminMessage(final BlockBreakEvent event, final Node node, final Player player) {
+        final int blockTotal = fd.getBlockCounter().getTotalBlocks(event.getBlock());
+        String adminMessage = Prefix.getAdminPrefix() + " " + ChatColor.YELLOW + player.getName() +
+                ChatColor.DARK_RED + " just found " + node.getColor() + (blockTotal == 500 ? "over 500 " :
+                String.valueOf(blockTotal)) + " " + Format.getFormattedName(node.getMaterial(), blockTotal);
         fd.getServer().getConsoleSender().sendMessage(adminMessage);
         for (Player y : fd.getServer().getOnlinePlayers()) {
-            if (fd.getPermissions().hasPerm(y, "fd.admin") && y != adminEvent.getPlayer()) {
+            if (fd.getPermissions().hasPerm(y, "fd.admin") && y != player) {
                 y.sendMessage(adminMessage);
                 recievedAdminMessage.add(y.getName());
             }
