@@ -79,9 +79,10 @@ public class LoggingHandler {
         }
     }
 
-    public void logLightLevelViolation(final Node node, final Player player, final int lightLevel) {
-        String lightLogMsg = "[" + getFormattedDate() + "]" + " " + player.getName() + " was denied mining "
-                + Format.getFormattedName(node.getMaterial(), 1) + " at" + " light level " +  lightLevel;
+    public void logLightLevelViolation(final Node node, final Player player) {
+        String lightLogMsg = "[" + getFormattedDate() + "]" + " " + player.getName() + " mined "
+                + Format.getFormattedName(node.getMaterial(), 1) + " below " +  fd.getConfig().getString(Config.percentOfLightRequired) +
+                " light";
         try {
             PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fd.getFileHandler().getLogFile(), true)));
             pw.println(lightLogMsg);

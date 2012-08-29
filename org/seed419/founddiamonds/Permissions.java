@@ -93,6 +93,10 @@ public class Permissions {
         return hasPerm(sender, "fd.manage.world");
     }
 
+    public boolean hasAdminMessagePerm(CommandSender sender) {
+        return hasPerm(sender, "fd.admin");
+    }
+
     public void sendPermissionsMessage(CommandSender sender) {
         sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " You don't have permission to do that.");
         fd.getLog().warning(sender.getName() + " was denied access to a command.");

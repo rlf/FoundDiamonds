@@ -40,7 +40,6 @@ public class BlockDamageListener implements Listener {
         this.fd = fd;
     }
 
-
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockDamage(final BlockDamageEvent event) {
         if (event.getEventName().equalsIgnoreCase("FakeBlockBreakEvent")) { return; }

@@ -1,12 +1,10 @@
 package org.seed419.founddiamonds.handlers;
 
 import org.bukkit.ChatColor;
-import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
-import org.seed419.founddiamonds.BlockCounter;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.Node;
 import org.seed419.founddiamonds.file.Config;
@@ -41,61 +39,53 @@ public class LightLevelHandler {
 
 
     private FoundDiamonds fd;
-    //TODO Refactor...this sucks.
+
 
     public LightLevelHandler(FoundDiamonds fd) {
         this.fd = fd;
     }
 
 
-    public void handleLightLevelMonitor(final BlockBreakEvent event, final Node node, final Player player) {
-
-    }
-
-
-    public boolean isValidLightLevel(BlockCounter ei, BlockDamageEvent event) {
-        if (fd.getPermissions().hasPerm(ei.getPlayer(), "fd.monitor")) {
-            if (fd.getLightLevelHandler().blockSeesNoLight(ei) && ei.getPlayer().getWorld().getEnvironment() != World.Environment.NETHER) {
-                event.setCancelled(true);
-                ei.getPlayer().sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Mining in the dark is dangerous, place a torch!");
-                return false;
+    public void handleLightLevelMonitor(final BlockDamageEvent event, final Node node, final Player player) {
+        final Block block = event.getBlock();
+        if (blockSeesNoLight(block)) {
+            //This gives the potential x-rayer an idea that he's being watched...bad idea?
+            //player.sendMessage(ChatColor.RED + "Mining in the dark is dangerous, place a torch!");
+            //event.setCancelled(true);
+            if (fd.getConfig().getBoolean(Config.lightLevelAdminMessages)) {
+                sendLightAdminMessage(player, node);
+            }
+            if ((fd.getConfig().getBoolean(Config.logLightLevelViolations))) {
+                fd.getLoggingHandler().logLightLevelViolation(node, player);
             }
         }
-        return true;
+
     }
 
-    public void sendLightAdminMessage(BlockCounter ei, int lightLevel) {
-        String lightAdminMessage = Prefix.getAdminPrefix() + " " + ChatColor.YELLOW + ei.getPlayer().getName() +
-                ChatColor.GRAY +" was denied mining " + ei.getColor() +
-                Format.getFormattedName(ei.getMaterial(), 1) + ChatColor.GRAY + " at" + " light level "
-                + ChatColor.WHITE +  lightLevel;
+    public void sendLightAdminMessage(final Player player, final Node node) {
+        String lightAdminMessage = Prefix.getAdminPrefix() + " " + ChatColor.YELLOW + player.getName() +
+                ChatColor.GRAY +" was mining " + node.getColor() +
+                Format.getFormattedName(node.getMaterial(), 1) + ChatColor.GRAY + " below "
+                + ChatColor.WHITE + fd.getConfig().getString(Config.percentOfLightRequired) + " light";
         fd.getServer().getConsoleSender().sendMessage(lightAdminMessage);
         for (Player y : fd.getServer().getOnlinePlayers()) {
-            if (fd.getPermissions().hasPerm(y, "fd.admin")) {
-                if (y != ei.getPlayer()) {
+            if (fd.getPermissions().hasAdminManagementPerm(y)) {
+                if (y != player) {
                     y.sendMessage(lightAdminMessage);
                 }
             }
         }
     }
 
-    public boolean blockSeesNoLight(BlockCounter ei) {
+    public boolean blockSeesNoLight(final Block block) {
         double percentage = Double.parseDouble(fd.getConfig().getString(Config.percentOfLightRequired).replaceAll("%", ""));
         double levelToDisableAt = percentage / 15.0;
         int lightLevel;
         int highestLevel = 0;
         for (BlockFace y : BlockFace.values()) {
-            lightLevel = ei.getBlock().getRelative(y).getLightLevel();
-            if (lightLevel > highestLevel) {
-                highestLevel = lightLevel;
-            }
-            if (lightLevel > levelToDisableAt) {
-                return false;
-            }
-        }
-        sendLightAdminMessage(ei, highestLevel);
-        if ((fd.getConfig().getBoolean(Config.logLightLevelViolations))) {
-            fd.getLoggingHandler().logLightLevelViolation(ei, highestLevel);
+            lightLevel = block.getRelative(y).getLightLevel();
+            if (lightLevel > highestLevel) {highestLevel = lightLevel;}
+            if (lightLevel > levelToDisableAt) {return false;}
         }
         return true;
     }

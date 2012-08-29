@@ -55,6 +55,7 @@ public class AnnouncementListener implements Listener  {
         }
 
         // Worry about logging here.  Right now this only logs diamond ore
+        //TODO won't get logged if admin message block
         if (mat == Material.DIAMOND_ORE) {
             if (fd.getConfig().getBoolean(Config.logDiamondBreaks)) {
                 fd.getLoggingHandler().handleLogging(event.getPlayer(), event.getBlock(), false, false, false);

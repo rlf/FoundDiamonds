@@ -10,6 +10,7 @@ public class Config {
     /*Light Level*/
     public final static String percentOfLightRequired = "Found Diamonds Configuration.Light Level.Minimum amount of light required to mine blocks";
     public final static String lightLevelBlocks = "Found Diamonds Configuration.Light Level.Monitored Blocks";
+    public final static String lightLevelAdminMessages = "Found Diamonds Configuration.Light Level.Send violation admin messages";
 
     /*Traps*/
     public final static String kickOnTrapBreak = "Found Diamonds Configuration.Traps.Kick players on trap break";
