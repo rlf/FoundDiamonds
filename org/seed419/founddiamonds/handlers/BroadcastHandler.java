@@ -61,7 +61,7 @@ public class BroadcastHandler {
     private void broadcastFoundBlock(final Player player, final Node node, final int blockTotal) {
         String matName = Format.getFormattedName(node.getMaterial(), blockTotal);
         String message = fd.getConfig().getString(Config.bcMessage).replace("@Prefix@", Prefix.getChatPrefix() + node.getColor()).replace("@Player@",
-                getBroadcastName(player) +  (fd.getConfig().getBoolean(Config.useOreColors) ? node : "")).replace("@Number@",
+                getBroadcastName(player) + (fd.getConfig().getBoolean(Config.useOreColors) ? node.getColor() : "")).replace("@Number@",
                 (blockTotal) == 500 ? "over 500" :String.valueOf(blockTotal)).replace("@BlockName@", matName);
         String formatted = PluginUtils.customTranslateAlternateColorCodes('&', message);
         fd.getServer().getConsoleSender().sendMessage(formatted);

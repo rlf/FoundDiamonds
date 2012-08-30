@@ -1,6 +1,7 @@
 package org.seed419.founddiamonds.handlers;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -9,7 +10,8 @@ import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.Node;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Format;
-import org.seed419.founddiamonds.util.Prefix;
+
+import java.util.HashSet;
 
 /**
  * Attribute Only (Public) License
@@ -39,6 +41,7 @@ public class LightLevelHandler {
 
 
     private FoundDiamonds fd;
+    private HashSet<Location> announcedLightBlocks = new HashSet<Location>();
 
 
     public LightLevelHandler(FoundDiamonds fd) {
@@ -48,10 +51,14 @@ public class LightLevelHandler {
 
     public void handleLightLevelMonitor(final BlockDamageEvent event, final Node node, final Player player) {
         final Block block = event.getBlock();
-        if (blockSeesNoLight(block)) {
+        final Location loc = event.getBlock().getLocation();
+        if (!announcedLightBlocks.contains(loc) && blockSeesNoLight(block)) {
             //This gives the potential x-rayer an idea that he's being watched...bad idea?
-            //player.sendMessage(ChatColor.RED + "Mining in the dark is dangerous, place a torch!");
-            //event.setCancelled(true);
+            announcedLightBlocks.add(loc);
+            if (!fd.getConfig().getBoolean(Config.silentMode)) {
+                player.sendMessage(ChatColor.RED + "Mining in the dark is dangerous, place a torch!");
+                event.setCancelled(true);
+            }
             if (fd.getConfig().getBoolean(Config.lightLevelAdminMessages)) {
                 sendLightAdminMessage(player, node);
             }
@@ -63,7 +70,7 @@ public class LightLevelHandler {
     }
 
     public void sendLightAdminMessage(final Player player, final Node node) {
-        String lightAdminMessage = Prefix.getAdminPrefix() + " " + ChatColor.YELLOW + player.getName() +
+        String lightAdminMessage = ChatColor.YELLOW + player.getName() +
                 ChatColor.GRAY +" was mining " + node.getColor() +
                 Format.getFormattedName(node.getMaterial(), 1) + ChatColor.GRAY + " below "
                 + ChatColor.WHITE + fd.getConfig().getString(Config.percentOfLightRequired) + " light";

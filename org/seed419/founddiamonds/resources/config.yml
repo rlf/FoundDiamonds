@@ -5,6 +5,7 @@ Found Diamonds Configuration:
   Light Level:
     Send violation admin messages: false
     Minimum amount of light required to mine blocks: 10%
+    Silent Mode: true
     Monitored Blocks:
   Traps:
     Kick players on trap break: true
