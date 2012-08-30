@@ -69,13 +69,13 @@ public class MenuHandler {
         sender.sendMessage(ChatColor.RED + "    items" + ChatColor.WHITE + " - Random items for finding diamonds");
         sender.sendMessage(ChatColor.RED + "    spells" + ChatColor.WHITE + " - Random spells for finding diamonds");
         sender.sendMessage(ChatColor.RED + "    cleanlog" + ChatColor.WHITE + " - Clean log (all ore announcements)");
-        sender.sendMessage("Type /fd toggle 2 to read the next page");
+        //sender.sendMessage("Type /fd toggle 2 to read the next page");
     }
 
-    public void showToggle2(CommandSender sender) {
+/*    public void showToggle2(CommandSender sender) {
         sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Toggle Options 2/" + togglePages + "]");
         sender.sendMessage(ChatColor.RED + "    debug" + ChatColor.WHITE + " - Toggle debug output to the console");
-    }
+    }*/
 
     public void showConfig(FoundDiamonds fd, CommandSender sender) {
         sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Configuration 1/" + configPages + "]");
@@ -95,7 +95,7 @@ public class MenuHandler {
         sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Configuration 2/" + configPages + "]");
         sender.sendMessage(ChatColor.RED + "    Disable in creative mode: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.disableInCreative)));
         sender.sendMessage(ChatColor.RED + "    Clean Log: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.cleanLog)));
-        sender.sendMessage(ChatColor.RED + "    Debug Mode: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.debug)));
+        //sender.sendMessage(ChatColor.RED + "    Debug Mode: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.debug)));
         sender.sendMessage(ChatColor.RED + "    Light Level blocks disabling at " + ChatColor.AQUA + fd.getConfig().getString(Config.percentOfLightRequired) + ChatColor.RED + " light");
         sender.sendMessage(ChatColor.RED + "    Use player nicknames: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.useNick)));
         sender.sendMessage(ChatColor.RED + "    Give OPs all permissions: " +  getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.opsAsFDAdmin)));

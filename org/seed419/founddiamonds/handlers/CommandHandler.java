@@ -64,18 +64,6 @@ public class CommandHandler implements CommandExecutor {
                     } else {
                         fd.getPermissions().sendPermissionsMessage(sender);
                     }
-                } else if (arg.equalsIgnoreCase("debug")) {
-                    if (fd.getPermissions().hasTogglePerm(sender)) {
-                        if (args.length == 2) {
-                            if (args[1].equalsIgnoreCase("2")) {
-                                fd.getMenuHandler().showConfig2(fd, sender);
-                            }
-                        } else {
-                            fd.getMenuHandler().showConfig(fd, sender);
-                        }
-                    } else {
-                        fd.getPermissions().sendPermissionsMessage(sender);
-                    }
                 } else if (arg.equalsIgnoreCase("light")) {
                     if (fd.getPermissions().hasLightManagementPerm(sender)) {
                         fd.getMenuHandler().handleLightMenu(fd, sender, args);
@@ -191,7 +179,7 @@ public class CommandHandler implements CommandExecutor {
             fd.getConfig().set(Config.debug, !fd.getConfig().getBoolean(Config.debug));
             fd.getMenuHandler().printSaved(fd, sender);
         } else if (arg.equalsIgnoreCase("2")) {
-            fd.getMenuHandler().showToggle2(sender);
+            //fd.getMenuHandler().showToggle2(sender);
         } else {
             sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Argument '" + arg + "' unrecognized.");
             sender.sendMessage(ChatColor.RED + "See '/fd toggle' for the list of valid arguments.");

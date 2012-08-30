@@ -91,17 +91,16 @@ public class FoundDiamonds extends JavaPlugin {
     Prevented setting traps with really nonsense stuff like lava, sand, torches, etc
     Removed logging commands to console because bukkit apparently does this natively now.
     Removed @prefix@ from the default config.  It seems a bit excessive...(although it will still work if you want it)
-    Organized Main class with 3 stages to assist in organized development.
-    Fixed triggering trap blocks from crashing the client when kicked.
-    Traps, broadcasts, and admin messages have been tested and are working.
+    Fixed triggering trap blocks from crashing the client when kicked (although that's pretty funny actually)
+    Added silent mode for light level (doesn't let the player know they're being watched or cancel the event!)
+    Light level admin messages now have an option and can't be spammed. (Well, not the same block)
     */
 
 
    /*
    Test:
-    Light level - mcMMO exploit - material data saving in files (bet that doesn't work)
+    material data saving in files (bet that doesn't work)
     Items and potions for single person,
-    If a block is both broadcasted and using admin messages, the total will be incorrectly reported.  Is this an issue?
     */
 
     @Override
