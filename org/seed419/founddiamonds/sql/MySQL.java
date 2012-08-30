@@ -1,6 +1,8 @@
 package org.seed419.founddiamonds.sql;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.command.CommandSender;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.file.Config;
 
@@ -51,27 +53,6 @@ public class MySQL {
                 + "`z` int(32) signed NOT NULL DEFAULT '0',"
                 + "PRIMARY KEY (`world`,`x`,`y`,`z`)) ENGINE=MyISAM DEFAULT CHARSET=latin1");
     }
-/*
-    public void updateUser(BlockCounter ei) {
-        if (isConnected()) {
-            try {
-                Statement s = connection.createStatement();
-                ResultSet rs = s.executeQuery("SELECT * FROM " + prefix + "_blocks WHERE player='" + ei.getPlayer().getName() + "'");
-                String type = getBlockName(ei);
-                if (rs.next()) {
-                    int current = rs.getInt(type);
-                    s = connection.createStatement();
-                    s.executeUpdate("UPDATE " + prefix + "_blocks SET " + type + "=" + (current+ei.getTotal()) + " WHERE player='" + ei.getPlayer().getName() + "'");
-                } else {
-                    writeToSQL("INSERT INTO " + prefix + "_blocks (player," + type + ") VALUES('" + ei.getPlayer().getName() + "'," + ei.getTotal() + ")");
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        } else {
-            getConnection();
-        }
-    }*/
 
     public boolean blockWasPlaced(Location loc) {
         if (isConnected()) {
@@ -161,70 +142,15 @@ public class MySQL {
             return false;
         }
     }
-/*
 
-    public void handleTop(CommandSender sender, String ore) {
+    public void clearPlaced(CommandSender sender) {
         if (isConnected()) {
-            try {
-                Statement s = connection.createStatement();
-                ResultSet r = s.executeQuery("SELECT * FROM " + prefix + "_blocks ORDER BY "+ore+" DESC LIMIT 10");
-                sender.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [Top "+ore+"]");
-                int counter = 1;
-                while (r.next()) {
-                    sender.sendMessage(" " + counter + ". " + ChatColor.GREEN +  r.getInt(ore)
-                            + " - " + ChatColor.WHITE +   r.getString("player"));
-                    counter++;
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            String delete = "DROP TABLE " + prefix + "_placed";
+            writeToSQL(delete);
+            sender.sendMessage(ChatColor.AQUA + "Placed blocks table dropped from SQL.");
+            createTables();
         } else {
             getConnection();
         }
     }
-
-    private String getBlockName(BlockCounter ei) {
-        switch (ei.getMaterial()) {
-            case DIAMOND_ORE:
-                return "diamond";
-            case REDSTONE_ORE:
-            case GLOWING_REDSTONE_ORE:
-                return "redstone";
-            case LAPIS_ORE:
-                return "lapis";
-            case COAL_ORE:
-                return "coal";
-            case IRON_ORE:
-                return "iron";
-            case GOLD_ORE:
-                return "gold";
-            default:
-                log.severe("Type doesn't exist");
-                return null;
-        }
-    }
-
-    public void printStats(Player player) {
-        if (isConnected()) {
-            try {
-                Statement s = connection.createStatement();
-                ResultSet r = s.executeQuery("SELECT * FROM " + prefix + "_blocks WHERE player='" + player.getName() + "'");
-                    player.sendMessage(FoundDiamonds.getPrefix() + ChatColor.AQUA + " [" + player.getName() + "'s Stats]");
-                if (r.next()) {
-                    player.sendMessage(ChatColor.RED + "Diamond: " + ChatColor.AQUA + r.getInt("diamond"));
-                    player.sendMessage(ChatColor.RED + "Gold: " + ChatColor.GOLD + r.getInt("gold"));
-                    player.sendMessage(ChatColor.RED + "Lapis: " + ChatColor.BLUE + r.getInt("lapis"));
-                    player.sendMessage(ChatColor.RED + "Redstone: " + ChatColor.DARK_RED + r.getInt("redstone"));
-                    player.sendMessage(ChatColor.RED + "Iron: " + ChatColor.GRAY + r.getInt("iron"));
-                    player.sendMessage(ChatColor.RED + "Coal: " + ChatColor.DARK_GRAY + r.getInt("coal"));
-                } else {
-                    player.sendMessage(ChatColor.RED + "You don't have any stats yet!");
-                }
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        } else {
-            getConnection();
-        }
-    }*/
 }

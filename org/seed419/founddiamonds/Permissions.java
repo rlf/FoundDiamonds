@@ -58,6 +58,7 @@ public class Permissions {
     public boolean hasMonitorPerm(CommandSender sender) {
         return hasPerm(sender, "fd.monitor");
     }
+
     public boolean hasAdminManagementPerm(CommandSender sender) {
         return hasPerm(sender, "fd.manage.admin.add") || hasPerm(sender, "fd.manage.admin.remove")
                 || hasPerm(sender, "fd.manage.admin.list");

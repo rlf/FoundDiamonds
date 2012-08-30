@@ -8,8 +8,6 @@ import org.seed419.founddiamonds.Node;
 import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.util.Prefix;
 
-import java.util.HashSet;
-
 /**
  * Attribute Only (Public) License
  * Version 0.a3, July 11, 2011
@@ -38,8 +36,6 @@ public class AdminMessageHandler {
 
 
     private FoundDiamonds fd;
-    private HashSet<String> recievedAdminMessage = new HashSet<String>();
-
 
 
     public AdminMessageHandler(FoundDiamonds fd) {
@@ -54,14 +50,9 @@ public class AdminMessageHandler {
                 String.valueOf(blockTotal)) + " " + Format.getFormattedName(node.getMaterial(), blockTotal);
         fd.getServer().getConsoleSender().sendMessage(adminMessage);
         for (Player y : fd.getServer().getOnlinePlayers()) {
-            if (fd.getPermissions().hasPerm(y, "fd.admin") && y != player) {
+            if (fd.getPermissions().hasAdminMessagePerm(y) && y != player) {
                 y.sendMessage(adminMessage);
-                recievedAdminMessage.add(y.getName());
             }
         }
-    }
-
-    public HashSet<String> getRecievedAdminMessage() {
-        return recievedAdminMessage;
     }
 }

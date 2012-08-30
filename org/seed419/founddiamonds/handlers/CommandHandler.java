@@ -52,6 +52,16 @@ public class CommandHandler implements CommandExecutor {
                         fd.getPermissions().sendPermissionsMessage(sender);
                     }
                     return true;
+                } else if (arg.equalsIgnoreCase("clearplaced")) {
+                    if (fd.getPermissions().hasPerm(sender, "fd.*")) {
+                        if (fd.getConfig().getBoolean(Config.mysqlEnabled)) {
+                            fd.getMySQL().clearPlaced(sender);
+                        }
+                        fd.getFileHandler().deletePlaced(sender);
+                    } else {
+                        fd.getPermissions().sendPermissionsMessage(sender);
+                    }
+                    return true;
                 } else if (arg.equalsIgnoreCase("config")) {
                     if (fd.getPermissions().hasConfigPerm(sender)) {
                         if (args.length == 2) {

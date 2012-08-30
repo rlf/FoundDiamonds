@@ -94,13 +94,13 @@ public class FoundDiamonds extends JavaPlugin {
     Fixed triggering trap blocks from crashing the client when kicked (although that's pretty funny actually)
     Added silent mode for light level (doesn't let the player know they're being watched or cancel the event!)
     Light level admin messages now have an option and can't be spammed. (Well, not the same block)
+    Added a command to forget placed blocks for easier testing and debugging (requires fd.* or OP)
     */
 
 
    /*
    Test:
     material data saving in files (bet that doesn't work)
-    Items and potions for single person,
     */
 
     @Override

@@ -130,6 +130,8 @@ public class Format {
             matName = "netherrack";
         } else if (mat == Material.SOUL_SAND) {
             matName = "soul sand";
+        } else if (mat == Material.COOKED_FISH) {
+            matName = "cooked fish";
         } else if (mat == Material.BEDROCK) {
             matName = "bedrock";
         } else if (mat == Material.SOIL) {

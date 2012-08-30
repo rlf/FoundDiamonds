@@ -62,6 +62,6 @@ public class AnnouncementListener implements Listener  {
             }
         }
         //reset message checks after successful event
-        fd.getAdminMessageHandler().getRecievedAdminMessage().clear();
+        //fd.getAdminMessageHandler().getRecievedAdminMessage().clear();
     }
 }

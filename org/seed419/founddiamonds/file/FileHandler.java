@@ -1,6 +1,8 @@
 package org.seed419.founddiamonds.file;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.command.CommandSender;
 import org.seed419.founddiamonds.FoundDiamonds;
 
 import java.io.*;
@@ -60,10 +62,12 @@ public class FileHandler {
         }
         fd.saveConfig();
         if (fd.getConfig().getBoolean(Config.cleanLog)) {
-            try {
-                verfiyFileCreation(cleanLog.createNewFile(), cleanLog);
-            } catch (IOException ex) {
-                fd.getLog().severe(MessageFormat.format("Unable to create log file, {0}", ex));
+            if (!cleanLog.exists()) {
+                try {
+                    verfiyFileCreation(cleanLog.createNewFile(), cleanLog);
+                } catch (IOException ex) {
+                    fd.getLog().severe(MessageFormat.format("Unable to create log file, {0}", ex));
+                }
             }
         }
     }
@@ -159,6 +163,18 @@ public class FileHandler {
         } else {
             fd.getLog().warning("Couldn't save blocks to files!");
             fd.getLog().warning("You could try deleting .placed and .traps if they exist");
+        }
+    }
+
+    public void deletePlaced(CommandSender sender) {
+        if (placed.exists()) {
+            boolean success = placed.delete();
+            if (success) {
+                sender.sendMessage(ChatColor.AQUA + "Placed block file deleted.");
+            } else {
+                sender.sendMessage(ChatColor.DARK_RED + "Unable to delete .placed file :(");
+                sender.sendMessage(ChatColor.DARK_RED + "Try stopping the server and doing it manually.");
+            }
         }
     }
 

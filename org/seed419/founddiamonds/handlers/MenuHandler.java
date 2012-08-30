@@ -12,7 +12,7 @@ public class MenuHandler {
 
 
     private FoundDiamonds fd;
-    private final static int togglePages = 2;
+    private final static int togglePages = 1;
     private final static int configPages = 2;
 
 
@@ -30,6 +30,9 @@ public class MenuHandler {
             }
             if (fd.getPermissions().hasBroadcastManagementPerm(sender)) {
                 sender.sendMessage(ChatColor.RED + "    bc" + ChatColor.WHITE + " - Manage broadcasted blocks");
+            }
+            if (fd.getPermissions().hasBroadcastManagementPerm(sender)) {
+                sender.sendMessage(ChatColor.RED + "    clearplaced" + ChatColor.WHITE + " - Forget placed blocks");
             }
             if (fd.getPermissions().hasConfigPerm(sender)) {
                 sender.sendMessage(ChatColor.RED + "    config" + ChatColor.WHITE + " - View the configuration file");
@@ -59,7 +62,7 @@ public class MenuHandler {
     }
 
     public void showToggle(CommandSender sender) {
-        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Toggle Options 1/" + togglePages + "]");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Toggle Options]");
         sender.sendMessage(ChatColor.RED + "    ops" + ChatColor.WHITE + " - OPs have all permissions");
         sender.sendMessage(ChatColor.RED + "    kick" + ChatColor.WHITE + " - Kick players on trap breaks");
         sender.sendMessage(ChatColor.RED + "    ban" + ChatColor.WHITE + " - Ban players on trap breaks");
@@ -69,13 +72,7 @@ public class MenuHandler {
         sender.sendMessage(ChatColor.RED + "    items" + ChatColor.WHITE + " - Random items for finding diamonds");
         sender.sendMessage(ChatColor.RED + "    spells" + ChatColor.WHITE + " - Random spells for finding diamonds");
         sender.sendMessage(ChatColor.RED + "    cleanlog" + ChatColor.WHITE + " - Clean log (all ore announcements)");
-        //sender.sendMessage("Type /fd toggle 2 to read the next page");
     }
-
-/*    public void showToggle2(CommandSender sender) {
-        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Toggle Options 2/" + togglePages + "]");
-        sender.sendMessage(ChatColor.RED + "    debug" + ChatColor.WHITE + " - Toggle debug output to the console");
-    }*/
 
     public void showConfig(FoundDiamonds fd, CommandSender sender) {
         sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Configuration 1/" + configPages + "]");
@@ -259,12 +256,6 @@ public class MenuHandler {
         sender.sendMessage(ChatColor.DARK_GREEN + " @website:  " + ChatColor.GOLD + "http://dev.bukkit.org/server-mods/founddiamonds/");
     }
 
-    public void toggleDebug(FoundDiamonds fd, CommandSender sender) {
-        boolean current = !fd.getConfig().getBoolean(Config.debug);
-        fd.getConfig().set(Config.debug, current);
-        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Debug mode is " + getPrettyMenuBoolean(current));
-    }
-
     private String getPrettyMenuBoolean(Boolean b) {
         return (b ? ChatColor.DARK_GREEN + "[On]" : ChatColor.DARK_RED + "[Off]");
     }
@@ -273,7 +264,5 @@ public class MenuHandler {
         fd.saveConfig();
         sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " Configuration updated.");
     }
-
-
 
 }

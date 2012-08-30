@@ -66,10 +66,8 @@ public class BroadcastHandler {
         String formatted = PluginUtils.customTranslateAlternateColorCodes('&', message);
         fd.getServer().getConsoleSender().sendMessage(formatted);
         for (Player x : fd.getServer().getOnlinePlayers()) {
-            if (fd.getPermissions().hasPerm(x, "fd.broadcast") && fd.getWorldHandler().isEnabledWorld(x)) {
-                if (!fd.getAdminMessageHandler().getRecievedAdminMessage().contains(x.getName())) {
-                    x.sendMessage(formatted);
-                }
+            if (fd.getPermissions().hasBroadcastPerm(x) && fd.getWorldHandler().isEnabledWorld(x)) {
+                x.sendMessage(formatted);
             }
         }
         if (fd.getConfig().getBoolean(Config.cleanLog)) {
