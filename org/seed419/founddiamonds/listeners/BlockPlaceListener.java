@@ -1,12 +1,12 @@
 package org.seed419.founddiamonds.listeners;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.seed419.founddiamonds.FoundDiamonds;
-import org.seed419.founddiamonds.Node;
 import org.seed419.founddiamonds.file.Config;
 
 import java.util.HashSet;
@@ -65,23 +65,10 @@ public class BlockPlaceListener implements Listener {
     }
 
     public boolean isMonitoredBlock(BlockPlaceEvent event) {
-        for (Node x : fd.getListHandler().getBroadcastedBlocks()) {
-            if (x.getMaterial() == event.getBlockPlaced().getType()) {
-                return true;
-            }
-        }
-        for (Node x : fd.getListHandler().getAdminMessageBlocks()) {
-            if (x.getMaterial() == event.getBlockPlaced().getType()) {
-                return true;
-            }
-        }
-
-        for (Node x : fd.getListHandler().getLightLevelBlocks()) {
-            if (x.getMaterial() == event.getBlockPlaced().getType()) {
-                return true;
-            }
-        }
-        return false;
+        final Material mat = event.getBlock().getType();
+        return fd.getMapHandler().getAdminMessageBlocks().containsKey(mat) ||
+                fd.getMapHandler().getBroadcastedBlocks().containsKey(mat) ||
+                fd.getMapHandler().getLightLevelBlocks().containsKey(mat);
     }
 
     public HashSet<Location> getFlatFilePlacedBlocks() {

@@ -2,12 +2,12 @@ package org.seed419.founddiamonds.handlers;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.seed419.founddiamonds.FoundDiamonds;
-import org.seed419.founddiamonds.Node;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Format;
 
@@ -49,30 +49,35 @@ public class LightLevelHandler {
     }
 
 
-    public void handleLightLevelMonitor(final BlockDamageEvent event, final Node node, final Player player) {
+    public void handleLightLevelMonitor(final BlockDamageEvent event, final Material mat, final Player player) {
         final Block block = event.getBlock();
         final Location loc = event.getBlock().getLocation();
-        if (!announcedLightBlocks.contains(loc) && blockSeesNoLight(block)) {
-            //This gives the potential x-rayer an idea that he's being watched...bad idea?
-            announcedLightBlocks.add(loc);
+        if (blockSeesNoLight(block)) {
+            if (!announcedLightBlocks.contains(loc)) {
+                for (Location x : fd.getBlockCounter().getAllLikeBlockLocations(event.getBlock())) {
+                     announcedLightBlocks.add(x);
+                }
+                if (!fd.getConfig().getBoolean(Config.silentMode)) {
+                    player.sendMessage(ChatColor.RED + "Mining in the dark is dangerous, place a torch!");
+                }
+                if (fd.getConfig().getBoolean(Config.lightLevelAdminMessages)) {
+                    sendLightAdminMessage(player, mat);
+                }
+                if ((fd.getConfig().getBoolean(Config.logLightLevelViolations))) {
+                        fd.getLoggingHandler().logLightLevelViolation(mat, player);
+                }
+            }
             if (!fd.getConfig().getBoolean(Config.silentMode)) {
-                player.sendMessage(ChatColor.RED + "Mining in the dark is dangerous, place a torch!");
                 event.setCancelled(true);
-            }
-            if (fd.getConfig().getBoolean(Config.lightLevelAdminMessages)) {
-                sendLightAdminMessage(player, node);
-            }
-            if ((fd.getConfig().getBoolean(Config.logLightLevelViolations))) {
-                fd.getLoggingHandler().logLightLevelViolation(node, player);
             }
         }
 
     }
 
-    public void sendLightAdminMessage(final Player player, final Node node) {
+    public void sendLightAdminMessage(final Player player, final Material mat) {
         String lightAdminMessage = ChatColor.YELLOW + player.getName() +
-                ChatColor.GRAY +" was mining " + node.getColor() +
-                Format.getFormattedName(node.getMaterial(), 1) + ChatColor.GRAY + " below "
+                ChatColor.GRAY +" is mining " + fd.getMapHandler().getLightLevelBlocks().get(mat) +
+                Format.getFormattedName(mat, 1) + ChatColor.GRAY + " below "
                 + ChatColor.WHITE + fd.getConfig().getString(Config.percentOfLightRequired) + " light";
         fd.getServer().getConsoleSender().sendMessage(lightAdminMessage);
         for (Player y : fd.getServer().getOnlinePlayers()) {
@@ -95,6 +100,12 @@ public class LightLevelHandler {
             if (lightLevel > levelToDisableAt) {return false;}
         }
         return true;
+    }
+
+    public void checkAndClearLightLevelLocation(Location loc) {
+        if(announcedLightBlocks.contains(loc)) {
+            announcedLightBlocks.remove(loc);
+        }
     }
 
 }

@@ -6,7 +6,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.file.Config;
-import org.seed419.founddiamonds.util.Prefix;
 
 import java.util.HashMap;
 
@@ -95,7 +94,7 @@ public class PotionHandler {
                     if (potion.getType() == PotionEffectType.JUMP) {
                         jumpPotion.put(p.getName(), true);
                     }
-                    p.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " " + potionMsg);
+                    p.sendMessage(ChatColor.DARK_RED + potionMsg);
                 }
             }
             sendPotionMessageToConsole(potion);
@@ -104,7 +103,7 @@ public class PotionHandler {
             if (potion.getType() == PotionEffectType.JUMP) {
                 jumpPotion.put(player.getName(), true);
             }
-            player.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " " + potionMsg);
+            player.sendMessage(ChatColor.DARK_RED + potionMsg);
         }
     }
 
