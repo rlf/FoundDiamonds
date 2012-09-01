@@ -14,29 +14,30 @@ import org.seed419.founddiamonds.sql.MySQL;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-/*  Attribute Only (Public) License
-        Version 0.a3, July 11, 2011
-
-    Copyright (C) 2012 Blake Bartenbach <seed419@gmail.com> (@seed419)
-
-    Anyone is allowed to copy and distribute verbatim or modified
-    copies of this license document and altering is allowed as long
-    as you attribute the author(s) of this license document / files.
-
-    ATTRIBUTE ONLY PUBLIC LICENSE
-    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
-
-      1. Attribute anyone attached to the license document.
-         * Do not remove pre-existing attributes.
-
-         Plausible attribution methods:
-            1. Through comment blocks.
-            2. Referencing on a site, wiki, or about page.
-
-      2. Do whatever you want as long as you don't invalidate 1.
-
-
-@license AOL v.a3 <http://aol.nexua.org>*/
+/**
+ * Attribute Only (Public) License
+ * Version 0.a3, July 11, 2011
+ * <p/>
+ * Copyright (C) 2012 Blake Bartenbach <seed419@gmail.com> (@seed419)
+ * <p/>
+ * Anyone is allowed to copy and distribute verbatim or modified
+ * copies of this license document and altering is allowed as long
+ * as you attribute the author(s) of this license document / files.
+ * <p/>
+ * ATTRIBUTE ONLY PUBLIC LICENSE
+ * TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+ * <p/>
+ * 1. Attribute anyone attached to the license document.
+ * Do not remove pre-existing attributes.
+ * <p/>
+ * Plausible attribution methods:
+ * 1. Through comment blocks.
+ * 2. Referencing on a site, wiki, or about page.
+ * <p/>
+ * 2. Do whatever you want as long as you don't invalidate 1.
+ *
+ * @license AOL v.a3 <http://aol.nexua.org>
+ */
 
 public class FoundDiamonds extends JavaPlugin {
 
@@ -44,7 +45,6 @@ public class FoundDiamonds extends JavaPlugin {
     private Logger log;
     private final BlockPlaceListener blockPlaceListener = new BlockPlaceListener(this);
     private final AnnouncementListener blockBreakListener = new AnnouncementListener(this);
-    private final BlockDamageListener blockDamageListener = new BlockDamageListener(this);
     private final PlayerDamageListener playerDamageListener = new PlayerDamageListener(this);
     private final PistonListener pistonListener = new PistonListener(this);
     private final TrapListener trapListener = new TrapListener(this);
@@ -54,7 +54,7 @@ public class FoundDiamonds extends JavaPlugin {
     private final LightLevelHandler lightLevelHandler = new LightLevelHandler(this);
     private final FileUtils fileUtils = new FileUtils(this);
     private final MySQL mysql = new MySQL(this);
-    private final ListHandler listHandler = new ListHandler(this);
+    private final MapHandler mapHandler = new MapHandler(this);
     private final Permissions permissions = new Permissions(this);
     private final WorldHandler worldHandler = new WorldHandler(this);
     private final LoggingHandler loggingHandler = new LoggingHandler(this);
@@ -64,7 +64,6 @@ public class FoundDiamonds extends JavaPlugin {
     private final ItemHandler itemHandler = new ItemHandler(this);
     private final MenuHandler menuHandler = new MenuHandler(this);
     private final BlockCounter blockTotal = new BlockCounter(this);
-    private final MapHandler mapHandler = new MapHandler(this);
 
     /*
     Bugs:
@@ -72,11 +71,8 @@ public class FoundDiamonds extends JavaPlugin {
 
    /*
    TODO:
-    Fix nodes for files.
     MenuHandler set area?
-    Is there a point to putting trap blocks in SQL?
     Is cleanlogging in SQL a popular request?
-    Implement Item IDs as an acceptable form of entering blocks
     */
 
    /*
@@ -95,12 +91,13 @@ public class FoundDiamonds extends JavaPlugin {
     Added silent mode for light level (doesn't let the player know they're being watched or cancel the event!)
     Light level admin messages now have an option and can't be spammed. (Well, not the same block)
     Added a command to forget placed blocks for easier testing and debugging (requires fd.* or OP)
+    Removed material data idea IE 54:3 because there's not a high demand for it and there's no easy way to do this.
     */
 
 
    /*
    Test:
-    material data saving in files (bet that doesn't work)
+
     */
 
     @Override
@@ -109,7 +106,7 @@ public class FoundDiamonds extends JavaPlugin {
         fileHandler.initFileVariables();
         fileHandler.checkFiles();
         worldHandler.checkWorlds();
-        listHandler.loadAllBlocks();
+        mapHandler.loadAllBlocks();
         getCommand("fd").setExecutor(new CommandHandler(this));
         registerEvents();
         startMetrics();
@@ -129,7 +126,6 @@ public class FoundDiamonds extends JavaPlugin {
         pm.registerEvents(playerDamageListener, this);
         pm.registerEvents(blockBreakListener, this);
         pm.registerEvents(blockPlaceListener, this);
-        pm.registerEvents(blockDamageListener, this);
         pm.registerEvents(pistonListener, this);
         pm.registerEvents(trapListener, this);
         pm.registerEvents(lightLevelListener, this);
@@ -163,10 +159,6 @@ public class FoundDiamonds extends JavaPlugin {
         return worldHandler;
     }
 
-    public PlayerDamageListener getPlayerDamageListener() {
-        return playerDamageListener;
-    }
-
     public FileHandler getFileHandler() {
         return fileHandler;
     }
@@ -183,8 +175,8 @@ public class FoundDiamonds extends JavaPlugin {
         return menuHandler;
     }
 
-    public ListHandler getListHandler() {
-        return listHandler;
+    public MapHandler getMapHandler() {
+        return mapHandler;
     }
 
     public BroadcastHandler getBroadcastHandler() {

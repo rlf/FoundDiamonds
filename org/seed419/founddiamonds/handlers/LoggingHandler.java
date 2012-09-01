@@ -4,9 +4,9 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.seed419.founddiamonds.FoundDiamonds;
-import org.seed419.founddiamonds.Node;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Format;
+import org.seed419.founddiamonds.util.Prefix;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -49,7 +49,6 @@ public class LoggingHandler {
         this.fd = fd;
     }
 
-
     public void handleLogging(Player player, Block block, boolean trapBlock, boolean kicked, boolean banned) {
         try {
             PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fd.getFileHandler().getLogFile(), true)));
@@ -79,9 +78,9 @@ public class LoggingHandler {
         }
     }
 
-    public void logLightLevelViolation(final Node node, final Player player) {
+    public void logLightLevelViolation(final Material mat, final Player player) {
         String lightLogMsg = "[" + getFormattedDate() + "]" + " " + player.getName() + " mined "
-                + Format.getFormattedName(node.getMaterial(), 1) + " below " +  fd.getConfig().getString(Config.percentOfLightRequired) +
+                + Format.getFormattedName(mat, 1) + " below " +  fd.getConfig().getString(Config.percentOfLightRequired) +
                 " light";
         try {
             PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fd.getFileHandler().getLogFile(), true)));
@@ -93,32 +92,11 @@ public class LoggingHandler {
         }
     }
 
-    public void writeToCleanLog(final Node node, final int blockTotal, final String playerName) {
+    public void writeToCleanLog(final String matName, final int blockTotal, final String playerName) {
         String formattedDate = getFormattedDate();
-        String message;
-        if (node.getMaterial() == Material.GLOWING_REDSTONE_ORE || node.getMaterial() == Material.REDSTONE_ORE) {
-            if (blockTotal > 1) {
-                message = fd.getConfig().getString(Config.bcMessage).replace("@Player@", playerName
-                ).replace("@Number@", String.valueOf(blockTotal)).replace("@BlockName@", "redstone ores");
-            } else {
-                message = fd.getConfig().getString(Config.bcMessage).replace("@Player@", playerName
-                ).replace("@Number@", String.valueOf(blockTotal)).replace("@BlockName@", "redstone ore");
-            }
-        } else if (node.getMaterial() == Material.OBSIDIAN) {
-            message = fd.getConfig().getString(Config.bcMessage).replace("@Player@", playerName
-            ).replace("@Number@", String.valueOf(blockTotal)).replace("@BlockName@", "obsidian");
-        } else {
-            String blockName = Format.getFormattedName(node.getMaterial(), blockTotal);
-            if (blockTotal > 1) {
-                message = fd.getConfig().getString(Config.bcMessage).replace("@Player@", playerName
-                ).replace("@Number@", String.valueOf(blockTotal)).replace("@BlockName@", blockName +
-                        (node.getMaterial() == Material.DIAMOND_ORE ? "s!" : "s"));
-            } else {
-                message = fd.getConfig().getString(Config.bcMessage).replace("@Player@", playerName
-                ).replace("@Number@", String.valueOf(blockTotal)).replace("@BlockName@", blockName +
-                        (node.getMaterial() == Material.DIAMOND_ORE ? "!" : ""));
-            }
-        }
+        String message = fd.getConfig().getString(Config.bcMessage).replace("@Prefix@", Prefix.getChatPrefix()).replace("@Player@",
+                playerName).replace("@Number@",
+                (blockTotal) == 500 ? "over 500" :String.valueOf(blockTotal)).replace("@BlockName@", matName);
         try {
             PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fd.getFileHandler().getCleanLog(), true)));
             pw.println("[" + formattedDate + "] " + message);

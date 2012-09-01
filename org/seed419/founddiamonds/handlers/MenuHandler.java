@@ -8,11 +8,34 @@ import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.util.Prefix;
 
+/**
+ * Attribute Only (Public) License
+ * Version 0.a3, July 11, 2011
+ * <p/>
+ * Copyright (C) 2012 Blake Bartenbach <seed419@gmail.com> (@seed419)
+ * <p/>
+ * Anyone is allowed to copy and distribute verbatim or modified
+ * copies of this license document and altering is allowed as long
+ * as you attribute the author(s) of this license document / files.
+ * <p/>
+ * ATTRIBUTE ONLY PUBLIC LICENSE
+ * TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+ * <p/>
+ * 1. Attribute anyone attached to the license document.
+ * Do not remove pre-existing attributes.
+ * <p/>
+ * Plausible attribution methods:
+ * 1. Through comment blocks.
+ * 2. Referencing on a site, wiki, or about page.
+ * <p/>
+ * 2. Do whatever you want as long as you don't invalidate 1.
+ *
+ * @license AOL v.a3 <http://aol.nexua.org>
+ */
 public class MenuHandler {
 
 
     private FoundDiamonds fd;
-    private final static int togglePages = 1;
     private final static int configPages = 2;
 
 
@@ -92,7 +115,6 @@ public class MenuHandler {
         sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Configuration 2/" + configPages + "]");
         sender.sendMessage(ChatColor.RED + "    Disable in creative mode: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.disableInCreative)));
         sender.sendMessage(ChatColor.RED + "    Clean Log: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.cleanLog)));
-        //sender.sendMessage(ChatColor.RED + "    Debug Mode: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.debug)));
         sender.sendMessage(ChatColor.RED + "    Light Level blocks disabling at " + ChatColor.AQUA + fd.getConfig().getString(Config.percentOfLightRequired) + ChatColor.RED + " light");
         sender.sendMessage(ChatColor.RED + "    Use player nicknames: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.useNick)));
         sender.sendMessage(ChatColor.RED + "    Give OPs all permissions: " +  getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.opsAsFDAdmin)));
@@ -198,17 +220,11 @@ public class MenuHandler {
         } else if (args.length > 1) {
             if (args[1].equalsIgnoreCase("list")) {
                 sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Broadcasted Blocks]");
-                fd.getListHandler().handleListingList(sender, fd.getListHandler().getBroadcastedBlocks());
+                fd.getMapHandler().handleListingList(sender, fd.getMapHandler().getBroadcastedBlocks());
             } else if (args[1].equalsIgnoreCase("add")) {
-                if (args.length == 2) {
-                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Format: /fd bc add item:data,color ex: coal ore,dark gray");
-                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Data and color are optional arguments.");
-                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Ex: /fd bc add coal ore,gray");
-                    return;
-                }
-                fd.getListHandler().handleAddToList(sender, args, fd.getListHandler().getBroadcastedBlocks(), Config.broadcastedBlocks);
+                fd.getMapHandler().handleAddToList(sender, args, fd.getMapHandler().getBroadcastedBlocks(), Config.broadcastedBlocks);
             } else if (args[1].equalsIgnoreCase("remove")) {
-                fd.getListHandler().handleRemoveFromList(sender, args, fd.getListHandler().getBroadcastedBlocks(), Config.broadcastedBlocks);
+                fd.getMapHandler().handleRemoveFromList(sender, args, fd.getMapHandler().getBroadcastedBlocks(), Config.broadcastedBlocks);
             } else {
                 sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
             }
@@ -221,11 +237,11 @@ public class MenuHandler {
         } else if (args.length > 1) {
             if (args[1].equalsIgnoreCase("list")) {
                 sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Admin Message Blocks]");
-                fd.getListHandler().handleListingList(sender, fd.getListHandler().getAdminMessageBlocks());
+                fd.getMapHandler().handleListingList(sender, fd.getMapHandler().getAdminMessageBlocks());
             } else if (args[1].equalsIgnoreCase("add")) {
-                fd.getListHandler().handleAddToList(sender, args, fd.getListHandler().getAdminMessageBlocks(), Config.adminMessageBlocks);
+                fd.getMapHandler().handleAddToList(sender, args, fd.getMapHandler().getAdminMessageBlocks(), Config.adminMessageBlocks);
             } else if (args[1].equalsIgnoreCase("remove")) {
-                fd.getListHandler().handleRemoveFromList(sender, args, fd.getListHandler().getAdminMessageBlocks(), Config.adminMessageBlocks);
+                fd.getMapHandler().handleRemoveFromList(sender, args, fd.getMapHandler().getAdminMessageBlocks(), Config.adminMessageBlocks);
             } else {
                 sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
             }
@@ -238,11 +254,11 @@ public class MenuHandler {
         } else if (args.length > 1) {
             if (args[1].equalsIgnoreCase("list")) {
                 sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Light-Monitored Blocks]");
-                fd.getListHandler().handleListingList(sender, fd.getListHandler().getLightLevelBlocks());
+                fd.getMapHandler().handleListingList(sender, fd.getMapHandler().getLightLevelBlocks());
             } else if (args[1].equalsIgnoreCase("add")) {
-                fd.getListHandler().handleAddToList(sender, args, fd.getListHandler().getLightLevelBlocks(), Config.lightLevelBlocks);
+                fd.getMapHandler().handleAddToList(sender, args, fd.getMapHandler().getLightLevelBlocks(), Config.lightLevelBlocks);
             } else if (args[1].equalsIgnoreCase("remove")) {
-                fd.getListHandler().handleRemoveFromList(sender, args, fd.getListHandler().getLightLevelBlocks(), Config.lightLevelBlocks);
+                fd.getMapHandler().handleRemoveFromList(sender, args, fd.getMapHandler().getLightLevelBlocks(), Config.lightLevelBlocks);
             } else {
                 sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
             }

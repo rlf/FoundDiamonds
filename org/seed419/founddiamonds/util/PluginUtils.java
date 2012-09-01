@@ -3,8 +3,6 @@ package org.seed419.founddiamonds.util;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * Attribute Only (Public) License
@@ -31,18 +29,6 @@ import org.bukkit.plugin.java.JavaPlugin;
  * @license AOL v.a3 <http://aol.nexua.org>
  */
 public class PluginUtils {
-
-    public static void logCommandToConsole(JavaPlugin plugin, Player player, String commandLabel, String[] args) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(commandLabel).append(" ");
-        if (args.length > 0) {
-            for (String x : args) {
-                sb.append(x).append(" ");
-            }
-        }
-        String cmd = sb.toString();
-        plugin.getLogger().info("[PLAYER_COMMAND] " + player.getName() + ": /" + cmd);
-    }
 
     public static String getArgs1Plus(String[] args) {
         StringBuilder sb = new StringBuilder();
@@ -78,9 +64,5 @@ public class PluginUtils {
             }
         }
         return new String(charArray);
-    }
-
-    public static void debug(String message) {
-
     }
 }

@@ -1,10 +1,9 @@
 package org.seed419.founddiamonds.handlers;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.seed419.founddiamonds.FoundDiamonds;
-import org.seed419.founddiamonds.Node;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.util.PluginUtils;
@@ -44,10 +43,9 @@ public class BroadcastHandler {
         this.fd = fd;
     }
 
-    public void handleBroadcast(final BlockBreakEvent event, final Node node, final Player player) {
-        final int blockTotal = fd.getBlockCounter().getTotalBlocks(event.getBlock());
-        broadcastFoundBlock(player, node, blockTotal);
-        if (node.getMaterial() == Material.DIAMOND_ORE) {
+    public void handleBroadcast(final Material mat,final int blockTotal, final Player player) {
+        broadcastFoundBlock(player, mat, blockTotal);
+        if (mat== Material.DIAMOND_ORE) {
             if (fd.getConfig().getBoolean(Config.potionsForFindingDiamonds)) {
                 fd.getPotionHandler().handlePotions(player);
             }
@@ -58,20 +56,21 @@ public class BroadcastHandler {
     }
 
 
-    private void broadcastFoundBlock(final Player player, final Node node, final int blockTotal) {
-        String matName = Format.getFormattedName(node.getMaterial(), blockTotal);
-        String message = fd.getConfig().getString(Config.bcMessage).replace("@Prefix@", Prefix.getChatPrefix() + node.getColor()).replace("@Player@",
-                getBroadcastName(player) + (fd.getConfig().getBoolean(Config.useOreColors) ? node.getColor() : "")).replace("@Number@",
+    private void broadcastFoundBlock(final Player player, final Material mat, final int blockTotal) {
+        String matName = Format.getFormattedName(mat, blockTotal);
+        ChatColor color = fd.getMapHandler().getBroadcastedBlocks().get(mat);
+        String message = fd.getConfig().getString(Config.bcMessage).replace("@Prefix@", Prefix.getChatPrefix() + color).replace("@Player@",
+                getBroadcastName(player) + (fd.getConfig().getBoolean(Config.useOreColors) ? color : "")).replace("@Number@",
                 (blockTotal) == 500 ? "over 500" :String.valueOf(blockTotal)).replace("@BlockName@", matName);
         String formatted = PluginUtils.customTranslateAlternateColorCodes('&', message);
         fd.getServer().getConsoleSender().sendMessage(formatted);
         for (Player x : fd.getServer().getOnlinePlayers()) {
-            if (fd.getPermissions().hasBroadcastPerm(x) && fd.getWorldHandler().isEnabledWorld(x)) {
+            if (fd.getPermissions().hasBroadcastPerm(x) && fd.getWorldHandler().isEnabledWorld(x) && !fd.getAdminMessageHandler().recievedAdminMessage(x)) {
                 x.sendMessage(formatted);
             }
         }
         if (fd.getConfig().getBoolean(Config.cleanLog)) {
-            fd.getLoggingHandler().writeToCleanLog(node, blockTotal, player.getName());
+            fd.getLoggingHandler().writeToCleanLog(matName, blockTotal, player.getName());
         }
     }
 

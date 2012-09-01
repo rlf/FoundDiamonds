@@ -31,31 +31,40 @@ public class BlockCounter {
     public int getTotalBlocks(Block original) {
         HashSet<Location> blocks = new HashSet<Location>();
         blocks.add(original.getLocation());
-        cycleHorizontalFaces(original.getType(), original, blocks);
+        cycleHorizontalFaces(original.getType(), original, blocks, true);
         return blocks.size() >= 500 ? 500 : blocks.size();
     }
 
-    private void cycleHorizontalFaces(Material mat, Block original, Set<Location> list) {
-        if (list.size() >= 500) { return; }
-        findLikeBlocks(horizontalFaces, original, mat, list);
-        if (list.size() >= 500) { return; }
-        Block upper = original.getRelative(BlockFace.UP);
-        findLikeBlocks(upperFaces, upper, mat, list);
-        if (list.size() >= 500) { return; }
-        Block lower = original.getRelative(BlockFace.DOWN);
-        findLikeBlocks(LowerFaces, lower, mat, list);
+    public HashSet<Location> getAllLikeBlockLocations(Block original) {
+        HashSet<Location> blocks = new HashSet<Location>();
+        blocks.add(original.getLocation());
+        cycleHorizontalFaces(original.getType(), original, blocks, false);
+        return blocks;
     }
 
-    private void findLikeBlocks(BlockFace[] faces, Block passed, Material originalMaterial, Set<Location> alreadyAdded) {
+    private void cycleHorizontalFaces(Material mat, Block original, Set<Location> blocks, boolean counting) {
+        if (blocks.size() >= 500) { return; }
+        findLikeBlocks(horizontalFaces, original, mat, blocks, counting);
+        if (blocks.size() >= 500) { return; }
+        Block upper = original.getRelative(BlockFace.UP);
+        findLikeBlocks(upperFaces, upper, mat, blocks, counting);
+        if (blocks.size() >= 500) { return; }
+        Block lower = original.getRelative(BlockFace.DOWN);
+        findLikeBlocks(LowerFaces, lower, mat, blocks, counting);
+    }
+
+    private void findLikeBlocks(BlockFace[] faces, Block passed, Material originalMaterial, Set<Location> blocks, boolean counting) {
         for (BlockFace y : faces) {
             Block var = passed.getRelative(y);
-            if (var.getType() == originalMaterial && !alreadyAdded.contains(var.getLocation()) && isAnnounceable(var.getLocation())
+            if (var.getType() == originalMaterial && !blocks.contains(var.getLocation()) && isAnnounceable(var.getLocation())
                     || PluginUtils.isRedstone(var) && PluginUtils.isRedstone(originalMaterial) && isAnnounceable(var.getLocation())
-                    && !alreadyAdded.contains(var.getLocation())) {
-                counted.add(var.getLocation());
-                alreadyAdded.add(var.getLocation());
-                if (alreadyAdded.size() >= 500) { return; }
-                cycleHorizontalFaces(originalMaterial, var, alreadyAdded);
+                    && !blocks.contains(var.getLocation())) {
+                if (counting) {
+                    counted.add(var.getLocation());
+                }
+                blocks.add(var.getLocation());
+                if (blocks.size() >= 500) { return; }
+                cycleHorizontalFaces(originalMaterial, var, blocks, counting);
             }
         }
     }
@@ -72,12 +81,13 @@ public class BlockCounter {
         }
     }
 
-    public void removeAnnouncedOrPlacedBlock(Location loc) {
+    public void removeAnnouncedOrPlacedBlock(final Location loc) {
         if (fd.getConfig().getBoolean(Config.mysqlEnabled)) {
             fd.getMySQL().removePlacedBlock(loc);
         } else if (fd.getBlockPlaceListener().getFlatFilePlacedBlocks().contains(loc)) {
             fd.getBlockPlaceListener().getFlatFilePlacedBlocks().remove(loc);
-        } else {
+        }
+        if (counted.contains(loc)) {
             counted.remove(loc);
         }
     }

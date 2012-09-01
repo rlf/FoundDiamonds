@@ -7,7 +7,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.seed419.founddiamonds.FoundDiamonds;
-import org.seed419.founddiamonds.Node;
 
 /**
  * Attribute Only (Public) License
@@ -43,16 +42,15 @@ public class LightLevelListener implements Listener {
         this.fd = fd;
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     void onBlockDamage(final BlockDamageEvent event) {
         final Player player = event.getPlayer();
         if (!fd.getWorldHandler().isEnabledWorld(player)) { return; }
         if (!fd.getWorldHandler().isValidGameMode(player)) { return; }
         final Material mat = event.getBlock().getType();
         if (fd.getPermissions().hasMonitorPerm(player)) {
-            final Node lightNode = Node.getNodeByMaterial(fd.getListHandler().getLightLevelBlocks(), mat);
-            if (lightNode != null) {
-                fd.getLightLevelHandler().handleLightLevelMonitor(event, lightNode, player);
+            if (fd.getMapHandler().getLightLevelBlocks().containsKey(mat)) {
+                fd.getLightLevelHandler().handleLightLevelMonitor(event, mat, player);
             }
         }
     }

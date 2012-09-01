@@ -3,29 +3,33 @@ package org.seed419.founddiamonds.util;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.seed419.founddiamonds.FoundDiamonds;
-import org.seed419.founddiamonds.file.Config;
 
 /**
- * Created with IntelliJ IDEA.
- * User: seed419
- * Date: 4/12/12
- * Time: 3:35 PM
- * To change this template use File | Settings | File Templates.
+ * Attribute Only (Public) License
+ * Version 0.a3, July 11, 2011
+ * <p/>
+ * Copyright (C) 2012 Blake Bartenbach <seed419@gmail.com> (@seed419)
+ * <p/>
+ * Anyone is allowed to copy and distribute verbatim or modified
+ * copies of this license document and altering is allowed as long
+ * as you attribute the author(s) of this license document / files.
+ * <p/>
+ * ATTRIBUTE ONLY PUBLIC LICENSE
+ * TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+ * <p/>
+ * 1. Attribute anyone attached to the license document.
+ * Do not remove pre-existing attributes.
+ * <p/>
+ * Plausible attribution methods:
+ * 1. Through comment blocks.
+ * 2. Referencing on a site, wiki, or about page.
+ * <p/>
+ * 2. Do whatever you want as long as you don't invalidate 1.
+ *
+ * @license AOL v.a3 <http://aol.nexua.org>
  */
 public class Format {
 
-    private FoundDiamonds fd;
-    private Config config;
-
-
-    public Format(FoundDiamonds fd, Config config) {
-        this.fd = fd;
-        this.config = config;
-
-    }
-
-    // Handles special material names that don't work right with the broadcast.
     public static String getFormattedName(Material mat, int total) {
         String matName;
         if (mat == Material.GLOWING_REDSTONE_ORE || mat == Material.REDSTONE_ORE) {
@@ -229,9 +233,6 @@ public class Format {
             if (total > 1) {
                 matName+="s";
             }
-            if (mat == Material.DIAMOND_ORE) {
-                matName+="!";
-            }
         }
         return matName;
     }
@@ -249,7 +250,7 @@ public class Format {
         StringBuilder sb = new StringBuilder();
         for (String x : words) {
             String capped = WordUtils.capitalize(x);
-            sb.append(capped + " ");
+            sb.append(capped).append(" ");
         }
         return sb.toString().trim();
     }

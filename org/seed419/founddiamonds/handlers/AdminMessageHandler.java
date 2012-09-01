@@ -1,12 +1,13 @@
 package org.seed419.founddiamonds.handlers;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.seed419.founddiamonds.FoundDiamonds;
-import org.seed419.founddiamonds.Node;
 import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.util.Prefix;
+
+import java.util.HashSet;
 
 /**
  * Attribute Only (Public) License
@@ -36,6 +37,7 @@ public class AdminMessageHandler {
 
 
     private FoundDiamonds fd;
+    private HashSet<String> recievedAdminMessage = new HashSet<String>();
 
 
     public AdminMessageHandler(FoundDiamonds fd) {
@@ -43,16 +45,24 @@ public class AdminMessageHandler {
     }
 
 
-    public void sendAdminMessage(final BlockBreakEvent event, final Node node, final Player player) {
-        final int blockTotal = fd.getBlockCounter().getTotalBlocks(event.getBlock());
+    public void sendAdminMessage(final Material mat, final int blockTotal, final Player player) {
         String adminMessage = Prefix.getAdminPrefix() + " " + ChatColor.YELLOW + player.getName() +
-                ChatColor.DARK_RED + " just found " + node.getColor() + (blockTotal == 500 ? "over 500 " :
-                String.valueOf(blockTotal)) + " " + Format.getFormattedName(node.getMaterial(), blockTotal);
+                ChatColor.DARK_RED + " just found " + fd.getMapHandler().getAdminMessageBlocks().get(mat) + (blockTotal == 500 ? "over 500 " :
+                String.valueOf(blockTotal)) + " " + Format.getFormattedName(mat, blockTotal);
         fd.getServer().getConsoleSender().sendMessage(adminMessage);
         for (Player y : fd.getServer().getOnlinePlayers()) {
             if (fd.getPermissions().hasAdminMessagePerm(y) && y != player) {
                 y.sendMessage(adminMessage);
+                recievedAdminMessage.add(y.getName());
             }
         }
+    }
+
+    public void clearRecievedAdminMessage() {
+        recievedAdminMessage.clear();
+    }
+
+    public boolean recievedAdminMessage(Player player) {
+        return recievedAdminMessage.contains(player.getName());
     }
 }
