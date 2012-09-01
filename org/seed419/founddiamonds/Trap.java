@@ -33,7 +33,7 @@ public class Trap {
 	private boolean persistant; // will the trap persist when broken, or will it
 								// dissolve, was a request ticket on the dev
 								// page
-	private static HashMap<Trap, Location> list = new HashMap<Trap, Location>(); // map linking traps to locations, the middle of the trap
+	private static ArrayList<Trap> list = new ArrayList<Trap>(); // map linking traps to locations, the middle of the trap
 	private static Map<Location, Trap> inverselist = new HashMap<Location, Trap>(); // map linking locations to traps
 
 	public Trap(byte type, Material mat, Player placer, Location location,
@@ -46,7 +46,7 @@ public class Trap {
 		this.location = location;
 		this.time = new Date(System.currentTimeMillis());
 		this.persistant = persistant;
-		list.put(this, location);
+		list.add(this);
 		if (!createBlocks(this)) {
 			list.remove(this);
 		}
@@ -104,7 +104,7 @@ public class Trap {
 		if (sender instanceof Player) {
 			if (sender.hasPermission("fd.trap.remove.self")) { // only permission to remove, and thus to see own traps
 				ArrayList<Trap> trapList = new ArrayList<Trap>();
-				for (Trap trap : list.keySet()) {
+				for (Trap trap : list) {
 					if (trap.placer == sender)
 						trapList.add(trap);
 				}
@@ -115,9 +115,9 @@ public class Trap {
 					sender.sendMessage(ChatColor.RED + "Page number is invalid");
 					return false;
 				}
-			} else if (sender.hasPermission("fd.trap.remove.all")) { // permissions to see and remove, and thus to see all traps
+			} else if (sender.hasPermission("fd.trap.remove.all")) { // permissions to see and remove all traps
 				ArrayList<Trap> trapList = new ArrayList<Trap>();
-				for (Trap trap : list.keySet()) {
+				for (Trap trap : list) {
 					trapList.add(trap);
 				}
 				if (page >= 1 && (page * 5) >= list.size()) {
@@ -140,9 +140,30 @@ public class Trap {
 
 	}
 
-	private static void sendMenu(CommandSender sender, List<Trap> subList) {	//TODO add beginid, endid and add id's in general, for removal purposes
-		for (Trap trap : subList) {
-			sender.sendMessage(message)
+	private static void sendMenu(CommandSender sender, List<Trap> subList) {
+		for (Trap object : subList) {
+			sender.sendMessage(ChatColor.WHITE
+					+ "["
+					+ list.indexOf(object)
+					+ "]"
+					+ DateFormat.getDateInstance(DateFormat.MEDIUM).format(
+							(object.time)) + " - Location: "
+					+ object.location.getBlockX() + " "
+					+ object.location.getBlockY() + " "
+					+ object.location.getBlockZ() + " By " + object.placer);
+		}
+	}
+
+	public static void removeTrap(CommandSender sender, int id) {
+		if (id >= 0 && id < list.size()) {
+			Trap temp = list.get(id);
+			if ( (temp.placer == sender && sender.hasPermission("fd.trap.remove.self") || sender.hasPermission("fd.trap.remove.all"))) {
+				Location[] temploc = temp.returnLocations();
+				for (Location loc : temploc) {
+					inverselist.remove(loc);
+				}
+				list.remove(id);
+			}
 		}
 	}
 }
