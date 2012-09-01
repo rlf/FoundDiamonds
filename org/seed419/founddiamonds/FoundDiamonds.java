@@ -77,21 +77,7 @@ public class FoundDiamonds extends JavaPlugin {
 
    /*
    Changelog:
-    Tons of refactoring, much cleaner code.  Pull requests and maintenance should be much easier in the future
-    Added an option for awarding all players items/potions, or just the player who found the diamonds.
-    Fixed adding and removing worlds with spaces in their names.
-    Removed config option for admin alerts on trap breaks.  Why would admins not want to know about this?
-    Pistons can no longer fool trap blocks.
-    Improved a few redundant and sloppy areas of code.  Generic memory/performance enhancements.
-    Fixed permissions bug with world management.
-    Prevented setting traps with really nonsense stuff like lava, sand, torches, etc
-    Removed logging commands to console because bukkit apparently does this natively now.
-    Removed @prefix@ from the default config.  It seems a bit excessive...(although it will still work if you want it)
-    Fixed triggering trap blocks from crashing the client when kicked (although that's pretty funny actually)
-    Added silent mode for light level (doesn't let the player know they're being watched or cancel the event!)
-    Light level admin messages now have an option and can't be spammed. (Well, not the same block)
-    Added a command to forget placed blocks for easier testing and debugging (requires fd.* or OP)
-    Removed material data idea IE 54:3 because there's not a high demand for it and there's no easy way to do this.
+
     */
 
 
