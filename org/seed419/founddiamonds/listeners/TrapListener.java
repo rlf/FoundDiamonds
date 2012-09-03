@@ -6,6 +6,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.seed419.founddiamonds.FoundDiamonds;
+import org.seed419.founddiamonds.Trap;
 
 /**
  * Attribute Only (Public) License
@@ -46,7 +47,9 @@ public class TrapListener implements Listener {
         if (!fd.getWorldHandler().isEnabledWorld(event.getPlayer())) { return; }
         final Location loc = event.getBlock().getLocation();
         if (fd.getTrapHandler().isTrapBlock(loc)) {
-            fd.getTrapHandler().handleTrapBlockBreak(event);
+        	if(!Trap.getInverselist().get(loc).isPersistant()){		//if it's persistent, the blocks should remain armed
+            Trap.getInverselist().get(loc).removeTrap();
+        	}
             event.setCancelled(true);
         }
     }

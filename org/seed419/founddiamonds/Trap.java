@@ -29,7 +29,6 @@ public class Trap {
 	private final Player placer; // the person that placed the block
 	private final Location location; // the 'middle' of the trap
 	private final Date time; // the date the trap was added;
-	// TODO use Date.toString()
 	private boolean persistant; // will the trap persist when broken, or will it
 								// dissolve, was a request ticket on the dev
 								// page
@@ -47,12 +46,12 @@ public class Trap {
 		this.time = new Date(System.currentTimeMillis());
 		this.persistant = persistant;
 		list.add(this);
-		if (!createBlocks(this)) {
+		if (!this.createBlocks()) {
 			list.remove(this);
 		}
 	}
 
-	private boolean createBlocks(Trap trap) {
+	private boolean createBlocks() {
 
 		Location[] locations = this.returnLocations();
 		oldmat = new Material[locations.length];
@@ -68,7 +67,7 @@ public class Trap {
 			inverselist.put(locations[i], this); // adding the locations to the inverse list
 			locations[i].getBlock().setType(mat); // replaceing the block with the trap block
 		}
-		return false;
+		return true;
 	}
 
 	private Location[] returnLocations() { // edit this method to add more ore formations
@@ -91,7 +90,9 @@ public class Trap {
 		return null;
 	}
 
-	private void removeTrap() { // not entirely sure about this, but this should remove the trap object, it also puts the old blocks back in place
+	public void removeTrap() { // not entirely sure about this, but this should remove the trap object(unfamiliar with garbage collecting :S )
+		//it also puts the old blocks back in place		
+		//I dislike the public modifier on this thing, but it was the only way to get it to work with the onBlockBreak event (in TrapListener)
 		Location[] temp = this.returnLocations();
 		for (int i = 0; i < temp.length; i++) {
 			temp[i].getBlock().setType(oldmat[i]);
@@ -101,8 +102,20 @@ public class Trap {
 	}
 
 	public static boolean Menu(CommandSender sender, int page) { // TODO: This part still looks a bit messy
-		if (sender instanceof Player) {
-			if (sender.hasPermission("fd.trap.remove.self")) { // only permission to remove, and thus to see own traps
+			if (sender.hasPermission("fd.trap.remove.all") || sender.isOp()) { // permissions to see and remove all traps
+				ArrayList<Trap> trapList = new ArrayList<Trap>();
+				for (Trap trap : list) {
+					trapList.add(trap);
+				}
+				if (page >= 1 && (page * 5) >= list.size()) {
+					sendMenu(sender, trapList.subList((page - 1) * 5, page * 5));
+					return true;
+				} else {
+					sender.sendMessage(ChatColor.RED + "Page number is invalid");
+					return false;
+				}
+			} 
+			else if (sender.hasPermission("fd.trap.remove.self")) { // only permission to remove, and thus to see own traps
 				ArrayList<Trap> trapList = new ArrayList<Trap>();
 				for (Trap trap : list) {
 					if (trap.placer == sender)
@@ -115,32 +128,15 @@ public class Trap {
 					sender.sendMessage(ChatColor.RED + "Page number is invalid");
 					return false;
 				}
-			} else if (sender.hasPermission("fd.trap.remove.all")) { // permissions to see and remove all traps
-				ArrayList<Trap> trapList = new ArrayList<Trap>();
-				for (Trap trap : list) {
-					trapList.add(trap);
-				}
-				if (page >= 1 && (page * 5) >= list.size()) {
-					sendMenu(sender, trapList.subList((page - 1) * 5, page * 5));
-					return true;
-				} else {
-					sender.sendMessage(ChatColor.RED + "Page number is invalid");
+			}else {
+					sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED
+							+ " You don't have permission to do that.");
 					return false;
 				}
-			} else {
-				sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED
-						+ " You don't have permission to do that.");
-				return false;
-			}
 
-		} else {
-			sender.sendMessage("No console access");
-			return false;
 		}
 
-	}
-
-	private static void sendMenu(CommandSender sender, List<Trap> subList) {
+	private static void sendMenu(CommandSender sender, List<Trap> subList) {		//eclipse formats this weirdly...
 		for (Trap object : subList) {
 			sender.sendMessage(ChatColor.WHITE
 					+ "["
@@ -154,16 +150,27 @@ public class Trap {
 		}
 	}
 
-	public static void removeTrap(CommandSender sender, int id) {
+	public static void removeTrapCmd(CommandSender sender, int id) {
 		if (id >= 0 && id < list.size()) {
 			Trap temp = list.get(id);
 			if ( (temp.placer == sender && sender.hasPermission("fd.trap.remove.self") || sender.hasPermission("fd.trap.remove.all"))) {
-				Location[] temploc = temp.returnLocations();
-				for (Location loc : temploc) {
-					inverselist.remove(loc);
-				}
-				list.remove(id);
+				temp.removeTrap();
 			}
 		}
+	}
+	public boolean isPersistant(){
+		return this.persistant;
+	}
+
+	public static ArrayList<Trap> getList() {
+		return list;
+	}
+
+	public static void setList(ArrayList<Trap> list) {
+		Trap.list = list;
+	}
+
+	public static Map<Location, Trap> getInverselist() {
+		return inverselist;
 	}
 }
