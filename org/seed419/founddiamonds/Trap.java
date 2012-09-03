@@ -13,6 +13,8 @@ import java.util.Map;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.seed419.founddiamonds.util.Prefix;
@@ -33,7 +35,7 @@ public class Trap {
 								// dissolve, was a request ticket on the dev
 								// page
 	private static ArrayList<Trap> list = new ArrayList<Trap>(); // map linking traps to locations, the middle of the trap
-	private static Map<Location, Trap> inverselist = new HashMap<Location, Trap>(); // map linking locations to traps
+	private static Map<Block, Trap> inverselist = new HashMap<Block, Trap>(); // map linking locations to traps
 
 	public Trap(byte type, Material mat, Player placer, Location location,
 			boolean persistant, String item) {
@@ -44,14 +46,17 @@ public class Trap {
 		this.time = new Date(System.currentTimeMillis());
 		this.persistant = persistant;
 		list.add(this);
+		placer.sendMessage("debug: trap constructor");
 		if (!this.createBlocks()) {
 			list.remove(this);
+			placer.sendMessage("debug : list removal");
 		} else {
 			placer.sendMessage(ChatColor.WHITE + "Trap placed with " + item);
 		}
 	}
 
-	public Trap(byte type , Material mat , Material[] oldmat, Player placer , Location loc , long time, boolean persistent){
+	public Trap(byte type, Material mat, Material[] oldmat, Player placer,
+			Location loc, long time, boolean persistent) {
 		this.type = type;
 		this.mat = mat;
 		this.oldmat = oldmat;
@@ -60,13 +65,17 @@ public class Trap {
 		this.time = new Date(time);
 		this.persistant = persistent;
 		list.add(this);
+		placer.sendMessage("trap placed");
 		if (!this.createBlocks()) {
 			list.remove(this);
+			placer.sendMessage("debug : error in palcement");
 		}
+
 	}
+
 	private boolean createBlocks() {
 
-		Location[] locations = this.returnLocations();
+		Block[] locations = this.returnLocations();
 		oldmat = new Material[locations.length];
 		for (int i = 0; i < locations.length; i++) { // need to run this one firstly, this needs to complete before I can start adding the locations
 			if (inverselist.containsKey(locations[i])) {
@@ -74,40 +83,82 @@ public class Trap {
 				return false;
 			}
 		}
-		for (int i = 0; i < locations.length; i++) {
-			oldmat[i] = locations[i].getBlock().getType(); // initialization of old materials's
-			inverselist.put(locations[i], this); // adding the locations to the inverse list
-			locations[i].getBlock().setType(mat); // replaceing the block with the trap block
+		placer.sendMessage("debug: just before for loop");
+		if (this.mat == Material.EMERALD_ORE) {
+			oldmat[0] = this.location.getBlock().getType();
+			inverselist.put(location.getBlock(), this);
+			location.getBlock().setType(mat);
+		} else {
+			oldmat[0] = locations[0].getType();
+			oldmat[1] = locations[1].getType();
+			oldmat[2] = locations[2].getType();
+			oldmat[3] = locations[3].getType();
+			inverselist.put(locations[0], this);
+			inverselist.put(locations[1], this);
+			inverselist.put(locations[2], this);
+			inverselist.put(locations[3], this);
+			locations[0].setType(mat);
+			locations[1].setType(mat);
+			locations[2].setType(mat);
+			locations[3].setType(mat);
+			placer.sendMessage("debug: workaround");
+
 		}
+		/*
+		 * for (int i = 0; i < locations.length; i++) {
+		 * oldmat[i] = locations[i].getBlock().getType(); // initialization of old materials
+		 * inverselist.put(locations[i], this); // adding the locations to the inverse list
+		 * locations[i].getBlock().setType(mat); // replacing the block with the trap block
+		 * placer.sendMessage("debug : old meterial: " + oldmat[i]);
+		 * placer.sendMessage("debug : new material: " + mat);
+		 * }
+		 */
 		return true;
 	}
 
-	private Location[] returnLocations() { // edit this method to add more ore formations
+	private Block[] returnLocations() { // edit this method to add more ore formations
 		// TODO Make this thing read formations from the config file?
+		this.placer.sendMessage("debug: locations returning");
+        World world = placer.getWorld();
+        Block block1;
+        Block block2;
+        Block block3;
+        Block block4;
+        int x = location.getBlockX();
+        int y = location.getBlockY();
+        int z = location.getBlockZ();
 		switch (this.type) {
 		case 1:
-			Location[] temp1 = { this.location.add(0, -1, 0),
-					this.location.add(0, -2, 1), this.location.add(-1, -2, 0),
-					this.location.add(0, -2, 0) };
+			block1 = world.getBlockAt(x, y - 1, z);
+            block2 = world.getBlockAt(x, y - 2, z + 1);
+            block3 = world.getBlockAt(x - 1, y - 2, z);
+            block4 = world.getBlockAt(x, y - 2, z);
+
+			Block[] temp1 = { block1, block2, block3, block4 };
 			return temp1;
 		case 2:
-			Location[] temp2 = { this.location.add(0, -1, 0),
-					this.location.add(-1, -2, 0), this.location.add(0, -2, 0),
-					this.location.add(-1, -1, 0) };
-			return temp2; // the 2 basic ones used in the original classes
+			block1 = world.getBlockAt(x, y - 1, z);
+            block2 = world.getBlockAt(x - 1, y - 2, z);
+            block3 = world.getBlockAt(x , y - 2, z);
+            block4 = world.getBlockAt(x -1, y - 1, z);
+
+			Block[] temp2 = { block1, block2, block3, block4 };
+			return temp2;
+
+			// the 2 basic ones used in the original classes
 		case 3:
-			Location[] temp3 = { this.location };
+			Block[] temp3 = { this.location.getBlock() };
 			return temp3; // emeralds
 		}
 		return null;
 	}
 
-	public void removeTrap() { // not entirely sure about this, but this should remove the trap object(unfamiliar with garbage collecting :S )
+	public void removeTrap() { // not entirely sure about this, but this should remove the trap object(unfamiliar with garbage collecting :-S )
 		// it also puts the old blocks back in place
 		// I dislike the public modifier on this thing, but it was the only way to get it to work with the onBlockBreak event (in TrapListener)
-		Location[] temp = this.returnLocations();
+		Block[] temp = this.returnLocations();
 		for (int i = 0; i < temp.length; i++) {
-			temp[i].getBlock().setType(oldmat[i]);
+			temp[i].setType(oldmat[i]);
 			inverselist.remove(temp[i]);
 		}
 		list.remove(this);
@@ -178,7 +229,7 @@ public class Trap {
 		Trap.list = list;
 	}
 
-	public static Map<Location, Trap> getInverselist() {
+	public static Map<Block, Trap> getInverselist() {
 		return inverselist;
 	}
 

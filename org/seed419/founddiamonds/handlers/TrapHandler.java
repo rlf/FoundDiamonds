@@ -43,8 +43,8 @@ public class TrapHandler {
 
 	public void handleTrap(Player player, String[] args) {
 		Location playerLoc = player.getLocation();
-		Material trap;
-		String item;
+		Material trap =Material.AIR;
+		String item = "";
 		int depth = 0;
 		boolean persistant = false;
 		if ((args[args.length - 1] == "true" || args[args.length - 1] == "false")) {
@@ -54,12 +54,15 @@ public class TrapHandler {
 				temp[i] = args[i];
 			}
 			args = temp; // continue without the persistant bool in the end, this way I dont have to recode all the command interpreting
+			
 		}
 		if (args.length == 1) {
 			trap = Material.DIAMOND_ORE;
 			item = "Diamond ore";
 		}
+		if(args.length > 1){
 		if (args[1] == "menu") {
+			System.out.println("debug: entering menu");
 			int page = 0;
 			if (args.length == 3) {
 				try {
@@ -126,9 +129,10 @@ public class TrapHandler {
 			player.sendMessage(ChatColor.RED + "Is it a block and a valid item? Try /fd trap gold ore");
 			return;
 		}
+		}
 		if (trap != null && trap.isBlock()) {
 			if (isSensibleTrapBlock(trap)) {
-				Location trapLoc = playerLoc.add(0, -depth, 0);
+				Location trapLoc = playerLoc.add(0, -(depth+1), 0);
 				int maxHeight = player.getWorld().getMaxHeight();
 				int y = trapLoc.getBlockY();
 				if ((y - 2) < 0) {
@@ -144,8 +148,8 @@ public class TrapHandler {
 				} else {
 					type = (byte) Math.ceil(Math.random() + 0.5); // should work.
 				}
-				Trap temp = new Trap(type, trap, player, trapLoc, persistant,
-						item);
+				Trap temp = new Trap(type, trap, player, trapLoc, persistant,item);
+				player.sendMessage("debug: trap should be palced" + trap.toString());
 			} else {
 				player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + "Unable to set a trap with " + item);
 				player.sendMessage(ChatColor.RED + "Surely you can use a more sensible block for a trap.");
@@ -155,6 +159,7 @@ public class TrapHandler {
 			player.sendMessage(ChatColor.RED + "Is it a valid trap block? Try /fd trap gold ore");
 		}
 	}
+	
 
 	private boolean isSensibleTrapBlock(Material trap) {
 		switch (trap) {
@@ -177,14 +182,14 @@ public class TrapHandler {
 	}
 
 	public boolean isTrapBlock(Location loc) {
-		return Trap.getInverselist().containsKey(loc);
+		return Trap.getInverselist().containsKey(loc.getBlock());
 	}
 
 	public void handleTrapBlockBreak(BlockBreakEvent event) {
 		event.setCancelled(true);
 		Player player = event.getPlayer();
 		Block block = event.getBlock();
-		Trap trap = Trap.getInverselist().get(block.getLocation());
+		Trap trap = Trap.getInverselist().get(block);
 		if (fd.getPermissions().hasPerm(player, "fd.trap")) {
 			player.sendMessage(ChatColor.AQUA + "Trap block removed");
 			trap.removeTrap();
