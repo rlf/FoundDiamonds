@@ -137,7 +137,7 @@ public class CommandHandler implements CommandExecutor {
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("trap")) {		
-                	/* TODO Leave this as is, or edit this for new trap handling(fd.trap.remove.*, fd.trap.remove.all, fd.trap.remove.self perms)?
+                	/* TODO Still unsure about how the perms would work out. 
                 	* currently, players would need fd.trap to be able to set traps
                 	* and they would need fd.trap AND fd.trap.remove.* to remove any traps
                 	* but I personally don't think it's bad. This way admins can

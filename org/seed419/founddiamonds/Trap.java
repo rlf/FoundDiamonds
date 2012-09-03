@@ -36,7 +36,7 @@ public class Trap {
 	private static Map<Location, Trap> inverselist = new HashMap<Location, Trap>(); // map linking locations to traps
 
 	public Trap(byte type, Material mat, Player placer, Location location,
-			boolean persistant) {
+			boolean persistant, String item) {
 		this.type = type;
 		this.mat = mat;
 		// this.oldid ; oldid is only filled later on, to preserve a certain
@@ -48,6 +48,8 @@ public class Trap {
 		list.add(this);
 		if (!this.createBlocks()) {
 			list.remove(this);
+		} else {
+			placer.sendMessage(ChatColor.WHITE + "Trap placed with " + item);
 		}
 	}
 
@@ -57,8 +59,7 @@ public class Trap {
 		oldmat = new Material[locations.length];
 		for (int i = 0; i < locations.length; i++) { // need to run this one firstly, this needs to complete before I can start adding the locations
 			if (inverselist.containsKey(locations[i])) {
-				placer.sendMessage(ChatColor.RED
-						+ "Unable to place trap here, there's an other one in the way");
+				placer.sendMessage(ChatColor.RED + "Unable to place trap here, there's an other one in the way");
 				return false;
 			}
 		}
@@ -91,8 +92,8 @@ public class Trap {
 	}
 
 	public void removeTrap() { // not entirely sure about this, but this should remove the trap object(unfamiliar with garbage collecting :S )
-		//it also puts the old blocks back in place		
-		//I dislike the public modifier on this thing, but it was the only way to get it to work with the onBlockBreak event (in TrapListener)
+		// it also puts the old blocks back in place
+		// I dislike the public modifier on this thing, but it was the only way to get it to work with the onBlockBreak event (in TrapListener)
 		Location[] temp = this.returnLocations();
 		for (int i = 0; i < temp.length; i++) {
 			temp[i].getBlock().setType(oldmat[i]);
@@ -102,50 +103,42 @@ public class Trap {
 	}
 
 	public static boolean Menu(CommandSender sender, int page) { // TODO: This part still looks a bit messy
-			if (sender.hasPermission("fd.trap.remove.all") || sender.isOp()) { // permissions to see and remove all traps
-				ArrayList<Trap> trapList = new ArrayList<Trap>();
-				for (Trap trap : list) {
+		if (sender.hasPermission("fd.trap.remove.all") || sender.isOp()) { // permissions to see and remove all traps
+			ArrayList<Trap> trapList = new ArrayList<Trap>();
+			for (Trap trap : list) {
+				trapList.add(trap);
+			}
+			if (page >= 1 && (page * 5) >= list.size()) {
+				sendMenu(sender, trapList.subList((page - 1) * 5, page * 5));
+				return true;
+			} else {
+				sender.sendMessage(ChatColor.RED + "Page number is invalid");
+				return false;
+			}
+		} else if (sender.hasPermission("fd.trap.remove.self")) { // only permission to remove, and thus to see own traps
+			ArrayList<Trap> trapList = new ArrayList<Trap>();
+			for (Trap trap : list) {
+				if (trap.placer == sender)
 					trapList.add(trap);
-				}
-				if (page >= 1 && (page * 5) >= list.size()) {
-					sendMenu(sender, trapList.subList((page - 1) * 5, page * 5));
-					return true;
-				} else {
-					sender.sendMessage(ChatColor.RED + "Page number is invalid");
-					return false;
-				}
-			} 
-			else if (sender.hasPermission("fd.trap.remove.self")) { // only permission to remove, and thus to see own traps
-				ArrayList<Trap> trapList = new ArrayList<Trap>();
-				for (Trap trap : list) {
-					if (trap.placer == sender)
-						trapList.add(trap);
-				}
-				if (page >= 1 && (page * 5) >= list.size()) {
-					sendMenu(sender, trapList.subList((page - 1) * 5, page * 5));
-					return true;
-				} else {
-					sender.sendMessage(ChatColor.RED + "Page number is invalid");
-					return false;
-				}
-			}else {
-					sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED
-							+ " You don't have permission to do that.");
-					return false;
-				}
-
+			}
+			if (page >= 1 && (page * 5) >= list.size()) {
+				sendMenu(sender, trapList.subList((page - 1) * 5, page * 5));
+				return true;
+			} else {
+				sender.sendMessage(ChatColor.RED + "Page number is invalid");
+				return false;
+			}
+		} else {
+			sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " You don't have permission to do that.");
+			return false;
 		}
 
-	private static void sendMenu(CommandSender sender, List<Trap> subList) {		//eclipse formats this weirdly...
+	}
+
+	private static void sendMenu(CommandSender sender, List<Trap> subList) { // eclipse formats this weirdly...
 		for (Trap object : subList) {
-			sender.sendMessage(ChatColor.WHITE
-					+ "["
-					+ list.indexOf(object)
-					+ "]"
-					+ DateFormat.getDateInstance(DateFormat.MEDIUM).format(
-							(object.time)) + " - Location: "
-					+ object.location.getBlockX() + " "
-					+ object.location.getBlockY() + " "
+			sender.sendMessage(ChatColor.WHITE + "[" + list.indexOf(object) + "]" + DateFormat.getDateInstance(DateFormat.MEDIUM).format((object.time))
+					+ " - Location: " + object.location.getBlockX() + " " + object.location.getBlockY() + " "
 					+ object.location.getBlockZ() + " By " + object.placer);
 		}
 	}
@@ -153,12 +146,14 @@ public class Trap {
 	public static void removeTrapCmd(CommandSender sender, int id) {
 		if (id >= 0 && id < list.size()) {
 			Trap temp = list.get(id);
-			if ( (temp.placer == sender && sender.hasPermission("fd.trap.remove.self") || sender.hasPermission("fd.trap.remove.all"))) {
+			if ((temp.placer == sender && sender.hasPermission("fd.trap.remove.self")
+					|| sender.hasPermission("fd.trap.remove.all"))) {
 				temp.removeTrap();
 			}
 		}
 	}
-	public boolean isPersistant(){
+
+	public boolean isPersistant() {
 		return this.persistant;
 	}
 
