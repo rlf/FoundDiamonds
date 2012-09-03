@@ -39,8 +39,6 @@ public class Trap {
 			boolean persistant, String item) {
 		this.type = type;
 		this.mat = mat;
-		// this.oldid ; oldid is only filled later on, to preserve a certain
-		// degree of freedom in trap types & type sizes
 		this.placer = placer;
 		this.location = location;
 		this.time = new Date(System.currentTimeMillis());
@@ -53,6 +51,19 @@ public class Trap {
 		}
 	}
 
+	public Trap(byte type , Material mat , Material[] oldmat, Player placer , Location loc , long time, boolean persistent){
+		this.type = type;
+		this.mat = mat;
+		this.oldmat = oldmat;
+		this.placer = placer;
+		this.location = loc;
+		this.time = new Date(time);
+		this.persistant = persistent;
+		list.add(this);
+		if (!this.createBlocks()) {
+			list.remove(this);
+		}
+	}
 	private boolean createBlocks() {
 
 		Location[] locations = this.returnLocations();
@@ -137,17 +148,19 @@ public class Trap {
 
 	private static void sendMenu(CommandSender sender, List<Trap> subList) { // eclipse formats this weirdly...
 		for (Trap object : subList) {
-			sender.sendMessage(ChatColor.WHITE + "[" + list.indexOf(object) + "]" + DateFormat.getDateInstance(DateFormat.MEDIUM).format((object.time))
-					+ " - Location: " + object.location.getBlockX() + " " + object.location.getBlockY() + " "
-					+ object.location.getBlockZ() + " By " + object.placer);
+			sender.sendMessage(ChatColor.WHITE + "[" + list.indexOf(object) + "]" + DateFormat
+					.getDateInstance(DateFormat.MEDIUM).format((object.time)) + " - Location: " + object.location
+					.getBlockX() + " " + object.location.getBlockY() + " " + object.location
+					.getBlockZ() + " By " + object.placer);
 		}
 	}
 
 	public static void removeTrapCmd(CommandSender sender, int id) {
 		if (id >= 0 && id < list.size()) {
 			Trap temp = list.get(id);
-			if ((temp.placer == sender && sender.hasPermission("fd.trap.remove.self")
-					|| sender.hasPermission("fd.trap.remove.all"))) {
+			if ((temp.placer == sender && sender
+					.hasPermission("fd.trap.remove.self") || sender
+						.hasPermission("fd.trap.remove.all"))) {
 				temp.removeTrap();
 			}
 		}
@@ -167,5 +180,19 @@ public class Trap {
 
 	public static Map<Location, Trap> getInverselist() {
 		return inverselist;
+	}
+
+	public String Trapsummary() { // method to summarize the trap object, for saving purposed
+		String oldmatstring = null;
+		for (Material material : oldmat) {
+			oldmatstring += material.getId() + ";";
+		}
+
+		String res = this.type + ";" + this.mat.getId() + ";" + oldmatstring + this.placer + ";" + this.location
+				.getBlockX() + ";" + this.location.getBlockY() + ";" + this.location
+				.getBlockZ() + ";" + this.location.getWorld().getName() + ";" + this.time
+				.getTime() + ";" + this.persistant;
+
+		return res;
 	}
 }

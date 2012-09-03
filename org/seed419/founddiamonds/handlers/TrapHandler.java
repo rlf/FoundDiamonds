@@ -55,36 +55,37 @@ public class TrapHandler {
 			}
 			args = temp; // continue without the persistant bool in the end, this way I dont have to recode all the command interpreting
 		}
-			if (args.length == 1) {
+		if (args.length == 1) {
 			trap = Material.DIAMOND_ORE;
 			item = "Diamond ore";
-			
-			if(args[1] == "menu"){
-				int page =  0;
-				if(args.length == 3){
-					try {
-						page = Integer.parseInt(args[2]);
-					} catch (NumberFormatException ex) {
-						player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + "Invalid arguments");
-						return;
-					}
-				}
-				Trap.Menu(player, page);
-			}
-			if(args[1] == "remove"){
-				int id;
-				if(args.length == 3){
-					try {
-						id = Integer.parseInt(args[2]);
-					} catch (NumberFormatException ex) {
-						player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + "Invalid arguments");
-						return;
-					}
-					Trap.removeTrapCmd(player, id);
-				}else{
+		}
+		if (args[1] == "menu") {
+			int page = 0;
+			if (args.length == 3) {
+				try {
+					page = Integer.parseInt(args[2]);
+				} catch (NumberFormatException ex) {
 					player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + "Invalid arguments");
+					return;
 				}
 			}
+			Trap.Menu(player, page);
+			return;
+		}
+		if (args[1] == "remove") {
+			int id;
+			if (args.length == 3) {
+				try {
+					id = Integer.parseInt(args[2]);
+				} catch (NumberFormatException ex) {
+					player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + "Invalid arguments");
+					return;
+				}
+				Trap.removeTrapCmd(player, id);
+			} else {
+				player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + "Invalid arguments");
+			}
+			return;
 		} else if (args.length == 2) { // either trap block specified, old format, or depth specified, assuming diamond blocks
 			item = args[1];
 			trap = Material.matchMaterial(item);
@@ -143,7 +144,8 @@ public class TrapHandler {
 				} else {
 					type = (byte) Math.ceil(Math.random() + 0.5); // should work.
 				}
-				Trap temp = new Trap(type, trap, player, trapLoc, persistant, item);
+				Trap temp = new Trap(type, trap, player, trapLoc, persistant,
+						item);
 			} else {
 				player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + "Unable to set a trap with " + item);
 				player.sendMessage(ChatColor.RED + "Surely you can use a more sensible block for a trap.");
@@ -188,23 +190,26 @@ public class TrapHandler {
 			trap.removeTrap();
 		} else {
 			String trapMessage;
-			if(trap.isPersistant()){
+			if (trap.isPersistant()) {
 				trapMessage = ChatColor.YELLOW + player.getName() + ChatColor.RED + " just triggered a persistent trap";
-			}else{
-			trapMessage = ChatColor.YELLOW + player.getName() + ChatColor.RED + " just triggered a trap block";
-			trap.removeTrap();		//traps are removed once triggered, persistent traps stay armed
-			//someone else might accidently follow the xrayer's path, and get kicked/banned as well
+			} else {
+				trapMessage = ChatColor.YELLOW + player.getName() + ChatColor.RED + " just triggered a trap block";
+				trap.removeTrap(); // traps are removed once triggered, persistent traps stay armed
+				// someone else might accidently follow the xrayer's path, and get kicked/banned as well
 			}
 			for (Player x : fd.getServer().getOnlinePlayers()) {
-				if ((fd.getPermissions().hasPerm(x, "fd.trap")) || fd.getPermissions().hasPerm(x, "fd.admin")) {
+				if ((fd.getPermissions().hasPerm(x, "fd.trap")) || fd
+						.getPermissions().hasPerm(x, "fd.admin")) {
 					x.sendMessage(trapMessage);
 				}
 			}
-			fd.getServer().getConsoleSender().sendMessage(Prefix.getLoggingPrefix() + trapMessage);
+			fd.getServer().getConsoleSender()
+					.sendMessage(Prefix.getLoggingPrefix() + trapMessage);
 			boolean banned = false;
 			boolean kicked = false;
 			if (fd.getConfig().getBoolean(Config.kickOnTrapBreak)) {
-				String kickMessage = fd.getConfig().getString(Config.kickMessage);
+				String kickMessage = fd.getConfig().getString(
+						Config.kickMessage);
 				player.kickPlayer(kickMessage);
 				kicked = true;
 			}

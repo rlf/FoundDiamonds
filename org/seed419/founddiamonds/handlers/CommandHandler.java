@@ -46,7 +46,7 @@ public class CommandHandler implements CommandExecutor {
         this.fd = fd;
     }
 
- @Override
+
     public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
         Player player = null;
         if (sender instanceof Player) {
