@@ -42,6 +42,7 @@ public class TrapHandler {
 	}
 
 	public void handleTrap(Player player, String[] args) {
+		player.sendMessage("debug: " + args[0] + " / " + args[1]);
 		Location playerLoc = player.getLocation();
 		Material trap =Material.AIR;
 		String item = "";
@@ -61,9 +62,9 @@ public class TrapHandler {
 			item = "Diamond ore";
 		}
 		if(args.length > 1){
-		if (args[1] == "menu") {
+		if (args[1].equalsIgnoreCase("menu")) {
 			System.out.println("debug: entering menu");
-			int page = 0;
+			int page = 1;
 			if (args.length == 3) {
 				try {
 					page = Integer.parseInt(args[2]);
@@ -75,7 +76,7 @@ public class TrapHandler {
 			Trap.Menu(player, page);
 			return;
 		}
-		if (args[1] == "remove") {
+		if (args[1].equalsIgnoreCase("remove")) {
 			int id;
 			if (args.length == 3) {
 				try {

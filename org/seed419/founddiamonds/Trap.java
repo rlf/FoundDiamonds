@@ -22,6 +22,13 @@ import org.seed419.founddiamonds.util.Prefix;
 /**
  * @author snoepje0
  * 
+ * 
+ * TODO: 
+ * 	-file handling doesnt work?		-> doesnt remake the inverselist
+ * 	-moar testing
+ * 	-fix menu
+ * 	-fix removeal
+ * 	
  */
 public class Trap {
 	private final byte type; // the type, and thus form and size of the trap,
@@ -66,11 +73,17 @@ public class Trap {
 		this.persistant = persistent;
 		list.add(this);
 		placer.sendMessage("trap placed");
-		if (!this.createBlocks()) {
-			list.remove(this);
-			placer.sendMessage("debug : error in palcement");
-		}
+		this.refillinverse();
+		//This way, the traps are subject to tampering through the savefile. Maybe some sort of hashing?
+		
 
+	}
+	
+	private void refillinverse() {
+		Block[] temp = this.returnLocations();
+		for(Block block : temp){
+			inverselist.put(block, this);
+		}
 	}
 
 	private boolean createBlocks() {
@@ -167,11 +180,17 @@ public class Trap {
 	public static boolean Menu(CommandSender sender, int page) { // TODO: This part still looks a bit messy
 		if (sender.hasPermission("fd.trap.remove.all") || sender.isOp()) { // permissions to see and remove all traps
 			ArrayList<Trap> trapList = new ArrayList<Trap>();
+			sender.sendMessage("debug: begin of menu");
 			for (Trap trap : list) {
 				trapList.add(trap);
 			}
-			if (page >= 1 && (page * 5) >= list.size()) {
-				sendMenu(sender, trapList.subList((page - 1) * 5, page * 5));
+			if (page >= 1 && ( (page) *5 < list.size()) ) {		//sane page specified?
+				int id1 = (page)*5 ; //begin of the substring
+				int id2 = (page +1) *5 -1;  //end of the substring
+				if(id2 > list.size()){
+					id2 = list.size()-1;
+				}
+				sendMenu(sender, trapList.subList(id1, id2));
 				return true;
 			} else {
 				sender.sendMessage(ChatColor.RED + "Page number is invalid");
@@ -183,8 +202,13 @@ public class Trap {
 				if (trap.placer == sender)
 					trapList.add(trap);
 			}
-			if (page >= 1 && (page * 5) >= list.size()) {
-				sendMenu(sender, trapList.subList((page - 1) * 5, page * 5));
+			if (page >= 1 && ( (page) *5 < list.size()) ) {		//sane page specified?
+				int id1 = (page)*5 ; //begin of the substring
+				int id2 = (page +1) *5 -1;  //end of the substring
+				if(id2 > list.size()){
+					id2 = list.size()-1;
+				}
+				sendMenu(sender, trapList.subList(id1, id2));
 				return true;
 			} else {
 				sender.sendMessage(ChatColor.RED + "Page number is invalid");
@@ -234,12 +258,12 @@ public class Trap {
 	}
 
 	public String Trapsummary() { // method to summarize the trap object, for saving purposed
-		String oldmatstring = null;
+		String oldmatstring = "";
 		for (Material material : oldmat) {
 			oldmatstring += material.getId() + ";";
 		}
 
-		String res = this.type + ";" + this.mat.getId() + ";" + oldmatstring + this.placer + ";" + this.location
+		String res = this.type + ";" + this.mat.getId() + ";" + oldmatstring + this.placer.getDisplayName() + ";" + this.location
 				.getBlockX() + ";" + this.location.getBlockY() + ";" + this.location
 				.getBlockZ() + ";" + this.location.getWorld().getName() + ";" + this.time
 				.getTime() + ";" + this.persistant;
