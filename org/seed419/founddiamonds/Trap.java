@@ -24,11 +24,7 @@ import org.seed419.founddiamonds.util.Prefix;
  * 
  * 
  * TODO: 
- * 	-file handling doesnt work?		-> doesnt remake the inverselist
- * 	-moar testing
- * 	-fix menu
- * 	-fix removeal
- * 	
+ * 	empty =)
  */
 public class Trap {
 	private final byte type; // the type, and thus form and size of the trap,
@@ -53,10 +49,10 @@ public class Trap {
 		this.time = new Date(System.currentTimeMillis());
 		this.persistant = persistant;
 		list.add(this);
-		placer.sendMessage("debug: trap constructor");
+
 		if (!this.createBlocks()) {
 			list.remove(this);
-			placer.sendMessage("debug : list removal");
+
 		} else {
 			placer.sendMessage(ChatColor.WHITE + "Trap placed with " + item);
 		}
@@ -96,7 +92,6 @@ public class Trap {
 				return false;
 			}
 		}
-		placer.sendMessage("debug: just before for loop");
 		if (this.mat == Material.EMERALD_ORE) {
 			oldmat[0] = this.location.getBlock().getType();
 			inverselist.put(location.getBlock(), this);
@@ -114,7 +109,7 @@ public class Trap {
 			locations[1].setType(mat);
 			locations[2].setType(mat);
 			locations[3].setType(mat);
-			placer.sendMessage("debug: workaround");
+
 
 		}
 		/*
@@ -131,7 +126,7 @@ public class Trap {
 
 	private Block[] returnLocations() { // edit this method to add more ore formations
 		// TODO Make this thing read formations from the config file?
-		this.placer.sendMessage("debug: locations returning");
+
         World world = placer.getWorld();
         Block block1;
         Block block2;
@@ -180,17 +175,19 @@ public class Trap {
 	public static boolean Menu(CommandSender sender, int page) { // TODO: This part still looks a bit messy
 		if (sender.hasPermission("fd.trap.remove.all") || sender.isOp()) { // permissions to see and remove all traps
 			ArrayList<Trap> trapList = new ArrayList<Trap>();
-			sender.sendMessage("debug: begin of menu");
+
 			for (Trap trap : list) {
 				trapList.add(trap);
 			}
-			if (page >= 1 && ( (page) *5 < list.size()) ) {		//sane page specified?
+			if (page >= 0 && ( (page) *5 < list.size()) ) {		//sane page specified?
 				int id1 = (page)*5 ; //begin of the substring
 				int id2 = (page +1) *5 -1;  //end of the substring
 				if(id2 > list.size()){
 					id2 = list.size()-1;
 				}
-				sendMenu(sender, trapList.subList(id1, id2));
+				for(Trap object : trapList){
+				sendMenu(sender, object);
+				}
 				return true;
 			} else {
 				sender.sendMessage(ChatColor.RED + "Page number is invalid");
@@ -202,13 +199,15 @@ public class Trap {
 				if (trap.placer == sender)
 					trapList.add(trap);
 			}
-			if (page >= 1 && ( (page) *5 < list.size()) ) {		//sane page specified?
+			if (page >= 0 && ( (page) *5 < list.size()) ) {		//sane page specified?
 				int id1 = (page)*5 ; //begin of the substring
 				int id2 = (page +1) *5 -1;  //end of the substring
 				if(id2 > list.size()){
 					id2 = list.size()-1;
 				}
-				sendMenu(sender, trapList.subList(id1, id2));
+				for(Trap object : trapList){
+				sendMenu(sender, object);
+				}
 				return true;
 			} else {
 				sender.sendMessage(ChatColor.RED + "Page number is invalid");
@@ -221,14 +220,13 @@ public class Trap {
 
 	}
 
-	private static void sendMenu(CommandSender sender, List<Trap> subList) { // eclipse formats this weirdly...
-		for (Trap object : subList) {
-			sender.sendMessage(ChatColor.WHITE + "[" + list.indexOf(object) + "]" + DateFormat
+	private static void sendMenu(CommandSender sender, Trap object) { // eclipse formats this weirdly...
+
+			sender.sendMessage(""+ChatColor.WHITE + "[" + list.indexOf(object) + "]" + DateFormat
 					.getDateInstance(DateFormat.MEDIUM).format((object.time)) + " - Location: " + object.location
 					.getBlockX() + " " + object.location.getBlockY() + " " + object.location
-					.getBlockZ() + " By " + object.placer);
-		}
-	}
+					.getBlockZ() + " By " + object.placer.getDisplayName());
+			}
 
 	public static void removeTrapCmd(CommandSender sender, int id) {
 		if (id >= 0 && id < list.size()) {
@@ -237,6 +235,7 @@ public class Trap {
 					.hasPermission("fd.trap.remove.self") || sender
 						.hasPermission("fd.trap.remove.all"))) {
 				temp.removeTrap();
+				sender.sendMessage(ChatColor.YELLOW + "Trap removed succesfully");
 			}
 		}
 	}

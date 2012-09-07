@@ -42,7 +42,6 @@ public class TrapHandler {
 	}
 
 	public void handleTrap(Player player, String[] args) {
-		player.sendMessage("debug: " + args[0] + " / " + args[1]);
 		Location playerLoc = player.getLocation();
 		Material trap =Material.AIR;
 		String item = "";
@@ -63,8 +62,7 @@ public class TrapHandler {
 		}
 		if(args.length > 1){
 		if (args[1].equalsIgnoreCase("menu")) {
-			System.out.println("debug: entering menu");
-			int page = 1;
+			int page = 0;
 			if (args.length == 3) {
 				try {
 					page = Integer.parseInt(args[2]);
@@ -150,7 +148,6 @@ public class TrapHandler {
 					type = (byte) Math.ceil(Math.random() + 0.5); // should work.
 				}
 				Trap temp = new Trap(type, trap, player, trapLoc, persistant,item);
-				player.sendMessage("debug: trap should be palced" + trap.toString());
 			} else {
 				player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + "Unable to set a trap with " + item);
 				player.sendMessage(ChatColor.RED + "Surely you can use a more sensible block for a trap.");
