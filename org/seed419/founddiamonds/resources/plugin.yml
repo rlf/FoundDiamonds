@@ -1,8 +1,10 @@
 name: FoundDiamonds
-version: 3.6
+version: 3.6.1
 main: org.seed419.founddiamonds.FoundDiamonds
 author: SeeD419
 website: http://dev.bukkit.org/server-mods/founddiamonds/
+description: Block announcer and anti x-ray
+dev-url: http://dev.bukkit.org/server-mods/founddiamonds/
 
 commands:
    fd:
