@@ -13,34 +13,34 @@ import org.seed419.founddiamonds.file.Config;
 /**
  * Attribute Only (Public) License
  * Version 0.a3, July 11, 2011
- * <p/>
+ *
  * Copyright (C) 2012 Blake Bartenbach <seed419@gmail.com> (@seed419)
- * <p/>
+ *
  * Anyone is allowed to copy and distribute verbatim or modified
  * copies of this license document and altering is allowed as long
  * as you attribute the author(s) of this license document / files.
- * <p/>
+ *
  * ATTRIBUTE ONLY PUBLIC LICENSE
  * TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
- * <p/>
+ *
  * 1. Attribute anyone attached to the license document.
  * Do not remove pre-existing attributes.
- * <p/>
+ *
  * Plausible attribution methods:
  * 1. Through comment blocks.
  * 2. Referencing on a site, wiki, or about page.
- * <p/>
+ *
  * 2. Do whatever you want as long as you don't invalidate 1.
  *
  * @license AOL v.a3 <http://aol.nexua.org>
  */
-public class AnnouncementListener implements Listener  {
+public class BlockBreakListener implements Listener  {
 
 
     private FoundDiamonds fd;
 
 
-    public AnnouncementListener(FoundDiamonds fd) {
+    public BlockBreakListener(FoundDiamonds fd) {
         this.fd = fd;
     }
 
@@ -62,9 +62,11 @@ public class AnnouncementListener implements Listener  {
 
         final Material mat = event.getBlock().getType();
         int blockTotal = 0;
+        int lightLevel = 99;
 
         if (fd.getPermissions().hasMonitorPerm(player)) {
             if (fd.getMapHandler().getAdminMessageBlocks().containsKey(mat)) {
+                lightLevel = fd.getLightLevelHandler().getLightLevel(event.getBlock());
                 blockTotal = fd.getBlockCounter().getTotalBlocks(event.getBlock());
                 fd.getAdminMessageHandler().sendAdminMessage(mat, blockTotal, player);
             }
@@ -73,7 +75,8 @@ public class AnnouncementListener implements Listener  {
         if (fd.getPermissions().hasBroadcastPerm(player)) {
             if (fd.getMapHandler().getBroadcastedBlocks().containsKey(mat)) {
                 if (blockTotal == 0) {blockTotal = fd.getBlockCounter().getTotalBlocks(event.getBlock());}
-                fd.getBroadcastHandler().handleBroadcast(mat, blockTotal, player);
+                if (lightLevel == 99) {lightLevel = fd.getLightLevelHandler().getLightLevel(event.getBlock());}
+                fd.getBroadcastHandler().handleBroadcast(mat, blockTotal, player, lightLevel);
             }
         }
 

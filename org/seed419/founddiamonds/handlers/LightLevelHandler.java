@@ -42,6 +42,8 @@ public class LightLevelHandler {
 
     private FoundDiamonds fd;
     private HashSet<Location> announcedLightBlocks = new HashSet<Location>();
+    private final BlockFace[] lightFaces = {BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH,
+            BlockFace.DOWN, BlockFace.UP};
 
 
     public LightLevelHandler(FoundDiamonds fd) {
@@ -52,7 +54,7 @@ public class LightLevelHandler {
     public void handleLightLevelMonitor(final BlockDamageEvent event, final Material mat, final Player player) {
         final Block block = event.getBlock();
         final Location loc = event.getBlock().getLocation();
-        if (blockSeesNoLight(block)) {
+        if (blockIsBelowAcceptableLightLevel(block)) {
             if (!announcedLightBlocks.contains(loc)) {
                 for (Location x : fd.getBlockCounter().getAllLikeBlockLocations(event.getBlock())) {
                      announcedLightBlocks.add(x);
@@ -89,23 +91,29 @@ public class LightLevelHandler {
         }
     }
 
-    public boolean blockSeesNoLight(final Block block) {
+    public boolean blockIsBelowAcceptableLightLevel(final Block block) {
         double percentage = Double.parseDouble(fd.getConfig().getString(Config.percentOfLightRequired).replaceAll("%", ""));
         double levelToDisableAt = percentage / 15.0;
-        int lightLevel;
-        int highestLevel = 0;
-        for (BlockFace y : BlockFace.values()) {
-            lightLevel = block.getRelative(y).getLightLevel();
-            if (lightLevel > highestLevel) {highestLevel = lightLevel;}
-            if (lightLevel > levelToDisableAt) {return false;}
-        }
-        return true;
+        int lightLevel = getLightLevel(block);
+        return (lightLevel < levelToDisableAt);
     }
 
     public void checkAndClearLightLevelLocation(Location loc) {
         if(announcedLightBlocks.contains(loc)) {
             announcedLightBlocks.remove(loc);
         }
+    }
+
+    public int getLightLevel(final Block block) {
+        int highestLevel = 0;
+        int lightLevel;
+        for (BlockFace y : lightFaces) {
+            lightLevel = block.getRelative(y).getLightLevel();
+            if (lightLevel > highestLevel) {
+                highestLevel = lightLevel;
+            }
+        }
+        return highestLevel;
     }
 
 }

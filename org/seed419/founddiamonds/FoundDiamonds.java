@@ -44,13 +44,13 @@ public class FoundDiamonds extends JavaPlugin {
 
     private Logger log;
     private final BlockPlaceListener blockPlaceListener = new BlockPlaceListener(this);
-    private final AnnouncementListener blockBreakListener = new AnnouncementListener(this);
+    private final BlockBreakListener blockBreakListener = new BlockBreakListener(this);
     private final PlayerDamageListener playerDamageListener = new PlayerDamageListener(this);
     private final PistonListener pistonListener = new PistonListener(this);
     private final TrapListener trapListener = new TrapListener(this);
     private final BroadcastHandler broadcastHandler = new BroadcastHandler(this);
     private final AdminMessageHandler adminMessageHandler = new AdminMessageHandler(this);
-    private final LightLevelListener lightLevelListener = new LightLevelListener(this);
+    private final BlockDamageListener lightLevelListener = new BlockDamageListener(this);
     private final LightLevelHandler lightLevelHandler = new LightLevelHandler(this);
     private final FileUtils fileUtils = new FileUtils(this);
     private final MySQL mysql = new MySQL(this);
@@ -73,11 +73,14 @@ public class FoundDiamonds extends JavaPlugin {
    TODO:
     MenuHandler set area?
     Is cleanlogging in SQL a popular request?
+    Customizeable admin message formats!
+    Customizeable light level message formats!
     */
 
    /*
    Changelog:
-
+    Implemented @LightLevel@ and @LightPercent@ for broadcast messages!
+    Performance enchanement - Fixed a bug where light level checks were checking way too many blockfaces.
     */
 
 
