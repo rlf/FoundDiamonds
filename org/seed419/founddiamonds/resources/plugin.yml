@@ -1,5 +1,5 @@
 name: FoundDiamonds
-version: 3.6.2
+version: 3.6.3
 main: org.seed419.founddiamonds.FoundDiamonds
 author: SeeD419
 website: http://dev.bukkit.org/server-mods/founddiamonds/
@@ -10,7 +10,7 @@ commands:
    fd:
      description: Shows the main menu
      aliases: [founddiamonds]
-     permission-message: Sorry, you don't have permission
+     permission-message: Sorry, you do not have permission
 
 permissions:
   fd.*:
@@ -66,6 +66,22 @@ permissions:
       fd.manage.broadcast.remove: true
       fd.manage.broadcast.list: true
 
+  fd.trap.*:
+    description: Allows management of all trap blocks
+    default: false
+    children:
+      fd.trap.remove.self: true
+      fd.trap.remove.all: true
+      fd.trap.set: true
+      fd.trap.list: true
+
+  fd.trap.remove.*:
+    description: Allows removal of all trap blocks
+    default: false
+    children:
+      fd.trap.remove.self: true
+      fd.trap.remove.all: true
+
   fd.manage.reload:
     description: Allows users to reload the configuration file in game
     default: false
@@ -112,15 +128,23 @@ permissions:
     description: Allows listing of light level blocks
     default: false
 
+  fd.trap.remove.self:
+    description: Allows removal of a players own trap blocks
+    default: false
+  fd.trap.remove.all:
+    description: Allows removal of any and all trap blocks
+    default: false
+  fd.trap.set:
+    description: Allows a player to set traps
+    default: false
+  fd.trap.list:
+    description: Allows a player to list trap blocks
+    default: false
 
   fd.broadcast:
     description: Broadcasts to player
     default: false
 
-  fd.trap:
-    description: Allows users to manage FD traps
-    default: false
-
   fd.monitor:
-    description: Monitors the player's light level
+    description: Monitors the players light level
     default: false

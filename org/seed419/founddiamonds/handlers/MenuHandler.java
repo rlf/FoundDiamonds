@@ -3,35 +3,31 @@ package org.seed419.founddiamonds.handlers;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.file.Config;
 import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.util.Prefix;
 
-/**
- * Attribute Only (Public) License
- * Version 0.a3, July 11, 2011
- * <p/>
- * Copyright (C) 2012 Blake Bartenbach <seed419@gmail.com> (@seed419)
- * <p/>
- * Anyone is allowed to copy and distribute verbatim or modified
- * copies of this license document and altering is allowed as long
- * as you attribute the author(s) of this license document / files.
- * <p/>
- * ATTRIBUTE ONLY PUBLIC LICENSE
- * TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
- * <p/>
- * 1. Attribute anyone attached to the license document.
- * Do not remove pre-existing attributes.
- * <p/>
- * Plausible attribution methods:
- * 1. Through comment blocks.
- * 2. Referencing on a site, wiki, or about page.
- * <p/>
- * 2. Do whatever you want as long as you don't invalidate 1.
- *
- * @license AOL v.a3 <http://aol.nexua.org>
- */
+/*
+Copyright 2011-2012 Blake Bartenbach
+
+This file is part of FoundDiamonds.
+
+FoundDiamonds is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+FoundDiamonds is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with FoundDiamonds.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 public class MenuHandler {
 
 
@@ -43,38 +39,37 @@ public class MenuHandler {
         this.fd = fd;
     }
 
-
     public void printMainMenu(CommandSender sender) {
         if (fd.getPermissions().hasAnyMenuPerm(sender)) {
-            sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [FoundDiamonds Main Menu]");
-            sender.sendMessage(" /fd " + ChatColor.RED + "[argument] {optional}");
+            sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + ChatColor.BOLD + " [FoundDiamonds Main Menu]");
+            sender.sendMessage(" /fd " + ChatColor.RED + "[required] {optional}");
             if (fd.getPermissions().hasAdminManagementPerm(sender)) {
-                sender.sendMessage(ChatColor.RED + "    admin" + ChatColor.WHITE + " - Manage admin message blocks");
+                sender.sendMessage(ChatColor.RED + "    admin" + ChatColor.WHITE + " - Show admin message menu");
             }
             if (fd.getPermissions().hasBroadcastManagementPerm(sender)) {
-                sender.sendMessage(ChatColor.RED + "    bc" + ChatColor.WHITE + " - Manage broadcasted blocks");
+                sender.sendMessage(ChatColor.RED + "    bc" + ChatColor.WHITE + " - Show broadcast menu");
             }
             if (fd.getPermissions().hasBroadcastManagementPerm(sender)) {
-                sender.sendMessage(ChatColor.RED + "    clearplaced" + ChatColor.WHITE + " - Forget placed blocks");
+                sender.sendMessage(ChatColor.RED + "    clearplaced" + ChatColor.WHITE + " - Forget all placed blocks" + ChatColor.YELLOW + " (no confirm!)");
             }
             if (fd.getPermissions().hasConfigPerm(sender)) {
-                sender.sendMessage(ChatColor.RED + "    config" + ChatColor.WHITE + " - View the configuration file");
+                sender.sendMessage(ChatColor.RED + "    config" + ChatColor.WHITE + " - Show the configuration file");
             }
             if (fd.getPermissions().hasLightManagementPerm(sender)) {
-                sender.sendMessage(ChatColor.RED + "    light" + ChatColor.WHITE + " - Manage light-monitored blocks");
+                sender.sendMessage(ChatColor.RED + "    light" + ChatColor.WHITE + " - Show light-monitoring menu");
             }
             if (fd.getPermissions().hasReloadPerm(sender)) {
-                sender.sendMessage(ChatColor.RED + "    reload" + ChatColor.WHITE + " - Reload the configuration file");
+                sender.sendMessage(ChatColor.RED + "    reload" + ChatColor.WHITE + " - Reloads the configuration file");
             }
             if (fd.getPermissions().hasTogglePerm(sender)) {
-                sender.sendMessage(ChatColor.RED + "    set" + ChatColor.WHITE + " - Modify values in the config");
-                sender.sendMessage(ChatColor.RED + "    toggle" + ChatColor.WHITE + " - Toggle options in the configuration");
+                sender.sendMessage(ChatColor.RED + "    set" + ChatColor.WHITE + " - Modify values in the configuration in-game");
+                sender.sendMessage(ChatColor.RED + "    toggle" + ChatColor.WHITE + " - Toggle options in the configuration in-game");
             }
             if (fd.getPermissions().hasTrapPerm(sender)) {
-                sender.sendMessage(ChatColor.RED + "    trap {item} {depth}" + ChatColor.WHITE + " - Set a trap block");
+                sender.sendMessage(ChatColor.RED + "    trap" + ChatColor.WHITE + " - Show the trap block menu");
             }
             if (fd.getPermissions().hasWorldManagementPerm(sender)) {
-                sender.sendMessage(ChatColor.RED + "    world" + ChatColor.WHITE + " - Manage enabled worlds");
+                sender.sendMessage(ChatColor.RED + "    world" + ChatColor.WHITE + " - Show the world menu");
             }
             if (fd.getPermissions().hasAnyMenuPerm(sender)) {
                 sender.sendMessage(ChatColor.RED + "    version" + ChatColor.WHITE + " - View version information");
@@ -85,7 +80,7 @@ public class MenuHandler {
     }
 
     public void showToggle(CommandSender sender) {
-        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Toggle Options]");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + ChatColor.BOLD +  " [Toggle Options]");
         sender.sendMessage(ChatColor.RED + "    ops" + ChatColor.WHITE + " - OPs have all permissions");
         sender.sendMessage(ChatColor.RED + "    kick" + ChatColor.WHITE + " - Kick players on trap breaks");
         sender.sendMessage(ChatColor.RED + "    ban" + ChatColor.WHITE + " - Ban players on trap breaks");
@@ -98,7 +93,7 @@ public class MenuHandler {
     }
 
     public void showConfig(FoundDiamonds fd, CommandSender sender) {
-        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Configuration 1/" + configPages + "]");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + ChatColor.BOLD +  " [Configuration 1/" + configPages + "]");
         sender.sendMessage(ChatColor.RED + "    Random spells for finding diamonds: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.potionsForFindingDiamonds)));
         sender.sendMessage(ChatColor.RED + "    Spell Strength: " + ChatColor.AQUA + fd.getConfig().getInt(Config.potionStrength));
         sender.sendMessage(ChatColor.RED + "    Odds of casting spells: " + ChatColor.AQUA + fd.getConfig().getInt(Config.chanceToGetPotion) + "%");
@@ -112,7 +107,7 @@ public class MenuHandler {
     }
 
     public void showConfig2(FoundDiamonds fd, CommandSender sender) {
-        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Configuration 2/" + configPages + "]");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + ChatColor.BOLD +  " [Configuration 2/" + configPages + "]");
         sender.sendMessage(ChatColor.RED + "    Disable in creative mode: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.disableInCreative)));
         sender.sendMessage(ChatColor.RED + "    Clean Log: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.cleanLog)));
         sender.sendMessage(ChatColor.RED + "    Light Level blocks disabling at " + ChatColor.AQUA + fd.getConfig().getString(Config.percentOfLightRequired) + ChatColor.RED + " light");
@@ -123,42 +118,97 @@ public class MenuHandler {
     }
 
     public void showLightMenu(CommandSender sender) {
-        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Light Level Blocks]");
-        sender.sendMessage(ChatColor.RED + "    add" + ChatColor.WHITE + " - Monitor a new blocks light level");
-        sender.sendMessage(ChatColor.RED + "    remove" + ChatColor.WHITE + " - Stop a block from being monitored");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + ChatColor.BOLD +  " [Light Level Blocks]");
+        sender.sendMessage(" /fd light" + ChatColor.RED + " [required] {optional}");
+        sender.sendMessage(ChatColor.RED + "    add [block]{,color}" + ChatColor.WHITE + " - Monitor a new blocks light level");
+        sender.sendMessage(ChatColor.GOLD +"        example: /fd light add obsidian,purple");
+        sender.sendMessage(ChatColor.GOLD +"        example: /fd light add dirt");
+        sender.sendMessage(ChatColor.GOLD +"        Color is optional.  Most blocks have a default color.");
+        sender.sendMessage(ChatColor.GOLD +"        You can override this default color by specifying white");
+        sender.sendMessage(ChatColor.GOLD +"        example: /fd light add diamond,white");
+        sender.sendMessage(ChatColor.GOLD +"        Block names can be found here:");
+        sender.sendMessage(ChatColor.DARK_AQUA +"           http://jd.bukkit.org/apidocs/org/bukkit/Material.html");
+        sender.sendMessage(ChatColor.GOLD +"        Color names can be found here:");
+        sender.sendMessage(ChatColor.DARK_AQUA +"           http://jd.bukkit.org/apidocs/org/bukkit/ChatColor.html");
+        sender.sendMessage(ChatColor.RED + "    remove [block]" + ChatColor.WHITE + " - Stop a block from being monitored");
+        sender.sendMessage(ChatColor.GOLD +"        example: /fd light rm dirt");
+        sender.sendMessage(ChatColor.GOLD +"        example: /fd light remove obsidian");
         sender.sendMessage(ChatColor.RED + "    list" + ChatColor.WHITE + " - List the currently monitored blocks");
     }
 
     public void showAdminMenu(CommandSender sender) {
-        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Admin Message Blocks]");
-        sender.sendMessage(ChatColor.RED + "    add" + ChatColor.WHITE + " - Add a block that will send admin messages");
-        sender.sendMessage(ChatColor.RED + "    remove" + ChatColor.WHITE + " - Remove an admin message block");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + ChatColor.BOLD +  " [Admin Message Blocks]");
+        sender.sendMessage(" /fd admin" + ChatColor.RED + " [required] {optional}");
+        sender.sendMessage(ChatColor.RED + "    add [block]{,color}" + ChatColor.WHITE + " - Add a block that will send admin messages");
+        sender.sendMessage(ChatColor.GOLD +"        example: /fd admin add obsidian,purple");
+        sender.sendMessage(ChatColor.GOLD +"        example: /fd admin add dirt");
+        sender.sendMessage(ChatColor.GOLD +"        Color is optional.  Most blocks have a default color.");
+        sender.sendMessage(ChatColor.GOLD +"        You can override this default color by specifying white");
+        sender.sendMessage(ChatColor.GOLD +"        example: /fd admin add diamond,white");
+        sender.sendMessage(ChatColor.GOLD +"        Block names can be found here:");
+        sender.sendMessage(ChatColor.DARK_AQUA +"           http://jd.bukkit.org/apidocs/org/bukkit/Material.html");
+        sender.sendMessage(ChatColor.GOLD +"        Color names can be found here:");
+        sender.sendMessage(ChatColor.DARK_AQUA +"           http://jd.bukkit.org/apidocs/org/bukkit/ChatColor.html");
+        sender.sendMessage(ChatColor.RED + "    remove [block]" + ChatColor.WHITE + " - Remove an admin message block");
+        sender.sendMessage(ChatColor.GOLD +"        example: /fd admin rm dirt");
+        sender.sendMessage(ChatColor.GOLD +"        example: /fd admin remove obsidian");
         sender.sendMessage(ChatColor.RED + "    list" + ChatColor.WHITE + " - List the current admin message blocks");
     }
 
     public void showBcMenu(CommandSender sender) {
-        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Broadcasted Blocks]");
-        sender.sendMessage(ChatColor.RED + "    add" + ChatColor.WHITE + " - Add a new block to be broadcasted");
-        sender.sendMessage(ChatColor.RED + "    remove" + ChatColor.WHITE + " - Remove a block from being broadcasted");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + ChatColor.BOLD +  " [Broadcasted Blocks]");
+        sender.sendMessage(" /fd bc" + ChatColor.RED + " [required] {optional}");
+        sender.sendMessage(ChatColor.RED + "    add [block]{,color}" + ChatColor.WHITE + " - Add a new block to be broadcasted");
+        sender.sendMessage(ChatColor.GOLD +"        example: /fd bc add obsidian,purple");
+        sender.sendMessage(ChatColor.GOLD +"        example: /fd broadcast add dirt");
+        sender.sendMessage(ChatColor.GOLD +"        Color is optional.  Most blocks have a default color.");
+        sender.sendMessage(ChatColor.GOLD +"        You can override this default color by specifying white");
+        sender.sendMessage(ChatColor.GOLD +"        example: /fd bc add diamond,white");
+        sender.sendMessage(ChatColor.GOLD +"        Block names can be found here:");
+        sender.sendMessage(ChatColor.DARK_AQUA +"           http://jd.bukkit.org/apidocs/org/bukkit/Material.html");
+        sender.sendMessage(ChatColor.GOLD +"        Color names can be found here:");
+        sender.sendMessage(ChatColor.DARK_AQUA +"           http://jd.bukkit.org/apidocs/org/bukkit/ChatColor.html");
+        sender.sendMessage(ChatColor.RED + "    remove [block]" + ChatColor.WHITE + " - Remove a block from being broadcasted");
+        sender.sendMessage(ChatColor.GOLD +"        example: /fd bc rm dirt");
+        sender.sendMessage(ChatColor.GOLD +"        example: /fd bc remove obsidian");
         sender.sendMessage(ChatColor.RED + "    list" + ChatColor.WHITE + " - List all currently broadcasted blocks");
     }
 
+    // @TODO Implement!
+    public void showTrapMenu(CommandSender sender) {
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + ChatColor.BOLD +  " [Traps]");
+        sender.sendMessage(" /fd trap" + ChatColor.RED + " [option] {optional}");
+        sender.sendMessage(ChatColor.RED + "    set {material} {depth}" + ChatColor.WHITE + " - Set a trap");
+        sender.sendMessage(ChatColor.RED + "    remove" + ChatColor.WHITE + " - Remove a trap");
+        sender.sendMessage(ChatColor.RED + "    list" + ChatColor.WHITE + " - List the traps you have permission to view");
+    }
+
     public void showWorldMenu(CommandSender sender) {
-        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Worlds 1/1]");
-        sender.sendMessage("/fd world" + ChatColor.RED + " <option>");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + ChatColor.BOLD +  " [Worlds]");
+        sender.sendMessage(" /fd world" + ChatColor.RED + " [option]");
         sender.sendMessage(ChatColor.RED + "    list" + ChatColor.WHITE + " - List FD enabled worlds");
-        sender.sendMessage(ChatColor.RED + "    add <world>" + ChatColor.WHITE + " - Add FD to a world.");
-        sender.sendMessage(ChatColor.RED + "    remove <world>" + ChatColor.WHITE + " - Remove FD from a world.");
+        sender.sendMessage(ChatColor.RED + "    add [world]" + ChatColor.WHITE + " - Add FD to a world.");
+        sender.sendMessage(ChatColor.RED + "    remove [world]" + ChatColor.WHITE + " - Remove FD from a world.");
     }
 
     public void showSetMenu(CommandSender sender) {
-        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Set]");
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + ChatColor.BOLD +  " [Set]");
+        sender.sendMessage(" /fd set" + ChatColor.RED + " [option]");
         //todo? meh...
-/*        sender.sendMessage(ChatColor.RED + "    item1 <id number>");
+/*      sender.sendMessage(ChatColor.RED + "    item1 <id number>");
         sender.sendMessage(ChatColor.RED + "    item2 <id number>");
         sender.sendMessage(ChatColor.RED + "    item3 <id number>");*/
-        sender.sendMessage(ChatColor.RED + "    spellpercent <percent>" + ChatColor.WHITE + " Set odds that spells are casted.");
-        sender.sendMessage(ChatColor.RED + "    itempercent <percent>" + ChatColor.WHITE + " Set odds that items are awarded.");
+        sender.sendMessage(ChatColor.RED + "    spellpercent [percent]" + ChatColor.WHITE + " Set odds that spells are casted.");
+        sender.sendMessage(ChatColor.RED + "    itempercent [percent]" + ChatColor.WHITE + " Set odds that items are awarded.");
+    }
+
+    public void showVersion(FoundDiamonds fd, CommandSender sender) {
+        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + ChatColor.BOLD + " [Version]");
+        sender.sendMessage(ChatColor.LIGHT_PURPLE + " @version  " + ChatColor.DARK_GREEN + fd.getPdf().getVersion());
+        sender.sendMessage(ChatColor.LIGHT_PURPLE + " @author   " + ChatColor.DARK_GREEN + "seed419");
+        sender.sendMessage(ChatColor.LIGHT_PURPLE + " @website  " + ChatColor.DARK_AQUA +  "http://dev.bukkit.org/server-mods/founddiamonds/");
+        sender.sendMessage(ChatColor.LIGHT_PURPLE + " @code     " + ChatColor.DARK_AQUA +  "https://github.com/proxa/FoundDiamonds");
+        sender.sendMessage(ChatColor.LIGHT_PURPLE + " @wiki     " + ChatColor.DARK_AQUA +  "  https://github.com/proxa/FoundDiamonds/wiki");
     }
 
     public boolean handleSetMenu(FoundDiamonds fd, CommandSender sender, String[] args) {
@@ -223,10 +273,10 @@ public class MenuHandler {
                 fd.getMapHandler().handleListingList(sender, fd.getMapHandler().getBroadcastedBlocks());
             } else if (args[1].equalsIgnoreCase("add")) {
                 fd.getMapHandler().handleAddToList(sender, args, fd.getMapHandler().getBroadcastedBlocks(), Config.broadcastedBlocks);
-            } else if (args[1].equalsIgnoreCase("remove")) {
+            } else if (args[1].equalsIgnoreCase("remove") || args[1].equalsIgnoreCase("rm")) {
                 fd.getMapHandler().handleRemoveFromList(sender, args, fd.getMapHandler().getBroadcastedBlocks(), Config.broadcastedBlocks);
             } else {
-                sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
+                sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized broadcast argument " + ChatColor.WHITE + "'" + args[1] + "'");
             }
         }
     }
@@ -243,7 +293,7 @@ public class MenuHandler {
             } else if (args[1].equalsIgnoreCase("remove")) {
                 fd.getMapHandler().handleRemoveFromList(sender, args, fd.getMapHandler().getAdminMessageBlocks(), Config.adminMessageBlocks);
             } else {
-                sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
+                sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized admin argument " + ChatColor.WHITE + "'" + args[1] + "'");
             }
         }
     }
@@ -260,16 +310,30 @@ public class MenuHandler {
             } else if (args[1].equalsIgnoreCase("remove")) {
                 fd.getMapHandler().handleRemoveFromList(sender, args, fd.getMapHandler().getLightLevelBlocks(), Config.lightLevelBlocks);
             } else {
-                sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized command " + ChatColor.WHITE + "'" + args[1] + "'");
+                sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized light argument " + ChatColor.WHITE + "'" + args[1] + "'");
             }
         }
     }
 
-    public void showVersion(FoundDiamonds fd, CommandSender sender) {
-        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " [Version]");
-        sender.sendMessage(ChatColor.DARK_GREEN + " @version:  " + ChatColor.GOLD + fd.getPdf().getVersion());
-        sender.sendMessage(ChatColor.DARK_GREEN + " @author:   " + ChatColor.GOLD + "seed419");
-        sender.sendMessage(ChatColor.DARK_GREEN + " @website:  " + ChatColor.GOLD + "http://dev.bukkit.org/server-mods/founddiamonds/");
+    public void handleTrapMenu(FoundDiamonds fd, CommandSender sender, String[] args) {
+        if (args.length == 1) {
+            showTrapMenu(sender);
+        } else if (args.length > 1) {
+            if (args[1].equalsIgnoreCase("set")) {
+                if (sender instanceof Player) {
+                    Player player = (Player) sender;
+                    fd.getTrapHandler().handleTrap(player, args);
+                } else {
+                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " You must be a player to set a trap.");
+                }
+            } else if (args[1].equalsIgnoreCase("remove")) {
+
+            } else if (args[1].equalsIgnoreCase("list")) {
+
+            } else {
+                sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized trap argument " + ChatColor.WHITE + "'" + args[1] + "'");
+            }
+        }
     }
 
     private String getPrettyMenuBoolean(Boolean b) {

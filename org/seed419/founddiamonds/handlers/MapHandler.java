@@ -12,30 +12,25 @@ import org.seed419.founddiamonds.util.Prefix;
 
 import java.util.*;
 
-/**
- * Attribute Only (Public) License
- * Version 0.a3, July 11, 2011
- * <p/>
- * Copyright (C) 2012 Blake Bartenbach <seed419@gmail.com> (@seed419)
- * <p/>
- * Anyone is allowed to copy and distribute verbatim or modified
- * copies of this license document and altering is allowed as long
- * as you attribute the author(s) of this license document / files.
- * <p/>
- * ATTRIBUTE ONLY PUBLIC LICENSE
- * TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
- * <p/>
- * 1. Attribute anyone attached to the license document.
- * Do not remove pre-existing attributes.
- * <p/>
- * Plausible attribution methods:
- * 1. Through comment blocks.
- * 2. Referencing on a site, wiki, or about page.
- * <p/>
- * 2. Do whatever you want as long as you don't invalidate 1.
- *
- * @license AOL v.a3 <http://aol.nexua.org>
- */
+/*
+Copyright 2011-2012 Blake Bartenbach
+
+This file is part of FoundDiamonds.
+
+FoundDiamonds is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+FoundDiamonds is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with FoundDiamonds.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 public class MapHandler {
 
 
@@ -88,19 +83,19 @@ public class MapHandler {
                         fd.getLog().severe("Unable to match color " + sp[1]);
                     }
                 } else {
-                    //TODO Temporary fix for lazy users
+                    //TODO support for deprecated item format
                     try {
                         String[] s = x.split(":");
                         Material mat2 = parseMaterial(s[0]);
                         if (mat != null && mat.isBlock()) {
-                            fd.getLog().warning("Your configuration is outdated and using the old style of separating blocks and colors with a colon here: " + s);
+                            fd.getLog().warning("Your configuration is outdated and using the old style of separating blocks and colors with a colon here: " + s[0]);
                             fd.getLog().warning("Please update these to be commas as support for the old style will be dropped.");
                             ChatColor color = parseColor(s[1], mat2);
                             if (!map.containsKey(mat)) {
                                 map.put(mat, color);
                             }
                         }
-                    //TODO end temp fix for lazy users
+                    //TODO end support for deprecated item format
                     } catch (Exception ex) {
                         fd.getLog().warning("Unable to add " + sp[0]);
                         fd.getLog().warning("Check the FD wiki for valid names.");
@@ -167,9 +162,13 @@ public class MapHandler {
 
     public void handleAddToList(CommandSender sender, String[] args, HashMap<Material,ChatColor> map, String configString) {
         if (args.length == 2) {
-            sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Format is: item:data,color");
-            sender.sendMessage(ChatColor.RED + " Color is an optional argument.");
-            sender.sendMessage(ChatColor.RED + " Ex: sugar cane block:dark green");
+            sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Format is: item,color");
+            sender.sendMessage(ChatColor.DARK_RED + "    Color is an optional argument.");
+            sender.sendMessage(ChatColor.GOLD + "    Example: sugar cane block:dark green");
+            sender.sendMessage(ChatColor.GOLD + "    Example: sugar cane block");
+            sender.sendMessage(ChatColor.GOLD + "    In order to work, blocks must match bukkit's material type!");
+            sender.sendMessage(ChatColor.GOLD + "    These are listed here:");
+            sender.sendMessage(ChatColor.BLUE + "        http://jd.bukkit.org/apidocs/org/bukkit/Material.html");
         } else if (args.length >= 3) {
             String s = PluginUtils.getArgs2Plus(args);
             String[] sp = s.split(",");
@@ -183,12 +182,12 @@ public class MapHandler {
                 }
                 if (!map.containsKey(mat)) {
                     map.put(mat, c);
-                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " Added " + c
+                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_GREEN + " Added " + c
                             + Format.material(mat));
                 } else {
                     map.remove(mat);
                     map.put(mat, c);
-                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " Updated " + c
+                    sender.sendMessage(Prefix.getChatPrefix() + ChatColor.GREEN + " Updated " + c
                             + Format.material(mat));
                 }
                 writeMapToConfig(map, configString);
@@ -200,8 +199,9 @@ public class MapHandler {
 
     public void handleRemoveFromList(CommandSender sender, String[] args, HashMap<Material,ChatColor> map, String configString) {
         if (args.length == 2) {
-            sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Simply type the name of the block you want to remove");
-            sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " It unfortunately must match bukkit's material enum");
+            sender.sendMessage(ChatColor.GOLD + "    In order to work, blocks must match bukkit's material type!");
+            sender.sendMessage(ChatColor.GOLD + "    These are listed here:");
+            sender.sendMessage(ChatColor.BLUE + "        http://jd.bukkit.org/apidocs/org/bukkit/Material.html");
         } else if (args.length > 2) {
             String s = PluginUtils.getArgs2Plus(args);
             Material mat = parseMaterial(s);

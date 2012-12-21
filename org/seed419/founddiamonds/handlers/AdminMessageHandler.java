@@ -9,35 +9,30 @@ import org.seed419.founddiamonds.util.Prefix;
 
 import java.util.HashSet;
 
-/**
- * Attribute Only (Public) License
- * Version 0.a3, July 11, 2011
- *
- * Copyright (C) 2012 Blake Bartenbach <seed419@gmail.com> (@seed419)
- *
- * Anyone is allowed to copy and distribute verbatim or modified
- * copies of this license document and altering is allowed as long
- * as you attribute the author(s) of this license document / files.
- *
- * ATTRIBUTE ONLY PUBLIC LICENSE
- * TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
- *
- * 1. Attribute anyone attached to the license document.
- * Do not remove pre-existing attributes.
- *
- * Plausible attribution methods:
- * 1. Through comment blocks.
- * 2. Referencing on a site, wiki, or about page.
- *
- * 2. Do whatever you want as long as you don't invalidate 1.
- *
- * @license AOL v.a3 <http://aol.nexua.org>
- */
+/*
+Copyright 2011-2012 Blake Bartenbach
+
+This file is part of FoundDiamonds.
+
+FoundDiamonds is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+FoundDiamonds is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with FoundDiamonds.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 public class AdminMessageHandler {
 
 
     private FoundDiamonds fd;
-    private HashSet<String> recievedAdminMessage = new HashSet<String>();
+    private HashSet<String> receivedAdminMessage = new HashSet<String>();
 
 
     public AdminMessageHandler(FoundDiamonds fd) {
@@ -55,16 +50,16 @@ public class AdminMessageHandler {
         for (Player y : fd.getServer().getOnlinePlayers()) {
             if (fd.getPermissions().hasAdminMessagePerm(y) && y != player) {
                 y.sendMessage(adminMessage);
-                recievedAdminMessage.add(y.getName());
+                receivedAdminMessage.add(y.getName());
             }
         }
     }
 
-    public void clearRecievedAdminMessage() {
-        recievedAdminMessage.clear();
+    public void clearReceivedAdminMessage() {
+        receivedAdminMessage.clear();
     }
 
-    public boolean recievedAdminMessage(Player player) {
-        return recievedAdminMessage.contains(player.getName());
+    public boolean receivedAdminMessage(Player player) {
+        return receivedAdminMessage.contains(player.getName());
     }
 }

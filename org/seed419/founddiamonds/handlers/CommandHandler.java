@@ -4,38 +4,31 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.file.Config;
-import org.seed419.founddiamonds.util.PluginUtils;
 import org.seed419.founddiamonds.util.Prefix;
 
 import java.io.IOException;
 
-/**
- * Attribute Only (Public) License
- * Version 0.a3, July 11, 2011
- * <p/>
- * Copyright (C) 2012 Blake Bartenbach <seed419@gmail.com> (@seed419)
- * <p/>
- * Anyone is allowed to copy and distribute verbatim or modified
- * copies of this license document and altering is allowed as long
- * as you attribute the author(s) of this license document / files.
- * <p/>
- * ATTRIBUTE ONLY PUBLIC LICENSE
- * TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
- * <p/>
- * 1. Attribute anyone attached to the license document.
- * Do not remove pre-existing attributes.
- * <p/>
- * Plausible attribution methods:
- * 1. Through comment blocks.
- * 2. Referencing on a site, wiki, or about page.
- * <p/>
- * 2. Do whatever you want as long as you don't invalidate 1.
- *
- * @license AOL v.a3 <http://aol.nexua.org>
- */
+/*
+Copyright 2011-2012 Blake Bartenbach
+
+This file is part of FoundDiamonds.
+
+FoundDiamonds is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+FoundDiamonds is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with FoundDiamonds.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 public class CommandHandler implements CommandExecutor {
 
 
@@ -48,10 +41,6 @@ public class CommandHandler implements CommandExecutor {
 
 
     public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
-        Player player = null;
-        if (sender instanceof Player) {
-            player = (Player) sender;
-        }
         if (((commandLabel.equalsIgnoreCase("fd")) || commandLabel.equalsIgnoreCase("founddiamonds"))) {
             if (args.length == 0) {
                 if (fd.getPermissions().hasAnyMenuPerm(sender)) {
@@ -144,14 +133,10 @@ public class CommandHandler implements CommandExecutor {
                 	* give mods for instance the ability to just place traps, and admins
                 	* to remove them as well
                 	*/
-                    if (sender instanceof Player) {
-                        if (fd.getPermissions().hasTrapPerm(sender)) {
-                            fd.getTrapHandler().handleTrap(player, args);
-                        } else {
-                            fd.getPermissions().sendPermissionsMessage(sender);
-                        }
+                    if (fd.getPermissions().hasTrapPerm(sender)) {
+                        fd.getMenuHandler().handleTrapMenu(fd, sender, args);
                     } else {
-                        sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Can't handle traps from the console.");
+                        fd.getPermissions().sendPermissionsMessage(sender);
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("world")) {
@@ -171,7 +156,7 @@ public class CommandHandler implements CommandExecutor {
                 } else {
                     if (fd.getPermissions().hasAnyMenuPerm(sender)) {
                         sender.sendMessage(Prefix.getChatPrefix() + ChatColor.DARK_RED + " Unrecognized argument '"
-                                + ChatColor.WHITE + PluginUtils.getArgs1Plus(args) + ChatColor.DARK_RED + "'");
+                                + ChatColor.WHITE + arg + ChatColor.DARK_RED + "'");
                     }
                 }
             }

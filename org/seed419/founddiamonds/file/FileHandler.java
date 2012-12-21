@@ -4,47 +4,37 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.seed419.founddiamonds.FoundDiamonds;
 import org.seed419.founddiamonds.Trap;
-
-import com.avaje.ebean.enhance.ant.OfflineFileTransform;
 
 import java.io.*;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-/**
- * Attribute Only (Public) License
- * Version 0.a3, July 11, 2011
- * <p/>
- * Copyright (C) 2012 Blake Bartenbach <seed419@gmail.com> (@seed419)
- * <p/>
- * Anyone is allowed to copy and distribute verbatim or modified
- * copies of this license document and altering is allowed as long
- * as you attribute the author(s) of this license document / files.
- * <p/>
- * ATTRIBUTE ONLY PUBLIC LICENSE
- * TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
- * <p/>
- * 1. Attribute anyone attached to the license document.
- * Do not remove pre-existing attributes.
- * <p/>
- * Plausible attribution methods:
- * 1. Through comment blocks.
- * 2. Referencing on a site, wiki, or about page.
- * <p/>
- * 2. Do whatever you want as long as you don't invalidate 1.
- *
- * @license AOL v.a3 <http://aol.nexua.org>
- */
+
+/*
+Copyright 2011-2012 Blake Bartenbach
+
+This file is part of FoundDiamonds.
+
+FoundDiamonds is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+FoundDiamonds is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with FoundDiamonds.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 public class FileHandler {
 
 
-    //todo this clearly still needs testing and refactoring
     private FoundDiamonds fd;
     private File logs;
     private File traps;
@@ -65,11 +55,11 @@ public class FileHandler {
     }
 
     public void checkFiles() {
-        boolean firstrun = false;
+        boolean firstRun = false;
         if (!fd.getDataFolder().exists()) {
-            firstrun = true;
+            firstRun = true;
             try {
-                verfiyFileCreation(fd.getDataFolder().mkdirs(), fd.getDataFolder());
+                verifyFileCreation(fd.getDataFolder().mkdirs(), fd.getDataFolder());
             } catch (Exception ex) {
                 fd.getLog().severe(MessageFormat.format("Couldn't create plugins/FoundDiamonds folder {0}", ex));
                 fd.getServer().getPluginManager().disablePlugin(fd);
@@ -77,7 +67,7 @@ public class FileHandler {
         }
         if (!logs.exists()) {
             try {
-                verfiyFileCreation(logs.createNewFile(), logs);
+                verifyFileCreation(logs.createNewFile(), logs);
             } catch (Exception ex) {
                 fd.getLog().severe(MessageFormat.format("Unable to create log file, {0}", ex));
             }
@@ -89,14 +79,14 @@ public class FileHandler {
             readBlocksFromFile(placed, fd.getBlockPlaceListener().getFlatFilePlacedBlocks());
         }
         fd.getConfig().options().copyDefaults(true);
-        if (firstrun) {
+        if (firstRun) {
             fd.getWorldHandler().addAllWorlds();
         }
         fd.saveConfig();
         if (fd.getConfig().getBoolean(Config.cleanLog)) {
             if (!cleanLog.exists()) {
                 try {
-                    verfiyFileCreation(cleanLog.createNewFile(), cleanLog);
+                    verifyFileCreation(cleanLog.createNewFile(), cleanLog);
                 } catch (IOException ex) {
                     fd.getLog().severe(MessageFormat.format("Unable to create log file, {0}", ex));
                 }
@@ -104,7 +94,7 @@ public class FileHandler {
         }
     }
 
-    public void verfiyFileCreation(boolean b, File file) {
+    public void verifyFileCreation(boolean b, File file) {
         if (!b) {
             fd.getLog().severe(MessageFormat.format("Failed to create {0}!", file.getName()));
         }
@@ -173,7 +163,7 @@ public class FileHandler {
                         out.write("# " + info);
                         out.println();
                         for (Trap m : trapList) {
-                            out.write(m.Trapsummary());
+                            out.write(m.getTrapSummary());
                             out.println();
                         }
                     } catch (IOException ex) {
