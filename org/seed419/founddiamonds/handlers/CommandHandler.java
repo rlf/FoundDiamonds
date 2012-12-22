@@ -51,14 +51,14 @@ public class CommandHandler implements CommandExecutor {
                 return true;
             } else {
                 String arg = args[0];
-                if (arg.equalsIgnoreCase("admin")) {
+                if (arg.equalsIgnoreCase("admin") || arg.equalsIgnoreCase("a")) {
                     if (fd.getPermissions().hasAdminManagementPerm(sender)) {
                         fd.getMenuHandler().handleAdminMenu(fd, sender, args);
                     } else {
                         fd.getPermissions().sendPermissionsMessage(sender);
                     }
                     return true;
-                } else if (arg.equalsIgnoreCase("bc") || arg.equalsIgnoreCase("broadcast")) {
+                } else if (arg.equalsIgnoreCase("bc") || arg.equalsIgnoreCase("broadcast") || arg.equalsIgnoreCase("b")) {
                     if (fd.getPermissions().hasBroadcastManagementPerm(sender)) {
                         fd.getMenuHandler().handleBcMenu(fd, sender, args);
                     } else {
@@ -75,7 +75,7 @@ public class CommandHandler implements CommandExecutor {
                         fd.getPermissions().sendPermissionsMessage(sender);
                     }
                     return true;
-                } else if (arg.equalsIgnoreCase("config")) {
+                } else if (arg.equalsIgnoreCase("config") || arg.equalsIgnoreCase("c")) {
                     if (fd.getPermissions().hasConfigPerm(sender)) {
                         if (args.length == 2) {
                             if (args[1].equalsIgnoreCase("2")) {
@@ -87,14 +87,14 @@ public class CommandHandler implements CommandExecutor {
                     } else {
                         fd.getPermissions().sendPermissionsMessage(sender);
                     }
-                } else if (arg.equalsIgnoreCase("light")) {
+                } else if (arg.equalsIgnoreCase("light") || arg.equalsIgnoreCase("l")) {
                     if (fd.getPermissions().hasLightManagementPerm(sender)) {
                         fd.getMenuHandler().handleLightMenu(fd, sender, args);
                     } else {
                         fd.getPermissions().sendPermissionsMessage(sender);
                     }
                     return true;
-               } else if (arg.equalsIgnoreCase("reload")) {
+               } else if (arg.equalsIgnoreCase("reload") || arg.equalsIgnoreCase("r")) {
                     if (fd.getPermissions().hasReloadPerm(sender)) {
                         fd.reloadConfig();
                         fd.saveConfig();
@@ -103,14 +103,14 @@ public class CommandHandler implements CommandExecutor {
                         fd.getPermissions().sendPermissionsMessage(sender);
                     }
                     return true;
-                } else if (arg.equalsIgnoreCase("set")) {
+                } else if (arg.equalsIgnoreCase("set") || arg.equalsIgnoreCase("s")) {
                     if (fd.getPermissions().hasTogglePerm(sender)) {
                         fd.getMenuHandler().handleSetMenu(fd, sender, args);
                     } else {
                         fd.getPermissions().sendPermissionsMessage(sender);
                     }
                     return true;
-                } else if (arg.equalsIgnoreCase("toggle")) {
+                } else if (arg.equalsIgnoreCase("toggle") || arg.equalsIgnoreCase("t")) {
                     if (fd.getPermissions().hasTogglePerm(sender)) {
                         if (args.length == 1) {
                             fd.getMenuHandler().showToggle(sender);
@@ -139,14 +139,14 @@ public class CommandHandler implements CommandExecutor {
                         fd.getPermissions().sendPermissionsMessage(sender);
                     }
                     return true;
-                } else if (arg.equalsIgnoreCase("world")) {
+                } else if (arg.equalsIgnoreCase("world") || arg.equalsIgnoreCase("w")) {
                     if (fd.getPermissions().hasWorldManagementPerm(sender)) {
                         fd.getWorldHandler().handleWorldMenu(sender, args);
                     } else {
                         fd.getPermissions().sendPermissionsMessage(sender);
                     }
                     return true;
-                } else if (arg.equalsIgnoreCase("version")) {
+                } else if (arg.equalsIgnoreCase("version") || arg.equalsIgnoreCase("v")) {
                     if (fd.getPermissions().hasAnyMenuPerm(sender)) {
                         fd.getMenuHandler().showVersion(fd, sender);
                     } else {

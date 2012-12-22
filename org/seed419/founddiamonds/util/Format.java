@@ -25,6 +25,17 @@ along with FoundDiamonds.  If not, see <http://www.gnu.org/licenses/>.
 
 public class Format {
 
+
+    public static final String leftGreenParen = ChatColor.DARK_GREEN + "(" + ChatColor.WHITE;
+    public static final String rightGreenParen = ChatColor.DARK_GREEN + ")" + ChatColor.WHITE;
+    public static final String commandFormat = ChatColor.RED + " [required] " + ChatColor.GRAY + "{optional}";
+    private static final String boldLeftBracket = ChatColor.BOLD + "[" + ChatColor.RESET;
+    private static final String boldRightBracket = ChatColor.BOLD + "]" + ChatColor.RESET;
+
+    public static String formatMenuHeader(String menu) {
+        return ChatColor.AQUA + boldLeftBracket + ChatColor.WHITE + menu + ChatColor.AQUA + boldRightBracket;
+    }
+
     public static String getFormattedName(Material mat, int total) {
         String matName;
         if (mat == Material.GLOWING_REDSTONE_ORE || mat == Material.REDSTONE_ORE) {

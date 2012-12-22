@@ -25,6 +25,7 @@ public class Prefix {
 
 
     private final static String chatPrefix = "[FD]";
+    private final static String menuPrefix = ChatColor.BOLD + "[FD] " + ChatColor.RESET;
     private final static String adminPrefix = ChatColor.RED + "[FD]";
     private final static String debugPrefix = "[FD Debug] ";
     private final static String loggingPrefix = "[FoundDiamonds] ";
@@ -44,5 +45,9 @@ public class Prefix {
 
     public static String getLoggingPrefix() {
         return loggingPrefix;
+    }
+
+    public static String getMenuPrefix() {
+        return menuPrefix;
     }
 }

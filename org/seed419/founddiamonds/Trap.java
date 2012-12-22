@@ -6,7 +6,8 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
+import org.seed419.founddiamonds.util.BlockColor;
+import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.util.Prefix;
 
 import java.text.DateFormat;
@@ -35,64 +36,55 @@ along with FoundDiamonds.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 public class Trap {
-	private final byte type; // the type, and thus form and size of the trap
-	private final Material mat; // the trap blocks placed
+
+
+	private final byte type;
+	private final Material mat;
 	private Material[] oldMat; // the blocks that were replaced
-	private final Player placer; // the person that placed the block
+	private final String placer; // name of the player who set the trap
 	private final Location location; // the 'middle' of the trap
 	private final Date time; // the date the trap was added;
 	private boolean persistent; // will the trap persist when broken
-	private static ArrayList<Trap> list = new ArrayList<Trap>(); // map linking traps to locations, the middle of the trap
+	private static ArrayList<Trap> trapList = new ArrayList<Trap>(); // map linking traps to locations, the middle of the trap
 	private static Map<Block,Trap> inverseList = new HashMap<Block,Trap>(); // map linking locations to traps
 
-	public Trap(byte type, Material mat, Player placer, Location location, boolean persistent, String item) {
+
+	public Trap(byte type, Material mat, String player, Location location, boolean persistent) {
 		this.type = type;
 		this.mat = mat;
-		this.placer = placer;
+		this.placer = player;
 		this.location = location;
 		this.time = new Date(System.currentTimeMillis());
 		this.persistent = persistent;
-		list.add(this);
-
-		if (!this.createBlocks()) {
-			list.remove(this);
-
-		} else {
-			placer.sendMessage(ChatColor.WHITE + "Trap placed with " + item);
-		}
 	}
 
-	public Trap(byte type, Material mat, Material[] oldMat, Player placer, Location loc, long time, boolean persistent) {
+	public Trap(byte type, Material mat, Material[] oldMat, String player, Location loc, long time, boolean persistent) {
 		this.type = type;
 		this.mat = mat;
 		this.oldMat = oldMat;
-		this.placer = placer;
+		this.placer = player;
 		this.location = loc;
 		this.time = new Date(time);
 		this.persistent = persistent;
-		list.add(this);
-		placer.sendMessage("trap placed");
+		trapList.add(this);
 		this.refillInverse();
-		//This way, the traps are subject to tampering through the savefile. Maybe some sort of hashing?
 	}
 	
 	private void refillInverse() {
-		Block[] temp = this.returnLocations();
+		Block[] temp = this.returnLocations(this.location.getWorld());
 		for(Block block : temp){
 			inverseList.put(block, this);
 		}
 	}
 
-	private boolean createBlocks() {
-
-		Block[] locations = this.returnLocations();
+	public boolean createBlocks() {
+		Block[] locations = this.returnLocations(this.location.getWorld());
 		oldMat = new Material[locations.length];
-		for (int i = 0; i < locations.length; i++) { // need to run this one firstly, this needs to complete before I can start adding the locations
-			if (inverseList.containsKey(locations[i])) {
-				placer.sendMessage(ChatColor.RED + "Unable to place trap here, there's another one in the way!");
-				return false;
-			}
-		}
+        for (Block block : locations) {
+            if (inverseList.containsKey(block)) {
+                return false;
+            }
+        }
 		if (this.mat == Material.EMERALD_ORE) {
 			oldMat[0] = this.location.getBlock().getType();
 			inverseList.put(location.getBlock(), this);
@@ -111,20 +103,10 @@ public class Trap {
 			locations[2].setType(mat);
 			locations[3].setType(mat);
 		}
-		/*
-		 * for (int i = 0; i < locations.length; i++) {
-		 * oldMat[i] = locations[i].getBlock().getType(); // initialization of old materials
-		 * inverseList.put(locations[i], this); // adding the locations to the inverse list
-		 * locations[i].getBlock().setType(mat); // replacing the block with the trap block
-		 * placer.sendMessage("debug : old material: " + oldMat[i]);
-		 * placer.sendMessage("debug : new material: " + mat);
-		 * }
-		 */
 		return true;
 	}
 
-	private Block[] returnLocations() {
-        World world = placer.getWorld();
+	private Block[] returnLocations(World world) {
         Block block1;
         Block block2;
         Block block3;
@@ -149,84 +131,85 @@ public class Trap {
             case 3:
                 return new Block[]{this.location.getBlock()}; // emeralds
             default:
-                return null;
+                return null; // aliens
 		}
 	}
 
-	public void removeTrap() { // not entirely sure about this, but this should remove the trap object(unfamiliar with garbage collecting :-S )
-		// it also puts the old blocks back in place
-		// I dislike the public modifier on this thing, but it was the only way to get it to work with the onBlockBreak event (in TrapListener)
-		Block[] temp = this.returnLocations();
+	public void removeTrap() {
+		Block[] temp = this.returnLocations(this.location.getWorld());
 		for (int i = 0; i < temp.length; i++) {
 			temp[i].setType(oldMat[i]);
 			inverseList.remove(temp[i]);
 		}
-		list.remove(this);
+		trapList.remove(this);
 	}
 
-	public static boolean Menu(CommandSender sender, int page) { // TODO: This part still looks a bit messy
-		if (sender.hasPermission("fd.trap.remove.all") || sender.isOp()) { // permissions to see all traps
-			ArrayList<Trap> trapList = new ArrayList<Trap>();
-
-			for (Trap trap : list) {
-				trapList.add(trap);
-			}
-			if (page >= 0 && ( (page) *5 < list.size()) ) {		//sane page specified?
+	public static void listTraps(CommandSender sender, int page) { // TODO: Page numbers
+        sender.sendMessage(Prefix.getMenuPrefix() + Format.formatMenuHeader("Active Traps"));
+        if (trapList.isEmpty()) {
+            sender.sendMessage(ChatColor.RED + "  None");
+            return;
+        }
+		if (sender.hasPermission("fd.trap.remove.all") || sender.isOp()) {
+			if (page >= 0 && ( (page) *5 < trapList.size()) ) { //sane page specified?
 				int id1 = (page)*5 ; //begin of the substring
 				int id2 = (page +1) *5 -1;  //end of the substring
-				if(id2 > list.size()){
-					id2 = list.size()-1;
+				if (id2 > Trap.trapList.size()) {
+					id2 = Trap.trapList.size()-1;
 				}
-				for(Trap object : trapList){
-				sendMenu(sender, object);
+				for (Trap object : trapList) {
+                    sendTrapListing(sender, object);
 				}
-				return true;
 			} else {
 				sender.sendMessage(ChatColor.RED + "Page number is invalid");
-				return false;
 			}
 		} else if (sender.hasPermission("fd.trap.remove.self")) { // permission to remove, and thus to see own traps
-			ArrayList<Trap> trapList = new ArrayList<Trap>();
-			for (Trap trap : list) {
-				if (trap.placer == sender)
-					trapList.add(trap);
+			ArrayList<Trap> showList = new ArrayList<Trap>();
+			for (Trap trap : trapList) {
+				if (trap.placer.equals(sender.getName())) {
+                    showList.add(trap);
+                }
 			}
-			if (page >= 0 && ( (page) *5 < list.size()) ) {		//sane page specified?
+			if (page >= 0 && ( (page) *5 < showList.size()) ) {		//sane page specified?
 				int id1 = (page)*5 ; //begin of the substring
 				int id2 = (page +1) *5 -1;  //end of the substring
-				if(id2 > list.size()){
-					id2 = list.size()-1;
+				if (id2 > showList.size()) {
+					id2 = showList.size()-1;
 				}
-				for(Trap object : trapList){
-				sendMenu(sender, object);
+				for (Trap object : showList) {
+                    sendTrapListing(sender, object);
 				}
-				return true;
 			} else {
 				sender.sendMessage(ChatColor.RED + "Page number is invalid");
-				return false;
 			}
 		} else {
-			sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " You don't have permission to do that.");
-			return false;
+			sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + "You don't have permission to view any traps");
 		}
 
 	}
 
-	private static void sendMenu(CommandSender sender, Trap object) { // eclipse formats this weirdly...
-			sender.sendMessage(""+ChatColor.WHITE + "[" + list.indexOf(object) + "]" + DateFormat
-					.getDateInstance(DateFormat.MEDIUM).format((object.time)) + " - Location: " + object.location
-					.getBlockX() + " " + object.location.getBlockY() + " " + object.location
-					.getBlockZ() + " By " + object.placer.getDisplayName());
+	private static void sendTrapListing(CommandSender sender, Trap object) {
+		sender.sendMessage(ChatColor.WHITE + "[" + ChatColor.YELLOW + trapList.indexOf(object) + ChatColor.WHITE + "] "
+                + ChatColor.AQUA + DateFormat.getDateInstance(DateFormat.MEDIUM).format((object.time)) + ChatColor.WHITE
+                + " @ x" + Format.leftGreenParen + object.location.getBlockX() + Format.rightGreenParen
+                + " y" + Format.leftGreenParen + object.location.getBlockY() + Format.rightGreenParen
+                + " z" + Format.leftGreenParen + object.location.getBlockZ() + Format.rightGreenParen + " "
+                + ChatColor.RED + (object.persistent ? "{Persistent}" : ChatColor.GREEN + "{Breakable}" ));
+        sender.sendMessage("        " + BlockColor.getBlockColor(object.mat)
+                + Format.capitalize(Format.getFormattedName(object.mat, 1)) + ChatColor.WHITE
+                + " placed by " + ChatColor.YELLOW + object.placer + ChatColor.WHITE + " in world "
+                + ChatColor.YELLOW + object.location.getWorld().getName());
 			}
 
 	public static void removeTrapCmd(CommandSender sender, int id) {
-		if (id >= 0 && id < list.size()) {
-			Trap temp = list.get(id);
-			if ((temp.placer == sender && sender
-					.hasPermission("fd.trap.remove.self") || sender
-						.hasPermission("fd.trap.remove.all"))) {
+		if (id >= 0 && id < trapList.size()) {
+			Trap temp = trapList.get(id);
+			if ((temp.placer.equals(temp.placer)) &&
+                    (sender.hasPermission("fd.trap.remove.self") || sender.hasPermission("fd.trap.remove.all"))) {
 				temp.removeTrap();
-				sender.sendMessage(ChatColor.YELLOW + "Trap removed successfully");
+                // TODO this method already exists in TrapHandler
+				sender.sendMessage(Prefix.getMenuPrefix() + ChatColor.WHITE + "Trap ID " + ChatColor.WHITE + "["
+                        + ChatColor.YELLOW + id + ChatColor.WHITE + "]" + ChatColor.GREEN +" removed successfully");
 			}
 		}
 	}
@@ -235,26 +218,22 @@ public class Trap {
 		return this.persistent;
 	}
 
-	public static ArrayList<Trap> getList() {
-		return list;
-	}
-
-	public static void setList(ArrayList<Trap> list) {
-		Trap.list = list;
+	public static ArrayList<Trap> getTrapList() {
+		return trapList;
 	}
 
 	public static Map<Block, Trap> getInverseList() {
 		return inverseList;
 	}
 
-	public String getTrapSummary() { // method to summarize the trap object, for saving purposed
+	public String getTrapSummary() { // method to summarize the trap object, for saving
 		String oldMatString = "";
 		for (Material material : oldMat) {
             oldMatString += material.getId() + ";";
 		}
-		return this.type + ";" + this.mat.getId() + ";" + oldMatString + this.placer.getDisplayName() + ";" + this.location
+		return this.type + ";" + this.mat.getId() + ";" + oldMatString + this.placer + ";" + this.location
 				.getBlockX() + ";" + this.location.getBlockY() + ";" + this.location
 				.getBlockZ() + ";" + this.location.getWorld().getName() + ";" + this.time
-				.getTime() + ";" + this.persistent;
+				.getTime()   + ";" + this.persistent;
 	}
 }
