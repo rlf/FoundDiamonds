@@ -211,7 +211,9 @@ public class Trap {
 				sender.sendMessage(Prefix.getMenuPrefix() + ChatColor.WHITE + "Trap ID " + ChatColor.WHITE + "["
                         + ChatColor.YELLOW + id + ChatColor.WHITE + "]" + ChatColor.GREEN +" removed successfully");
 			}
-		}
+		} else {
+            //TODO then what happens?
+        }
 	}
 
 	public boolean isPersistent() {

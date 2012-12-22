@@ -30,13 +30,13 @@ permissions:
     children:
       fd.manage.admin.add: true
       fd.manage.admin.remove: true
-      fd.manage.admin.trapList: true
+      fd.manage.admin.list: true
       fd.manage.broadcast.add: true
       fd.manage.broadcast.remove: true
-      fd.manage.broadcast.trapList: true
+      fd.manage.broadcast.list: true
       fd.manage.light.add: true
       fd.manage.light.remove: true
-      fd.manage.light.trapList: true
+      fd.manage.light.list: true
       fd.manage.toggle: true
       fd.manage.config: true
       fd.manage.world: true
@@ -48,7 +48,7 @@ permissions:
     children:
       fd.manage.admin.add: true
       fd.manage.admin.remove: true
-      fd.manage.admin.trapList: true
+      fd.manage.admin.list: true
 
   fd.manage.light.*:
     description: Allows management of all light level blocks
@@ -56,7 +56,7 @@ permissions:
     children:
       fd.manage.light.add: true
       fd.manage.light.remove: true
-      fd.manage.light.trapList: true
+      fd.manage.light.list: true
 
   fd.manage.broadcast.*:
     description: Allows management of all broadcast blocks
@@ -64,7 +64,7 @@ permissions:
     children:
       fd.manage.broadcast.add: true
       fd.manage.broadcast.remove: true
-      fd.manage.broadcast.trapList: true
+      fd.manage.broadcast.list: true
 
   fd.trap.*:
     description: Allows management of all trap blocks
@@ -73,7 +73,7 @@ permissions:
       fd.trap.remove.self: true
       fd.trap.remove.all: true
       fd.trap.set: true
-      fd.trap.trapList: true
+      fd.trap.list: true
 
   fd.trap.remove.*:
     description: Allows removal of all trap blocks
@@ -104,7 +104,7 @@ permissions:
   fd.manage.broadcast.remove:
     description: Allows removal of broadcasted blocks
     default: false
-  fd.manage.broadcast.trapList:
+  fd.manage.broadcast.list:
     description: Allows listing of all broadcasted blocks
     default: false
 
@@ -114,7 +114,7 @@ permissions:
   fd.manage.admin.remove:
     description: Allows removal of admin message blocks
     default: false
-  fd.manage.admin.trapList:
+  fd.manage.admin.list:
     description: Allows listing of admin message blocks
     default: false
 
@@ -124,7 +124,7 @@ permissions:
   fd.manage.light.remove:
     description: Allows removal of light level blocks
     default: false
-  fd.manage.light.trapList:
+  fd.manage.light.list:
     description: Allows listing of light level blocks
     default: false
 
@@ -137,8 +137,8 @@ permissions:
   fd.trap.set:
     description: Allows a player to set traps
     default: false
-  fd.trap.trapList:
-    description: Allows a player to trapList trap blocks
+  fd.trap.list:
+    description: Allows a player to list trap blocks
     default: false
 
   fd.broadcast:

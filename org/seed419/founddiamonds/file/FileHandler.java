@@ -146,8 +146,8 @@ public class FileHandler {
         }
     }
 
-    public boolean writeTrapsToFile(File file, ArrayList<Trap> trapList, String info) {
-        if (trapList.size() > 0) {
+    public boolean writeTrapsToFile(File file, ArrayList<Trap> list, String info) {
+        if (list.size() > 0) {
             if (fd.getDataFolder().exists()) {
                 PrintWriter out = null;
                 try {
@@ -161,7 +161,7 @@ public class FileHandler {
                         out =  new PrintWriter(new BufferedWriter(new FileWriter(file, false)));
                         out.write("# " + info);
                         out.println();
-                        for (Trap m : trapList) {
+                        for (Trap m : list) {
                             out.write(m.getTrapSummary());
                             out.println();
                         }
@@ -219,6 +219,7 @@ public class FileHandler {
         }
     }
 
+    // TODO remove parameter
     public void readTrapsFromFile(File file, ArrayList<Trap> arrayList) {
         BufferedReader b = null;
         try {
@@ -235,8 +236,6 @@ public class FileHandler {
                         Location temp = new Location(fd.getServer().getWorld(fs[fs.length-3]),Integer.parseInt(fs[fs.length-6]),Integer.parseInt(fs[fs.length-5]),Integer.parseInt(fs[fs.length-4])); 
                         Trap lo = new Trap(Byte.parseByte(fs[0]), Material.getMaterial(Integer.parseInt(fs[1])),oldmats,
                                fs[fs.length-7], temp, Long.parseLong(fs[fs.length-2]) , Boolean.parseBoolean(fs[fs.length-1]));
-                        // Bukkit.getPlayer() !?!?  What!  What if they are offline?? O.O
-                        //arrayList.add(lo); // Not needed, since they get reformed as trap blocks
                     } catch (Exception ex) {
                         fd.getLog().severe(MessageFormat.format("Invalid block in file.  Please delete {0}", file.getName()));
                     }
