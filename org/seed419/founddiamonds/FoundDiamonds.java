@@ -75,9 +75,6 @@ public class FoundDiamonds extends JavaPlugin {
 
    /*
    Changelog:
-    Implemented @LightLevel@ and @LightPercent@ for broadcast messages!
-    Performance enhancement - Fixed a bug where light level checks were checking way too many block faces.
-
     Re-licensed plugin under GNU GPLv3 (In order to guarantee your freedom to modify, redistribute, and copy!)
     Fixed a few typos in the code..
     Merged trap PR, cleaned it up a bit.

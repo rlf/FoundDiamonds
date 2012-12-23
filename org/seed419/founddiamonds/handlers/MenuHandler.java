@@ -335,13 +335,13 @@ public class MenuHandler {
                     Player player = (Player) sender;
 
                     // Debugging
-                    System.out.println("Args: " + args.length);
-                    int counter = 0;
-                    for (String x : args) {
-                        System.out.print(counter + ": " + x + " ");
-                        counter++;
-                    }
-                    System.out.println();
+//                    System.out.println("Args: " + args.length);
+//                    int counter = 0;
+//                    for (String x : args) {
+//                        System.out.print(counter + ": " + x + " ");
+//                        counter++;
+//                    }
+//                    System.out.println();
                     // End Debugging
 
                     fd.getTrapHandler().handleSetTrap(player, args);
