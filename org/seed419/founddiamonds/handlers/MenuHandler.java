@@ -333,17 +333,6 @@ public class MenuHandler {
             if (args[1].equalsIgnoreCase("set") || args[1].equalsIgnoreCase("s")) {
                 if (sender instanceof Player) {
                     Player player = (Player) sender;
-
-                    // Debugging
-//                    System.out.println("Args: " + args.length);
-//                    int counter = 0;
-//                    for (String x : args) {
-//                        System.out.print(counter + ": " + x + " ");
-//                        counter++;
-//                    }
-//                    System.out.println();
-                    // End Debugging
-
                     fd.getTrapHandler().handleSetTrap(player, args);
                 } else {
                     sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " You must be a player to set a trap.");

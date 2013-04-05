@@ -72,7 +72,7 @@ public class FileHandler {
             }
         }
         if (traps.exists()) {
-            readTrapsFromFile(traps, fd.getTrapHandler().getTrapBlocks());
+            readTrapsFromFile(traps, fd.getTrapHandler().getTrapList());
         }
         if (placed.exists() && !fd.getConfig().getBoolean(Config.mysqlEnabled)) {
             readBlocksFromFile(placed, fd.getBlockPlaceListener().getFlatFilePlacedBlocks());
@@ -252,7 +252,7 @@ public class FileHandler {
     
     public void saveFlatFileData() {
         String info = "This file stores your trap block locations.";
-        boolean temp = writeTrapsToFile(traps, fd.getTrapHandler().getTrapBlocks(), info);
+        boolean temp = writeTrapsToFile(traps, fd.getTrapHandler().getTrapList(), info);
         boolean temp2 = true;
         if (!fd.getConfig().getBoolean(Config.mysqlEnabled)) {
             String info5 = "This file stores blocks that won't be announced because players placed them.";

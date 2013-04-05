@@ -85,6 +85,10 @@ public class Permissions {
         return hasPerm(sender, "fd.trap");
     }
 
+    public boolean hasTrapRemovalPerm(CommandSender sender) {
+        return hasPerm(sender, "fd.trap.remove.self") || hasPerm(sender, "fd.trap.remove.all");
+    }
+
     public boolean hasWorldManagementPerm(CommandSender sender) {
         return hasPerm(sender, "fd.manage.world");
     }

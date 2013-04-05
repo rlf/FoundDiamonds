@@ -14,7 +14,10 @@ import org.seed419.founddiamonds.util.BlockColor;
 import org.seed419.founddiamonds.util.Format;
 import org.seed419.founddiamonds.util.Prefix;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /*
 Copyright 2011-2012 Blake Bartenbach, snoepje0
@@ -39,6 +42,8 @@ public class TrapHandler {
 
 
 	private FoundDiamonds fd;
+    private static ArrayList<Trap> trapList = new ArrayList<Trap>(); // map linking traps to locations, the middle of the trap
+    private static Map<Block,Trap> inverseList = new HashMap<Block,Trap>(); // map linking locations to traps
 
 
 	public TrapHandler(FoundDiamonds fd) {
@@ -53,8 +58,8 @@ public class TrapHandler {
         Player player = (Player) sender; // MenuHandler verifies this is a player.
         if (args[args.length - 1].equalsIgnoreCase("true")) {
             persistent = true;
-            System.out.println("persisting!");
         }
+
         if (args.length == 3) {
             // either trap block specified with no depth, or depth specified with diamond blocks
             // note that the depth will almost *always* match a material ID, so this is NOT recommended.
@@ -98,7 +103,7 @@ public class TrapHandler {
         if (args.length == 3) {
             try {
                 id = Integer.parseInt(args[2]);
-                Trap.removeTrapCmd(sender, id);
+                removeTrapCmd(sender, id);
             } catch (NumberFormatException ex) {
                 sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Trap ID number must be an integer");
             }
@@ -118,7 +123,7 @@ public class TrapHandler {
                 return;
             }
         }
-        Trap.listTraps(sender, page);
+        listTraps(sender, page);
     }
 
     private void sendTrapError(Player player) {
@@ -134,9 +139,9 @@ public class TrapHandler {
             Trap newTrap = new Trap(getTrapType(trapMaterial), trapMaterial, player.getName(), trapLoc, persistent);
             if (newTrap.createBlocks()) {
                 player.sendMessage(Prefix.getMenuPrefix() + ChatColor.WHITE + "Trap ID [" + ChatColor.YELLOW
-                        + Trap.getTrapList().size() + ChatColor.WHITE + "] set with " + BlockColor.getBlockColor(trapMaterial)
+                        + trapList.size() + ChatColor.WHITE + "] set with " + BlockColor.getBlockColor(trapMaterial)
                         + Format.capitalize(Format.getFormattedName(trapMaterial, 1)) + ChatColor.WHITE + getFormattedDepthString(depth));
-                Trap.getTrapList().add(newTrap);
+                trapList.add(newTrap);
             } else {
                 player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Unable to place a trap here");
                 player.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " There's another one in the way!");
@@ -200,14 +205,14 @@ public class TrapHandler {
 	}
 
 	public boolean isTrapBlock(Location loc) {
-		return Trap.getInverseList().containsKey(loc.getBlock());
+		return inverseList.containsKey(loc.getBlock());
 	}
 
 	public void handleTrapBlockBreak(BlockBreakEvent event) {
 		event.setCancelled(true);
 		Player player = event.getPlayer();
 		Block block = event.getBlock();
-		Trap trap = Trap.getInverseList().get(block);
+		Trap trap = inverseList.get(block);
 		if (fd.getPermissions().hasPerm(player, "fd.trap")) {
 			//player.sendMessage(ChatColor.AQUA + "Trap block removed");
             sendTrapRemovedMessage(player, trap);
@@ -243,12 +248,93 @@ public class TrapHandler {
 		}
 	}
 
-    public void sendTrapRemovedMessage(CommandSender sender, Trap trap) {
-        sender.sendMessage(Prefix.getMenuPrefix() + ChatColor.WHITE + "Trap ID " + ChatColor.WHITE + "["
-                + ChatColor.YELLOW + Trap.getTrapList().indexOf(trap) + ChatColor.WHITE + "]" + ChatColor.GREEN +" removed successfully");    }
+    public static void listTraps(CommandSender sender, int page) { // TODO: Page numbers
+        sender.sendMessage(Prefix.getMenuPrefix() + Format.formatMenuHeader("Active Traps"));
+        if (trapList.isEmpty()) {
+            sender.sendMessage(ChatColor.RED + "  None");
+            return;
+        }
+        if (sender.hasPermission("fd.trap.remove.all") || sender.isOp()) {
+            if (page >= 0 && ( (page) *5 < trapList.size()) ) { //sane page specified?
+                int id1 = (page)*5 ; //begin of the substring
+                int id2 = (page +1) *5 -1;  //end of the substring
+                if (id2 > trapList.size()) {
+                    id2 = trapList.size()-1;
+                }
+                for (Trap object : trapList) {
+                    TrapHandler.sendTrapListing(sender, object);
+                }
+            } else {
+                sender.sendMessage(ChatColor.RED + "Page number is invalid");
+            }
+        } else if (sender.hasPermission("fd.trap.remove.self")) { // permission to remove, and thus to see own traps
+            ArrayList<Trap> showList = new ArrayList<Trap>();
+            for (Trap trap : trapList) {
+                if (trap.getPlacer().equals(sender.getName())) {
+                    showList.add(trap);
+                }
+            }
+            if (page >= 0 && ( (page) *5 < showList.size()) ) { //sane page specified?
+                int id1 = (page)*5 ; //begin of the substring
+                int id2 = (page +1) *5 -1;  //end of the substring
+                if (id2 > showList.size()) {
+                    id2 = showList.size()-1;
+                }
+                for (Trap object : showList) {
+                    TrapHandler.sendTrapListing(sender, object);
+                }
+            } else {
+                sender.sendMessage(ChatColor.RED + "Page number is invalid");
+            }
+        } else {
+            sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + "You don't have permission to view any traps");
+        }
 
-	public ArrayList<Trap> getTrapBlocks() {
-		return Trap.getTrapList();
-	}
+    }
+
+    public static void sendTrapListing(CommandSender sender, Trap trap) {
+        sender.sendMessage(ChatColor.WHITE + "[" + ChatColor.YELLOW + trap.getID() + ChatColor.WHITE + "] "
+                + ChatColor.AQUA + DateFormat.getDateInstance(DateFormat.MEDIUM).format((trap.getTime())) + ChatColor.WHITE
+                + " @ x" + Format.leftGreenParen + trap.getLocation().getBlockX() + Format.rightGreenParen
+                + " y" + Format.leftGreenParen + trap.getLocation().getBlockY() + Format.rightGreenParen
+                + " z" + Format.leftGreenParen + trap.getLocation().getBlockZ() + Format.rightGreenParen + " "
+                + ChatColor.RED + (trap.isPersistent() ? "{Persistent}" : ChatColor.GREEN + "{Breakable}" ));
+        sender.sendMessage("        " + BlockColor.getBlockColor(trap.getMaterial())
+                + Format.capitalize(Format.getFormattedName(trap.getMaterial(), 1)) + ChatColor.WHITE
+                + " placed by " + ChatColor.YELLOW + trap.getPlacer() + ChatColor.WHITE + " in world "
+                + ChatColor.YELLOW + trap.getLocation().getWorld().getName());
+    }
+
+    public void removeTrapCmd(CommandSender sender, int id) {
+        if (id >= 0 && id < trapList.size()) {
+            Trap trap = trapList.get(id);
+            if ((trap.getPlacer().equals(sender.getName())) &&
+                    (sender.hasPermission("fd.trap.remove.self") || sender.hasPermission("fd.trap.remove.all"))) {
+                Block[] temp = trap.returnLocations(this.location.getWorld());
+                for (int i = 0; i < temp.length; i++) {
+                    temp[i].setType(oldMat[i]);
+                    inverseList.remove(temp[i]);
+                }
+                trapList.remove(this);
+                sendTrapRemovedMessage(sender, trapList.get(id));
+            }
+        } else {
+            System.out.println("FoundDiamonds: What just happened?");
+            //TODO then what happens?
+        }
+    }
+
+    private void sendTrapRemovedMessage(CommandSender sender, Trap trap) {
+        sender.sendMessage(Prefix.getMenuPrefix() + ChatColor.WHITE + "Trap ID " + ChatColor.WHITE + "["
+                + ChatColor.YELLOW + trapList.indexOf(trap) + ChatColor.WHITE + "]" + ChatColor.GREEN +" removed successfully");
+    }
+
+    public ArrayList<Trap> getTrapList() {
+        return trapList;
+    }
+
+    public static Map<Block, Trap> getInverseList() {
+        return inverseList;
+    }
 
 }
