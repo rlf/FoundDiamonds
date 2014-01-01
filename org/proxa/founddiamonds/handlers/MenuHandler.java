@@ -71,6 +71,7 @@ public class MenuHandler {
         sender.sendMessage(ChatColor.RED + "    cleanlog" + ChatColor.WHITE + " - Clean log (all ore announcements)");
     }
 
+    @SuppressWarnings("deprecation")  // do we really want to recode this?  impact of giving the wrong ID is quite low...
     public void showConfig(FoundDiamonds fd, CommandSender sender) {
         sender.sendMessage(Prefix.getMenuPrefix() + Format.formatMenuHeader("Configuration 1/" + configPages));
         sender.sendMessage(ChatColor.RED + "    Random spells for finding diamonds: " + getPrettyMenuBoolean(fd.getConfig().getBoolean(Config.potionsForFindingDiamonds)));
@@ -194,7 +195,7 @@ public class MenuHandler {
     public void showVersion(FoundDiamonds fd, CommandSender sender) {
         sender.sendMessage(Prefix.getMenuPrefix() + Format.formatMenuHeader("Version"));
         sender.sendMessage(ChatColor.LIGHT_PURPLE + " @version  " + ChatColor.DARK_GREEN + fd.getPdf().getVersion());
-        sender.sendMessage(ChatColor.LIGHT_PURPLE + " @author   " + ChatColor.DARK_GREEN + "seed419");
+        sender.sendMessage(ChatColor.LIGHT_PURPLE + " @author   " + ChatColor.DARK_GREEN + "proxa");
         sender.sendMessage(ChatColor.LIGHT_PURPLE + " @license  " + ChatColor.DARK_GREEN + " GPLv3");
         sender.sendMessage(ChatColor.LIGHT_PURPLE + " @website  " + ChatColor.DARK_AQUA +  " http://dev.bukkit.org/server-mods/founddiamonds/");
         sender.sendMessage(ChatColor.LIGHT_PURPLE + " @code     " + ChatColor.DARK_AQUA +  " https://github.com/proxa/FoundDiamonds");
@@ -332,6 +333,5 @@ public class MenuHandler {
         fd.saveConfig();
         sender.sendMessage(Prefix.getChatPrefix() + ChatColor.AQUA + " Configuration updated.");
     }
-
 
 }

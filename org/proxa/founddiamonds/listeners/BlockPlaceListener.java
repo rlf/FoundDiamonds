@@ -44,6 +44,10 @@ public class BlockPlaceListener implements Listener {
                 fd.getMapHandler().getLightLevelBlocks().containsKey(mat);
     }
 
+    public void clearPlaced() {
+        placed.clear();
+    }
+
     public HashSet<Location> getFlatFilePlacedBlocks() {
         return placed;
     }

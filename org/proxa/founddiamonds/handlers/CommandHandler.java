@@ -47,6 +47,9 @@ public class CommandHandler implements CommandExecutor {
                     if (fd.getPermissions().hasPerm(sender, "fd.*")) {
                         if (fd.getConfig().getBoolean(Config.mysqlEnabled)) {
                             fd.getMySQL().clearPlaced(sender);
+                        } else {
+                            fd.getBlockPlaceListener().clearPlaced();
+                            sender.sendMessage(ChatColor.AQUA + "Placed blocks in memory cleared.");
                         }
                         fd.getFileHandler().deletePlaced(sender);
                     } else {
@@ -178,9 +181,6 @@ public class CommandHandler implements CommandExecutor {
             fd.getMenuHandler().printSaved(fd, sender);
         } else if (arg.equalsIgnoreCase("nick") || arg.equalsIgnoreCase("nicks")) {
             fd.getConfig().set(Config.useNick, !fd.getConfig().getBoolean(Config.useNick));
-            fd.getMenuHandler().printSaved(fd, sender);
-        } else if (arg.equalsIgnoreCase("debug")) {
-            fd.getConfig().set(Config.debug, !fd.getConfig().getBoolean(Config.debug));
             fd.getMenuHandler().printSaved(fd, sender);
         } else {
             sender.sendMessage(Prefix.getChatPrefix() + ChatColor.RED + " Argument '" + arg + "' unrecognized.");

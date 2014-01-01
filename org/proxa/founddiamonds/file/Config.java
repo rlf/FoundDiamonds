@@ -6,7 +6,6 @@ public class Config {
     public final static String disableInCreative = "Found Diamonds Configuration.Main.Disable in creative mode";
     public final static String opsAsFDAdmin = "Found Diamonds Configuration.Main.Give OPs all permissions";
 
-
     /*Light Level*/
     public final static String percentOfLightRequired = "Found Diamonds Configuration.Light Level.Minimum amount of light required to mine blocks";
     public final static String lightLevelAdminMessages = "Found Diamonds Configuration.Light Level.Send violation admin messages";
@@ -30,18 +29,9 @@ public class Config {
     /*Awards.Spells*/
     public final static String awardAllPotions = "Found Diamonds Configuration.Awards.Spells.Award all players";
     public final static String potionsForFindingDiamonds = "Found Diamonds Configuration.Awards.Spells.Random spells for finding diamonds";
+    public final static String potionList = "Found Diamonds Configuration.Awards.Spells.Possible potions";
     public final static String potionStrength = "Found Diamonds Configuration.Awards.Spells.Spell strength (1-5)";
     public final static String chanceToGetPotion = "Found Diamonds Configuration.Awards.Spells.Percent of time spells are casted";
-
-    /*Awards.Spells.Messages*/
-    public final static String jump = "Found Diamonds Configuration.Awards.Spells.Messages.Jump";
-    public final static String fireresist = "Found Diamonds Configuration.Awards.Spells.Messages.Fire Resistance";
-    public final static String strength = "Found Diamonds Configuration.Awards.Spells.Messages.Strength";
-    public final static String waterbreathe = "Found Diamonds Configuration.Awards.Spells.Messages.Water Breathing";
-    public final static String resist = "Found Diamonds Configuration.Awards.Spells.Messages.Resistance";
-    public final static String fastdig = "Found Diamonds Configuration.Awards.Spells.Messages.Fast Digging";
-    public final static String regeneration = "Found Diamonds Configuration.Awards.Spells.Messages.Regeneration";
-    public final static String speed = "Found Diamonds Configuration.Awards.Spells.Messages.Speed";
 
     /*Broadcasts*/
     public final static String broadcastedBlocks = "Found Diamonds Configuration.Broadcasts.Broadcasted Blocks";
@@ -67,9 +57,6 @@ public class Config {
     public final static String mysqlUrl = "Found Diamonds Configuration.MySQL.URL";
     public final static String mysqlPort = "Found Diamonds Configuration.MySQL.Port";
     public final static String mysqlPrefix = "Found Diamonds Configuration.MySQL.Prefix";
-
-    /*Debug*/
-    public final static String debug = "Found Diamonds Configuration.Debug.Enabled";
 
     /*Metrics*/
     public final static String metrics = "Found Diamonds Configuration.Metrics.Enabled";

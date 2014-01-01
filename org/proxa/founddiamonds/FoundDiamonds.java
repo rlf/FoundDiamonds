@@ -10,6 +10,7 @@ import org.proxa.founddiamonds.handlers.*;
 import org.proxa.founddiamonds.listeners.*;
 import org.proxa.founddiamonds.metrics.MetricsLite;
 import org.proxa.founddiamonds.sql.MySQL;
+import sun.util.logging.PlatformLogger;
 
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -57,22 +58,17 @@ public class FoundDiamonds extends JavaPlugin {
     private final MenuHandler menuHandler = new MenuHandler(this);
     private final BlockCounter blockTotal = new BlockCounter(this);
 
-    /*
-    Bugs:
-     */
-
    /*
    TODO:
     MenuHandler set area?
     Is clean logging in SQL a popular request?
     Customizable admin message formats!
     Customizable light level message formats!
-
-    Decide what to do about Debug.
     */
 
    /*
    Changelog:
+     
     */
 
 
@@ -86,6 +82,7 @@ public class FoundDiamonds extends JavaPlugin {
         log = this.getLogger();
         fileHandler.initFileVariables();
         fileHandler.checkFiles();
+        potionHandler.getPotionList();
         worldHandler.checkWorlds();
         mapHandler.loadAllBlocks();
         getCommand("fd").setExecutor(new CommandHandler(this));
@@ -190,7 +187,7 @@ public class FoundDiamonds extends JavaPlugin {
                 MetricsLite metrics = new MetricsLite(this);
                 metrics.start();
             } catch (IOException e) {
-                // we don't care
+                this.log.warning("Metrics failed to start - Ignoring.");
             }
         }
     }

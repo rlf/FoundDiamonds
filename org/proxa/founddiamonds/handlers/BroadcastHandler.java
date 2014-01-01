@@ -39,9 +39,6 @@ public class BroadcastHandler {
         DecimalFormat df = new DecimalFormat("##");
         df.setRoundingMode(RoundingMode.HALF_UP);
         String formattedPercent = df.format(lightPercent);
-        if (fd.getConfig().getBoolean(Config.debug)) {
-            System.out.println("Decimal: " + lightPercent + " Formatted: " + formattedPercent);
-        }
         String message = fd.getConfig().getString(Config.bcMessage).replace("@Prefix@", Prefix.getChatPrefix() + color).replace("@Player@",
                 getBroadcastName(player) + (fd.getConfig().getBoolean(Config.useOreColors) ? color : "")).replace("@Number@",
                 (blockTotal) == 500 ? "over 500" :String.valueOf(blockTotal)).replace("@BlockName@", matName).replace(

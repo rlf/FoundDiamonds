@@ -46,8 +46,10 @@ public class ItemHandler {
                 if (fd.getWorldHandler().isEnabledWorld(p)) {
                     p.sendMessage(ChatColor.GRAY + "Everyone else got " + amount +
                             " " + Format.getFormattedName(Material.getMaterial(item), amount));
-                    p.getInventory().addItem(new ItemStack(item, amount));
-                    p.updateInventory();
+                    if (p != player) {
+                        p.getInventory().addItem(new ItemStack(item, amount));
+                        p.updateInventory();
+                    }
                 }
             }
         } else {
@@ -59,6 +61,6 @@ public class ItemHandler {
     }
 
     private int getRandomItemAmount(){
-        return ((fd.getConfig().getInt(Config.maxItems)) + 1);
+        return ((fd.getConfig().getInt(Config.maxItems)));
     }
 }
