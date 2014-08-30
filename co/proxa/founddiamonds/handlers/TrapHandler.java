@@ -1,5 +1,6 @@
 package co.proxa.founddiamonds.handlers;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -212,6 +213,7 @@ public class TrapHandler {
 			fd.getServer().getConsoleSender().sendMessage(Prefix.getLoggingPrefix() + trapMessage);
 			boolean banned = false;
 			boolean kicked = false;
+            boolean command = false;
 			if (fd.getConfig().getBoolean(Config.kickOnTrapBreak)) {
 				String kickMessage = fd.getConfig().getString(Config.kickMessage);
 				player.kickPlayer(kickMessage);
@@ -221,8 +223,13 @@ public class TrapHandler {
 				player.setBanned(true);
 				banned = true;
 			}
+            if(fd.getConfig().getBoolean(Config.ExecutecommandOnTrapBreak)){
+                String commandString = fd.getConfig().getString(Config.commandOnTrapBreak).replaceAll("//@player@",player.getName());
+                Bukkit.getServer().dispatchCommand(player, commandString);
+                command = true;
+            }
 			if (fd.getConfig().getBoolean(Config.logTrapBreaks)) {
-				fd.getLoggingHandler().handleLogging(player, block, true, kicked, banned);
+				fd.getLoggingHandler().handleLogging(player, block, true, kicked, banned, command);
 			}
 		}
 	}

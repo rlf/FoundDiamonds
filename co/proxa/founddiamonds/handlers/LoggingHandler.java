@@ -24,7 +24,7 @@ public class LoggingHandler {
         this.fd = fd;
     }
 
-    public void handleLogging(Player player, Block block, boolean trapBlock, boolean kicked, boolean banned) {
+    public void handleLogging(Player player, Block block, boolean trapBlock, boolean kicked, boolean banned, boolean command) {
         try {
             PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fd.getFileHandler().getLogFile(), true)));
             pw.print("[" + getFormattedDate() + "]");
@@ -36,12 +36,15 @@ public class LoggingHandler {
                     + ") in " + player.getWorld().getName());
             if (trapBlock) {
                 pw.print("[" + getFormattedDate() + "]" + " [ACTION TAKEN] ");
-                if (kicked && !banned) {
+                if (kicked && !banned && !command) {
                     pw.println(player.getName() + " was kicked from the sever per the configuration.");
-                } else if (banned && !kicked) {
+                } else if (banned && !kicked && !command) {
                     pw.println(player.getName() + " was banned from the sever per the configuration.");
-                } else if (banned && kicked) {
+                }else if(!banned && !kicked && command){
+                    pw.println("Command was executed for "+player.getName()+" per the configuration");
+                } else if (banned && kicked && command) {
                     pw.println(player.getName() + " was kicked and banned from the sever per the configuration.");
+                    pw.println("Command was executed for "+player.getName()+" per the configuration");
                 } else {
                     pw.println(player.getName() + " was neither kicked nor banned per the configuration.");
                 }
